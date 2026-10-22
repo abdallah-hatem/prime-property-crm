@@ -1,0 +1,19 @@
+name: Set up the Postgres 17 client
+description: >-
+  Installs psql, pg_dump and pg_restore 17 from the PostgreSQL apt repository. pg_dump must be at
+  least the server's major version (Neon runs 17), and the runner image ships an older client.
+runs:
+  using: composite
+  steps:
+    - name: Install postgresql-client-17
+      shell: bash
+      run: |
+        set -euo pipefail
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq postgresql-common
+        sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+        sudo apt-get install -y -qq postgresql-client-17
+        echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+    - name: Show client version
+      shell: bash
+      run: /usr/lib/postgresql/17/bin/pg_dump --version

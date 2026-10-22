@@ -1,0 +1,129 @@
+# Restore drill: takes the newest backup from R2, restores it into a throwaway Postgres 17
+# service container and requires every table's row count to equal the source's at dump time
+# (counts recorded by scripts/backup-dump.sh from the dump's own snapshot). Also checks the
+# backup is fresh and the bucket's lifecycle rule still expires copies within 30 days.
+# Setup and secrets: docs/notes/backups.md.
+name: Backup restore drill
+
+on:
+  schedule:
+    - cron: "0 3 * * 0" # Sundays 03:00 UTC, after that night's backup
+  workflow_dispatch:
+    inputs:
+      name:
+        description: "Backup to restore, e.g. 2026-10-22 (default: the newest)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  issues: write # open an issue when the scheduled drill fails
+
+concurrency:
+  group: backup-restore-drill
+  cancel-in-progress: false
+
+jobs:
+  drill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          # Throwaway container reachable only from this job, so no password.
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_DB: drill
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+      R2_BUCKET: ${{ secrets.R2_BUCKET }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+      AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+      RESTORE_DATABASE_URL: postgresql://postgres@localhost:5432/drill
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-postgres-client
+
+      - name: Find the backup
+        id: pick
+        env:
+          REQUESTED: ${{ github.event.inputs.name }}
+        run: |
+          set -euo pipefail
+          if [[ -n "${REQUESTED:-}" ]]; then
+            if [[ ! "$REQUESTED" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+              echo "::error::name must look like YYYY-MM-DD"
+              exit 1
+            fi
+            name="$REQUESTED"
+          else
+            name=$(aws s3api list-objects-v2 --bucket "$R2_BUCKET" --prefix prime-crm/ \
+                --endpoint-url "$R2_ENDPOINT" --query 'Contents[].Key' --output text \
+              | tr '\t' '\n' \
+              | sed -nE 's#^prime-crm/([0-9]{4}-[0-9]{2}-[0-9]{2})\.dump$#\1#p' \
+              | sort | tail -n 1)
+            if [[ -z "$name" ]]; then
+              echo "::error::No backups found under prime-crm/ in the bucket"
+              exit 1
+            fi
+            age_days=$(( ( $(date -u +%s) - $(date -u -d "$name" +%s) ) / 86400 ))
+            if (( age_days > 2 )); then
+              echo "::error::Newest backup is $name, $age_days days old: the nightly job is not running"
+              exit 1
+            fi
+          fi
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "Restoring backup $name"
+
+      - name: Download
+        env:
+          NAME: ${{ steps.pick.outputs.name }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/drill"
+          for ext in dump counts.tsv; do
+            aws s3 cp "s3://$R2_BUCKET/prime-crm/$NAME.$ext" "$RUNNER_TEMP/drill/$NAME.$ext" \
+              --endpoint-url "$R2_ENDPOINT" --only-show-errors
+          done
+
+      - name: Restore and compare row counts
+        env:
+          NAME: ${{ steps.pick.outputs.name }}
+        run: |
+          set -euo pipefail
+          bash scripts/restore-drill.sh "$RUNNER_TEMP/drill/$NAME.dump" "$RUNNER_TEMP/drill/$NAME.counts.tsv" \
+            | tee "$RUNNER_TEMP/drill/result.txt"
+          {
+            echo "### Restore drill: $NAME"
+            sed 's/^/    /' "$RUNNER_TEMP/drill/result.txt"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Check the 30-day lifecycle rule
+        if: success() || failure()
+        env:
+          # Reading bucket config may need an Admin Read token; falls back to the backup token.
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ADMIN_ACCESS_KEY_ID || secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_ADMIN_SECRET_ACCESS_KEY || secrets.R2_SECRET_ACCESS_KEY }}
+        run: bash scripts/check-r2-lifecycle.sh
+
+      - name: Open an issue on failure
+        if: failure() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue create --repo "$GITHUB_REPOSITORY" \
+            --title "Backup restore drill failed ($(date -u +%F))" \
+            --body "The weekly restore drill failed: a backup may not restore, or the 30-day lifecycle rule is missing. Run: $RUN_URL"
