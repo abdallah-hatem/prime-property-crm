@@ -1,0 +1,26 @@
+/**
+ * Generic error codes the API's exception filter emits. Domain codes (EMAIL_TAKEN,
+ * PHONE_EXISTS, ...) are added next to the endpoint that raises them.
+ */
+export const ErrorCode = {
+  BAD_REQUEST: 'BAD_REQUEST',
+  VALIDATION_FAILED: 'VALIDATION_FAILED',
+  UNAUTHORIZED: 'UNAUTHORIZED',
+  FORBIDDEN: 'FORBIDDEN',
+  NOT_FOUND: 'NOT_FOUND',
+  METHOD_NOT_ALLOWED: 'METHOD_NOT_ALLOWED',
+  CONFLICT: 'CONFLICT',
+  GONE: 'GONE',
+  PAYLOAD_TOO_LARGE: 'PAYLOAD_TOO_LARGE',
+  UNSUPPORTED_MEDIA_TYPE: 'UNSUPPORTED_MEDIA_TYPE',
+  TOO_MANY_REQUESTS: 'TOO_MANY_REQUESTS',
+  INTERNAL_ERROR: 'INTERNAL_ERROR',
+  UNIQUE_VIOLATION: 'UNIQUE_VIOLATION',
+  FOREIGN_KEY_VIOLATION: 'FOREIGN_KEY_VIOLATION',
+  RELATION_VIOLATION: 'RELATION_VIOLATION',
+  DATABASE_ERROR: 'DATABASE_ERROR',
+} as const;
+export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
+
+/** A domain or generic code: UPPER_SNAKE_CASE. */
+export const ERROR_CODE_PATTERN = /^[A-Z][A-Z0-9_]*$/;
