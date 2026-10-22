@@ -79,18 +79,22 @@ export class ReminderRepository {
     return count;
   }
 
-  /** Closes (marks done at `at`) every open reminder of the targets (of `kinds` only, if given). */
+  /**
+   * Closes (marks done at `at`) every open reminder of the targets (of `kinds` only, if given).
+   * `byDelete` flags them as closed by the record's deletion, not done.
+   */
   async closeOpen(
     tx: Tx,
     targets: ReminderTargets,
     at: Date,
     kinds?: ReminderKind[],
+    byDelete = false,
   ): Promise<number> {
     const where = openOf(targets, kinds);
     if (!where) return 0;
     const { count } = await tx.reminder.updateMany({
       where,
-      data: { doneAt: at },
+      data: { doneAt: at, closedByDelete: byDelete },
     });
     return count;
   }

@@ -335,13 +335,22 @@ export class RemindersService {
    * Closes the open reminders of these owners/listings: all of them when a record is deleted
    * (business doc: Reminder), or only `kinds` (listings: the take-down task once the ad is
    * Taken down, the check-in once it is recorded).
+   *
+   * Without `kinds` the record is being deleted: the reminders are flagged `closedByDelete`, so
+   * analytics doesn't count them as done.
    */
   closeOpenReminders(
     tx: Tx,
     targets: ReminderTargets,
     kinds?: ReminderKind[],
   ): Promise<number> {
-    return this.reminders.closeOpen(tx, targets, this.clock.now(), kinds);
+    return this.reminders.closeOpen(
+      tx,
+      targets,
+      this.clock.now(),
+      kinds,
+      kinds === undefined,
+    );
   }
 
   /**

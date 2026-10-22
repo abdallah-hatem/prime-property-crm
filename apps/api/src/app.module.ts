@@ -24,6 +24,9 @@ import { MeModule } from './domains/me/me.module';
 import { ListingsModule } from './domains/listings/listings.module';
 import { PhotosModule } from './domains/photos/photos.module';
 import { UploadsModule } from './domains/uploads/uploads.module';
+import { AnalyticsModule } from './domains/analytics/analytics.module';
+import { ExportsModule } from './domains/exports/exports.module';
+import { CronModule } from './domains/cron/cron.module';
 
 @Module({
   imports: [
@@ -50,6 +53,9 @@ import { UploadsModule } from './domains/uploads/uploads.module';
     ListingsModule,
     PhotosModule,
     UploadsModule,
+    AnalyticsModule,
+    ExportsModule,
+    CronModule,
   ],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },

@@ -67,6 +67,33 @@ export const LISTING_DETAIL_SELECT = {
   },
 } as const satisfies Prisma.ListingSelect;
 
+/** The columns behind a listings-export row (T11). */
+export const LISTING_EXPORT_SELECT = {
+  purpose: true,
+  type: true,
+  area: true,
+  compound: true,
+  address: true,
+  price: true,
+  sizeSqm: true,
+  bedrooms: true,
+  bathrooms: true,
+  floor: true,
+  furnishing: true,
+  status: true,
+  adStatus: true,
+  adLink: true,
+  ownerName: true,
+  ownerPhone: true,
+  assignedToId: true,
+  assignedTo: { select: { id: true, name: true } },
+  createdAt: true,
+} as const satisfies Prisma.ListingSelect;
+
+export type ListingExportData = Prisma.ListingGetPayload<{
+  select: typeof LISTING_EXPORT_SELECT;
+}>;
+
 export type ListingRowData = Prisma.ListingGetPayload<{
   select: typeof LISTING_ROW_SELECT;
 }>;
@@ -229,6 +256,20 @@ export class ListingRepository extends SoftDeleteRepository<
       this.db.listing.count({ where }),
     ]);
     return { rows, total };
+  }
+
+  /** Up to `take` export rows (T11), in the search order. */
+  findExportRows(
+    where: Prisma.ListingWhereInput,
+    orderBy: Prisma.ListingOrderByWithRelationInput[],
+    take: number,
+  ): Promise<ListingExportData[]> {
+    return this.db.listing.findMany({
+      where,
+      orderBy,
+      take,
+      select: LISTING_EXPORT_SELECT,
+    });
   }
 
   // ------------------------------------------------------------------ one listing

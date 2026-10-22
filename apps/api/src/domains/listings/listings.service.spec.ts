@@ -650,4 +650,78 @@ describe('ListingsService', () => {
       );
     });
   });
+  describe('exportRows (T11 export)', () => {
+    const exportRow = (assignedToId: string | null) => ({
+      purpose: 'SALE',
+      type: 'VILLA',
+      area: 'Zayed',
+      compound: null,
+      address: null,
+      price: 5_000_000,
+      sizeSqm: 300,
+      bedrooms: 4,
+      bathrooms: 3,
+      floor: null,
+      furnishing: null,
+      status: 'AVAILABLE',
+      adStatus: 'NOT_POSTED',
+      adLink: null,
+      ownerName: 'Owner',
+      ownerPhone: '+201001234567',
+      assignedToId,
+      assignedTo: assignedToId ? { id: assignedToId, name: 'M' } : null,
+      createdAt: NOW,
+    });
+    const caller = (permissions: string[]): CurrentUser => ({
+      id: 'me',
+      roleId: 'r',
+      permissions: permissions as CurrentUser['permissions'],
+      isAdmin: false,
+    });
+
+    it('shows the owner only where the caller may see the phone', async () => {
+      const { svc, m } = makeService({
+        listings: {
+          count: jest.fn().mockResolvedValue(2),
+          findExportRows: jest
+            .fn()
+            .mockResolvedValue([exportRow('me'), exportRow('other')]),
+        },
+      });
+      const out = await svc.exportRows({}, caller(['data.export']), 50_000);
+      expect(out.rows.map((r) => r.ownerPhone)).toEqual([
+        '+201001234567',
+        null,
+      ]);
+      expect(out.rows.map((r) => r.ownerName)).toEqual(['Owner', null]);
+      expect(out.rows[0].title).toBe('Villa · 4 BR · Zayed');
+      expect(m.listings.whereOf).toHaveBeenCalledWith(
+        expect.objectContaining({ statuses: ['AVAILABLE'] }),
+      );
+
+      const all = await svc.exportRows(
+        {},
+        caller(['listings.manageAll']),
+        50_000,
+      );
+      expect(all.rows.map((r) => r.ownerPhone)).toEqual([
+        '+201001234567',
+        '+201001234567',
+      ]);
+    });
+
+    it('over the limit: counts only, reads no rows', async () => {
+      const { svc, m } = makeService({
+        listings: {
+          count: jest.fn().mockResolvedValue(50_001),
+          findExportRows: jest.fn(),
+        },
+      });
+      expect(await svc.exportRows({}, caller([]), 50_000)).toEqual({
+        total: 50_001,
+        rows: [],
+      });
+      expect(m.listings.findExportRows).not.toHaveBeenCalled();
+    });
+  });
 });

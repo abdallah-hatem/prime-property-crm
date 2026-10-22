@@ -392,6 +392,9 @@ model Reminder {
   dueAt       DateTime     @map("due_at")
   note        String?
   doneAt      DateTime?    @map("done_at")
+  /// Closed because its owner or listing was deleted, not done by anyone: analytics doesn't
+  /// count it as done.
+  closedByDelete Boolean   @default(false) @map("closed_by_delete")
   createdById String?      @map("created_by_id") @db.Uuid
   createdAt   DateTime     @default(now()) @map("created_at")
   updatedAt   DateTime     @updatedAt @map("updated_at")

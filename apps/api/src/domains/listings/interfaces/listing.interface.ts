@@ -40,3 +40,27 @@ export interface ListingFilter {
   checkInDue?: { due: boolean; before: Date };
   search?: ListingSearch;
 }
+
+/** A listings-export row (T11): the search row's fields plus details; owner only where visible. */
+export interface ListingExportRow {
+  title: string;
+  purpose: ListingPurpose;
+  type: PropertyType;
+  area: string;
+  compound: string | null;
+  address: string | null;
+  price: number;
+  sizeSqm: number;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  floor: number | null;
+  furnishing: 'UNFURNISHED' | 'SEMI_FURNISHED' | 'FURNISHED' | null;
+  status: ListingStatus;
+  adStatus: AdStatus;
+  adLink: string | null;
+  /** Null where the caller may not see the owner's phone. */
+  ownerName: string | null;
+  ownerPhone: string | null;
+  assignedTo: { id: string; name: string } | null;
+  createdAt: Date;
+}
