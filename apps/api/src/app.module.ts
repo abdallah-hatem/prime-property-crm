@@ -12,6 +12,7 @@ import { ActivityModule } from './domains/activity/activity.module';
 import { AuthModule } from './domains/auth/auth.module';
 import { HealthModule } from './domains/health/health.module';
 import { TrashModule } from './domains/trash/trash.module';
+import { UsersModule } from './domains/users/users.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { TrashModule } from './domains/trash/trash.module';
     HealthModule,
     ActivityModule,
     TrashModule,
+    UsersModule,
   ],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },

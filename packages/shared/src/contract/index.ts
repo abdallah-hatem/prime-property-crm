@@ -5,3 +5,5 @@ export * from './errors';
 export * from './outcomes';
 export * from './permissions';
 export * from './trash';
+export * from './roles';
+export * from './users';

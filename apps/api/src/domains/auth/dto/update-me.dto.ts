@@ -1,7 +1,6 @@
 import {
   LanguageSchema,
   NAME_MAX_LENGTH,
-  normalizePhone,
   type Language,
 } from '@prime-crm/shared';
 import { Transform } from 'class-transformer';
@@ -12,25 +11,8 @@ import {
   IsString,
   MaxLength,
   ValidateIf,
-  ValidationArguments,
-  registerDecorator,
 } from 'class-validator';
-
-/** A phone `normalizePhone` accepts (as typed: local, +20, spaces...). */
-function IsPhone() {
-  return (target: object, propertyName: string) =>
-    registerDecorator({
-      name: 'isPhone',
-      target: target.constructor,
-      propertyName,
-      validator: {
-        validate: (value: unknown) =>
-          typeof value === 'string' && normalizePhone(value).ok,
-        defaultMessage: (args?: ValidationArguments) =>
-          `${args?.property ?? 'phone'} must be a valid phone number`,
-      },
-    });
-}
+import { IsPhone } from '../../../common/validators/is-phone.validator';
 
 /**
  * `PATCH /auth/me` (mirrors UpdateMeRequestSchema): name, phone, language only. Role, email and

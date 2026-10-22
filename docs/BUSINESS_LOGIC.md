@@ -1,6 +1,6 @@
 # Prime Property CRM — Business Logic
 
-Last updated: 2026-10-22 (T4) · Source spec: `docs/specs/2026-10-22-property-crm.md`
+Last updated: 2026-10-22 (T5) · Source spec: `docs/specs/2026-10-22-property-crm.md`
 
 This file is what the business is and how it behaves **now**. Every behavior change updates it in the
 same commit. Items not built yet are marked **Planned**. Nothing is built yet: everything below is the
@@ -25,6 +25,15 @@ The system does not handle money: no payments, commissions or invoices.
   member are built in and cannot be deleted.
 
 Accounts are created by the admin only. A deactivated user cannot sign in, and their history stays.
+
+**Users and roles (built, T5).** Two users never share an email, compared ignoring case and
+surrounding spaces. The last active user on the Admin role can't be moved to another role, even by
+themself; two admins demoting each other at the same moment leave one of them an admin. Role names
+are unique ignoring case. Both built-in roles can be renamed; Admin always holds every permission
+and its list can't be edited; Team member's list can. A role still held by any user, deactivated
+users included, can't be deleted. A permission change reaches each signed-in user with their next
+access token (within 15 minutes). Creating or editing a user, resetting a password, and creating,
+editing or deleting a role each write one activity entry; saving with nothing changed writes none.
 
 **Signing in (built, T4).** Email and password; the email ignores case and surrounding spaces. A
 wrong password, an unknown email and a deactivated account get the same answer, so nobody can tell
