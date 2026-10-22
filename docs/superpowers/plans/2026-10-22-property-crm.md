@@ -273,6 +273,7 @@ alone in its wave against any other schema-changing task.
 - [ ] Purge cron without the secret → 401 (contract)
 - [ ] Purge removes only records deleted > 30 days ago, deletes their Blob files, keeps calls (invariant: calls never deleted; owners with calls → calls kept with owner name snapshot)
 - [ ] Ad safety-net cron: LIVE ad with no open check-in gets one; LIVE ad with one gets none extra (contract)
+- [ ] Purge cron also deletes refresh tokens expired > 30 days and login attempts older than 1 day (T4 follow-up)
 - [ ] Ad safety-net cron skips listings that aren't AVAILABLE or are deleted (business: check-ins only while for sale)
 - [ ] Stats: assignedOwners and adsLive counted at the range end; adsTakenDown, interestedOwners, listingsCreated, remindersDone counted inside the range (contract: Stats)
 - [ ] Team totals equal the sum of members (contract)
