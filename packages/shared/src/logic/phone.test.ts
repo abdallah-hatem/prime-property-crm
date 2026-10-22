@@ -29,7 +29,7 @@ describe('normalizePhone', () => {
   });
 
   it('ignores the bidi marks an Arabic keyboard adds', () => {
-    expect(toE164('‎0100 123 4567‏')).toBe('+201001234567');
+    expect(toE164('\u200e0100 123 4567\u200f')).toBe('+201001234567');
   });
 
   it('rejects a mobile number with a 12th digit', () => {

@@ -18,7 +18,7 @@ export type PhoneResult =
   { ok: true; e164: string } | { ok: false; reason: PhoneRejection };
 
 /** Spaces, dashes, dots, brackets and the bidi marks Arabic keyboards insert. */
-const SEPARATORS = /[\s\-.()‎‏]/g;
+const SEPARATORS = /[\s\-.()\u200e\u200f]/g;
 const EG_MOBILE = /^1[0125]\d{8}$/;
 const EG_CAIRO = /^2\d{8}$/;
 const EG_ALEX = /^3\d{7}$/;
