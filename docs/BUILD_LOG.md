@@ -3,7 +3,7 @@ Run mode: fully autonomous — chosen by the user on 2026-10-22
 Goal (current): a mobile-first CRM for Prime's real estate team — owner leads, calls, listings,
 Property Finder follow-up, admin analytics and backups · spec `docs/specs/2026-10-22-property-crm.md`
 · plan `docs/superpowers/plans/2026-10-22-property-crm.md`
-Current stage: 6 — Build · T0–T7, T12, T18, T19 done (local dev) · Wave 7: T8 listings ∥ T13 calling screens running.
+Current stage: 6 — Build · T0–T8, T12, T18, T19 done (local dev) · Wave 8: T9 ∥ T10 ∥ T11 ∥ T14 running, T13 finishing.
 
 ## Waiting on the user
 - GitHub write access: the active gh account (Abdallah-Kortam10) can't push to abdallah-hatem/prime-property-crm. The user runs `gh auth switch -u abdallah-hatem` (Claude Code's safety check refuses to use the other account's token itself). Everything stays on local branches until then.
@@ -13,7 +13,7 @@ Current stage: 6 — Build · T0–T7, T12, T18, T19 done (local dev) · Wave 7:
 - (none)
 
 ## Next up
-- Next after T8: T9 imports ∥ T10 admin ops ∥ T11 analytics ∥ T14 listings screens.
+- Next: T15 owners admin + imports UI, T16 admin screens, T17 analytics UI; then Verify.
 
 ## Phases
 - Build — [waves](build-log/waves/foundation/)

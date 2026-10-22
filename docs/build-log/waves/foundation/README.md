@@ -22,3 +22,5 @@
 - T18 merged (073b340) · verify: lint/tc 0, web 36 tests; icons look right. Real-phone checks (install prompt, maskable icon, iOS status bar, notch, no zoom) → listed for the user at the end.
 - T7 merged (d8375dd) · verify: lint/tc 0; unit 52+441+36; e2e 232/232 · contract updated with new codes · alignment review running.
 - Wave 7: T8 listings (agent 8, api) ∥ T13 calling screens (agent 3, web).
+- T8 merged (61a8eb9) after two stalls (resumed; long commands now bounded). Verify: lint/tc 0; unit 59+606+36; e2e 57 + 232 (two bounded calls). Review DOC OUT OF DATE → delete is manageAll-only added. Note for the user: a holder of listings.create can link another member's lead by typing its phone (doc states it).
+- Wave 8: T9 imports (agent 1) ∥ T10 admin ops (agent 4) ∥ T11 analytics+exports+crons (agent 5) ∥ T14 listings screens (agent 6, web) · T13 still finishing (agent 3) · API tasks each add one module to app.module (additive); T14 and T13 both in apps/web — T14 creates only new files under listings routes/components and a `listings` locale namespace.
