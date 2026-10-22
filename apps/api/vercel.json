@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nestjs",
+  "buildCommand": "cd ../.. && npm run build:shared && npm run prisma:generate -w @prime-crm/api && npm run build -w @prime-crm/api",
+  "regions": ["fra1"],
+  "crons": [
+    { "path": "/api/internal/cron/purge", "schedule": "0 1 * * *" },
+    { "path": "/api/internal/cron/ad-check-ins", "schedule": "0 4 * * *" }
+  ]
+}

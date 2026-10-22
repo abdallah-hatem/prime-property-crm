@@ -1,0 +1,95 @@
+# Nightly database backup: pg_dump (Postgres 17, custom format, gzip inside the archive) of
+# production, uploaded to Cloudflare R2 as prime-crm/YYYY-MM-DD.dump, plus the row counts taken
+# from the same snapshot (prime-crm/YYYY-MM-DD.counts.tsv) for the restore drill.
+# Old copies are removed by the bucket's 30-day lifecycle rule (scripts/r2-lifecycle.json).
+# Setup and secrets: docs/notes/backups.md.
+name: Backup
+
+on:
+  schedule:
+    - cron: "30 0 * * *" # 00:30 UTC (02:30 / 03:30 Cairo), before the 01:00 UTC purge cron
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write # open an issue when the scheduled backup fails
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+      R2_BUCKET: ${{ secrets.R2_BUCKET }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      # R2 rejects some checksums that newer aws cli versions send by default.
+      AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+      AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check secrets are set
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+        run: |
+          missing=()
+          for name in DATABASE_URL R2_ACCOUNT_ID R2_BUCKET AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY; do
+            [[ -n "${!name:-}" ]] || missing+=("$name")
+          done
+          if (( ${#missing[@]} )); then
+            echo "::error::Missing secrets (AWS_* come from R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY): ${missing[*]}"
+            exit 1
+          fi
+
+      - uses: ./.github/actions/setup-postgres-client
+
+      - name: Dump the database
+        id: dump
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          name="$(date -u +%F)"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          bash scripts/backup-dump.sh "$RUNNER_TEMP/backup" "$name"
+
+      - name: Upload to R2
+        env:
+          NAME: ${{ steps.dump.outputs.name }}
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/backup"
+          for ext in dump counts.tsv; do
+            file="$dir/$NAME.$ext"
+            key="prime-crm/$NAME.$ext"
+            aws s3 cp "$file" "s3://$R2_BUCKET/$key" --endpoint-url "$R2_ENDPOINT" --only-show-errors
+            remote=$(aws s3api head-object --bucket "$R2_BUCKET" --key "$key" \
+              --endpoint-url "$R2_ENDPOINT" --query ContentLength --output text)
+            local_size=$(stat -c %s "$file")
+            if [[ "$remote" != "$local_size" ]]; then
+              echo "::error::$key uploaded with $remote bytes, expected $local_size"
+              exit 1
+            fi
+            echo "Uploaded $key ($local_size bytes)"
+          done
+          {
+            echo "### Backup $NAME"
+            echo "- prime-crm/$NAME.dump: $(stat -c %s "$dir/$NAME.dump") bytes"
+            echo "- $(wc -l < "$dir/$NAME.counts.tsv") tables counted"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open an issue on failure
+        if: failure() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue create --repo "$GITHUB_REPOSITORY" \
+            --title "Nightly backup failed ($(date -u +%F))" \
+            --body "The nightly database backup did not complete; no new copy is in R2 for today. Run: $RUN_URL"

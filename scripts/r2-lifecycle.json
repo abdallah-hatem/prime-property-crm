@@ -1,0 +1,11 @@
+{
+  "Rules": [
+    {
+      "ID": "expire-prime-crm-backups-after-30-days",
+      "Status": "Enabled",
+      "Filter": { "Prefix": "prime-crm/" },
+      "Expiration": { "Days": 30 },
+      "AbortIncompleteMultipartUpload": { "DaysAfterInitiation": 1 }
+    }
+  ]
+}
