@@ -35,7 +35,7 @@ const USER = 'USER';
 
 /**
  * Accounts, managed by users with `users.manage`. Every change writes the activity log in the
- * same transaction. Deactivation and reactivation live in admin-ops (they move work around).
+ * same transaction. Deactivation and reactivation live in UserStatusService (they move work around).
  */
 @Injectable()
 export class UsersService {

@@ -1,6 +1,6 @@
 # Prime Property CRM — Business Logic
 
-Last updated: 2026-10-23 (T5, T6, T7, T8) · Source spec: `docs/specs/2026-10-22-property-crm.md`
+Last updated: 2026-10-23 (T5, T6, T7, T8, T10) · Source spec: `docs/specs/2026-10-22-property-crm.md`
 
 This file is what the business is and how it behaves **now**. Every behavior change updates it in the
 same commit. Items not built yet are marked **Planned**. Nothing is built yet: everything below is the
@@ -45,6 +45,22 @@ ended (a copied key stops working); within 30 seconds it still works, so two ope
 once don't sign the user out. A deactivated user is locked out at once,
 even mid-session. Changing your own password ends your other sessions; a password reset by the admin
 ends all of them. Role and permission changes reach a signed-in user within 15 minutes.
+
+**Deactivation and reactivation (built, T10).** Deactivating needs a hand-over choice: an active
+user other than the one being deactivated, or nobody. In one step, every live owner and listing of
+theirs goes to that choice together with its open reminders (an owner's listing moves with it, and
+each owner's assignment history records the move); calls and done reminders stay theirs, and owners
+or listings already in the trash are left as they are (restored later, they come back unassigned).
+All their sessions end and the change is one activity entry with what moved. If any part fails,
+nothing changes. Nobody can deactivate themself, and the last active admin can't be deactivated;
+two admins deactivating each other at the same moment leave one of them active. Deactivating
+someone already deactivated, or reactivating someone active, changes and logs nothing.
+Reactivated users can sign in again and start with no owners, listings or reminders.
+
+**Settings (built, T10).** Everyone signed in can read the ad check-in interval; changing it
+(1 to 90 whole days) writes one activity entry with the old and new value, and saving the same
+value writes none. Open check-ins keep their due time; the new interval applies from the next
+check-in scheduled.
 
 ## Entities and rules
 
