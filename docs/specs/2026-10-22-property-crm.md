@@ -323,10 +323,10 @@ same file**. Confirm checks again, since owners may have been added after the pr
 
 | Endpoint | Who | Body / query | Returns | Errors |
 |---|---|---|---|---|
-| `POST /owners/:id/calls` | own owner only | `{ phone, clientRequestId }` (phone: one of the owner's; `clientRequestId`: a UUID, a repeat returns the same call) | `Call`; the web then opens `tel:` | `404` · `409 DO_NOT_CALL` · `409 OWNER_LISTED` |
-| `POST /calls/:id/outcome` | the call's member | `{ outcomeId, note?, reminder?: { dueAt, note? } }` | `Call`; sets the lead status by the outcome's mapping unless a later call already has an outcome, and creates the reminder | `409 OUTCOME_ALREADY_SET` · `400 OUTCOME_HIDDEN` · `400 REMINDER_IN_PAST` |
+| `POST /owners/:id/calls` | own owner only | `{ phone, clientRequestId }` (phone: one of the owner's; `clientRequestId`: a UUID, a repeat returns the same call) | `Call`; the web then opens `tel:` | `404` · `409 DO_NOT_CALL` · `409 OWNER_LISTED` · `400 PHONE_NOT_OWNERS` · `409 REQUEST_ID_REUSED` (same id, different owner) |
+| `POST /calls/:id/outcome` | the call's member | `{ outcomeId, note?, reminder?: { dueAt, note? } }` | `Call`; sets the lead status by the outcome's mapping unless a later call already has an outcome, and creates the reminder | `409 OUTCOME_ALREADY_SET` · `400 OUTCOME_HIDDEN` · `400 REMINDER_IN_PAST` · `404` unknown outcome |
 | `GET /calls` | any (own without `analytics.view`) | `memberId, ownerId, outcomeId, from, to, missingOutcome, page, limit` | `Call[]` newest first | — |
-| `GET /call-outcomes` | any | `includeHidden` (`settings.manage`) | `CallOutcome[]` by `order` | — |
+| `GET /call-outcomes` | any, *picker* | `includeHidden` (`settings.manage`) | `CallOutcome[]` by `order` | — |
 | `POST /call-outcomes` | `settings.manage` | `{ labelEn, labelAr, setsStatus }` | `CallOutcome` | `400` for `setsStatus: LISTED` |
 | `PATCH /call-outcomes/:id` | `settings.manage` | `{ labelEn?, labelAr?, setsStatus?, hidden?, order? }` | `CallOutcome` | `400` for `setsStatus: LISTED` |
 | `DELETE /call-outcomes/:id` | `settings.manage` | — | `null` | `409 OUTCOME_IN_USE` (hide it instead) |
