@@ -262,6 +262,7 @@ alone in its wave against any other schema-changing task.
 - [ ] Restore an item that isn't in the trash → 404 (checklist: wrong state)
 
 ### T10b — Assign vs deactivate race
+- Also extract the ASSIGN activity entry text (now written in owners, listings and imports) into the assignment domain — one helper, three callers.
 - [ ] Assigning owners to a member while that member is being deactivated → the assign is refused (400 INVALID_ASSIGNEE) or the owners end up with the hand-over recipient; never on the inactive member (invariant: assign only to active members)
 
 ### T11 — Analytics, exports, crons
