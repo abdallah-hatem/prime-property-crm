@@ -11,7 +11,16 @@
     "search": "Search",
     "team": "Team",
     "settings": "Settings",
-    "mainNavigation": "Main navigation"
+    "mainNavigation": "Main navigation",
+    "more": "More",
+    "users": "Users",
+    "roles": "Roles",
+    "imports": "Imports",
+    "analytics": "Analytics",
+    "trash": "Trash",
+    "activity": "Activity",
+    "admin": "Admin",
+    "primary": "Primary"
   },
   "theme": {
     "label": "Theme",
@@ -32,7 +41,9 @@
     "needsOutcome": "Needs an outcome",
     "outcomeMissing": "Outcome missing",
     "addOutcome": "Add outcome",
-    "newOwners": "New owners"
+    "newOwners": "New owners",
+    "emptyTitle": "You're all caught up",
+    "emptyBody": "Calls and reminders due today will show here."
   },
   "action": {
     "call": "Call",
@@ -70,6 +81,60 @@
     "NOT_FOUND": "We couldn't find that. It may have been deleted.",
     "VALIDATION_FAILED": "Some fields need fixing.",
     "CONFLICT": "That clashes with existing data.",
-    "INTERNAL_ERROR": "Something went wrong on our side. Try again."
+    "INTERNAL_ERROR": "Something went wrong on our side. Try again.",
+    "INVALID_CREDENTIALS": "Email or password is incorrect.",
+    "TOO_MANY_REQUESTS": "Too many tries. Wait a few minutes, then try again."
+  },
+  "auth": {
+    "title": "Sign in",
+    "subtitle": "Use the email and password your admin gave you.",
+    "email": "Email",
+    "emailPlaceholder": "name@company.com",
+    "password": "Password",
+    "passwordPlaceholder": "Your password",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "emailRequired": "Enter your email.",
+    "emailInvalid": "Enter a valid email, like name@company.com.",
+    "passwordRequired": "Enter your password.",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "noAccount": "No account? Ask your admin to create one."
+  },
+  "account": {
+    "menu": "Account",
+    "signOut": "Sign out",
+    "signingOut": "Signing out…",
+    "preferences": "Preferences"
+  },
+  "comingSoon": {
+    "title": "Coming soon",
+    "body": "This page is being built. It will appear here once it's ready."
+  },
+  "list": {
+    "emptyTitle": "Nothing here yet",
+    "previous": "Previous page",
+    "next": "Next page",
+    "pageOf": "Page {page} of {pages}",
+    "range": "{from}–{to} of {total}",
+    "pagination": "Pagination",
+    "loading": "Loading"
+  },
+  "dialog": {
+    "close": "Close",
+    "confirm": "Confirm",
+    "working": "Working…"
+  },
+  "form": {
+    "required": "Required",
+    "phoneInvalid": "Enter an 11-digit mobile number starting with 01.",
+    "phonePlaceholder": "01012345678"
+  },
+  "money": {
+    "amount": "EGP {amount}"
+  },
+  "shell": {
+    "unavailableTitle": "Can't reach the server",
+    "unavailableBody": "Check your connection, then try again."
   }
 }
