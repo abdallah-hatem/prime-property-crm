@@ -1,0 +1,23 @@
+{
+  "name": "prime-property-crm",
+  "private": true,
+  "description": "Prime Property CRM — monorepo (NestJS API, Next.js web, shared contract)",
+  "engines": {
+    "node": ">=24"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "postinstall": "npm run build -w @prime-crm/shared && npm run prisma:generate -w @prime-crm/api",
+    "build:shared": "npm run build -w @prime-crm/shared",
+    "lint": "npm run build:shared && npm run lint --workspaces --if-present",
+    "typecheck": "npm run build:shared && npm run typecheck --workspaces --if-present",
+    "test": "npm run build:shared && npm run test --workspaces --if-present",
+    "dev:api": "npm run start:dev -w @prime-crm/api",
+    "dev:web": "npm run dev -w @prime-crm/web",
+    "db:up": "docker compose -p prime-crm up -d",
+    "db:down": "docker compose -p prime-crm down"
+  }
+}
