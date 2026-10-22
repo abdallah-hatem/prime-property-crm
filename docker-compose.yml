@@ -1,0 +1,28 @@
+# Local infrastructure for Prime Property CRM.
+# Run with the project name prime-crm:  docker compose -p prime-crm up -d   (or: npm run db:up)
+# Host Postgres port 5442 (never 5432) so it runs beside other projects' databases.
+# Databases: prime_crm (development) and prime_crm_test (e2e only; teardown deletes rows there).
+name: prime-crm
+
+services:
+  db:
+    image: postgres:17
+    container_name: prime-crm-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: prime_crm
+    ports:
+      - '5442:5432'
+    volumes:
+      - prime-crm-pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d prime_crm']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  prime-crm-pgdata:
+    name: prime-crm-pgdata

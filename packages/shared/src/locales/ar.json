@@ -1,0 +1,75 @@
+{
+  "app": {
+    "name": "برايم CRM",
+    "tagline": "الملاك والمكالمات والوحدات لفريق برايم",
+    "skipToContent": "انتقل إلى المحتوى"
+  },
+  "nav": {
+    "today": "اليوم",
+    "owners": "الملاك",
+    "listings": "الوحدات",
+    "search": "بحث",
+    "team": "الفريق",
+    "settings": "الإعدادات",
+    "mainNavigation": "التنقل الرئيسي"
+  },
+  "theme": {
+    "label": "المظهر",
+    "light": "فاتح",
+    "dark": "داكن",
+    "system": "حسب الجهاز"
+  },
+  "language": {
+    "label": "اللغة",
+    "en": "English",
+    "ar": "العربية"
+  },
+  "today": {
+    "title": "اليوم",
+    "overdue": "متأخرة",
+    "dueToday": "مستحقة اليوم",
+    "noOutcome": "بدون نتيجة",
+    "needsOutcome": "بانتظار نتيجة",
+    "outcomeMissing": "نتيجة المكالمة غير مسجلة",
+    "addOutcome": "سجّل النتيجة",
+    "newOwners": "ملاك جدد"
+  },
+  "action": {
+    "call": "اتصال",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "retry": "حاول مرة أخرى"
+  },
+  "leadStatus": {
+    "NEW": "جديد",
+    "CONTACTED": "تم التواصل",
+    "INTERESTED": "مهتم",
+    "NOT_INTERESTED": "غير مهتم",
+    "CALL_BACK": "معاودة الاتصال",
+    "LISTED": "معروضة",
+    "DO_NOT_CALL": "عدم الاتصال"
+  },
+  "adStatus": {
+    "NOT_POSTED": "غير منشور",
+    "LIVE": "الإعلان منشور",
+    "TAKEN_DOWN": "تم الإيقاف"
+  },
+  "listingStatus": {
+    "AVAILABLE": "متاحة",
+    "SOLD": "مباعة",
+    "RENTED": "مؤجرة",
+    "OFF_MARKET": "خارج السوق"
+  },
+  "error": {
+    "generic": "حدث خطأ. حاول مرة أخرى.",
+    "network": "تعذر الوصول إلى الخادم. تحقق من الاتصال وحاول مرة أخرى.",
+    "notFound": "هذه الصفحة غير موجودة.",
+    "UNAUTHORIZED": "انتهت جلستك. سجّل الدخول مرة أخرى.",
+    "FORBIDDEN": "ليس لديك صلاحية لهذا الإجراء.",
+    "NOT_FOUND": "لم نجد هذا العنصر. ربما تم حذفه.",
+    "VALIDATION_FAILED": "بعض الحقول تحتاج إلى تصحيح.",
+    "CONFLICT": "يتعارض هذا مع بيانات موجودة.",
+    "INTERNAL_ERROR": "حدث خطأ من جهتنا. حاول مرة أخرى."
+  }
+}

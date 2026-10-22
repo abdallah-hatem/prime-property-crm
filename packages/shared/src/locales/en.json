@@ -1,0 +1,75 @@
+{
+  "app": {
+    "name": "Prime CRM",
+    "tagline": "Owners, calls and listings for the Prime team",
+    "skipToContent": "Skip to content"
+  },
+  "nav": {
+    "today": "Today",
+    "owners": "Owners",
+    "listings": "Listings",
+    "search": "Search",
+    "team": "Team",
+    "settings": "Settings",
+    "mainNavigation": "Main navigation"
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "ar": "العربية"
+  },
+  "today": {
+    "title": "Today",
+    "overdue": "Overdue",
+    "dueToday": "Due today",
+    "noOutcome": "No outcome",
+    "needsOutcome": "Needs an outcome",
+    "outcomeMissing": "Outcome missing",
+    "addOutcome": "Add outcome",
+    "newOwners": "New owners"
+  },
+  "action": {
+    "call": "Call",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "retry": "Try again"
+  },
+  "leadStatus": {
+    "NEW": "New",
+    "CONTACTED": "Contacted",
+    "INTERESTED": "Interested",
+    "NOT_INTERESTED": "Not interested",
+    "CALL_BACK": "Call back",
+    "LISTED": "Listed",
+    "DO_NOT_CALL": "Do not call"
+  },
+  "adStatus": {
+    "NOT_POSTED": "Not posted",
+    "LIVE": "Ad live",
+    "TAKEN_DOWN": "Taken down"
+  },
+  "listingStatus": {
+    "AVAILABLE": "Available",
+    "SOLD": "Sold",
+    "RENTED": "Rented",
+    "OFF_MARKET": "Off market"
+  },
+  "error": {
+    "generic": "Something went wrong. Try again.",
+    "network": "Can't reach the server. Check your connection and try again.",
+    "notFound": "This page doesn't exist.",
+    "UNAUTHORIZED": "Your session has ended. Sign in again.",
+    "FORBIDDEN": "You don't have permission to do that.",
+    "NOT_FOUND": "We couldn't find that. It may have been deleted.",
+    "VALIDATION_FAILED": "Some fields need fixing.",
+    "CONFLICT": "That clashes with existing data.",
+    "INTERNAL_ERROR": "Something went wrong on our side. Try again."
+  }
+}
