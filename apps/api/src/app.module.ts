@@ -18,6 +18,9 @@ import { LookupsModule } from './domains/lookups/lookups.module';
 import { NotesModule } from './domains/notes/notes.module';
 import { OwnersModule } from './domains/owners/owners.module';
 import { RemindersModule } from './domains/reminders/reminders.module';
+import { CallOutcomesModule } from './domains/call-outcomes/call-outcomes.module';
+import { CallsModule } from './domains/calls/calls.module';
+import { MeModule } from './domains/me/me.module';
 
 @Module({
   imports: [
@@ -38,6 +41,9 @@ import { RemindersModule } from './domains/reminders/reminders.module';
     AssignmentModule,
     OwnersModule,
     LookupsModule,
+    CallOutcomesModule,
+    CallsModule,
+    MeModule,
   ],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },

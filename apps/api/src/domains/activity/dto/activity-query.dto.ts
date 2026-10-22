@@ -4,17 +4,12 @@ import {
   ArrayMaxSize,
   IsArray,
   IsIn,
-  IsISO8601,
   IsOptional,
   IsUUID,
-  Matches,
 } from 'class-validator';
 import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
 import { toList } from '../../../common/utils/query-list.util';
-
-/** A Cairo date (YYYY-MM-DD) or a full ISO instant; week and ordinal ISO forms are refused. */
-const DATE_OR_INSTANT = /^\d{4}-\d{2}-\d{2}(T.+)?$/;
-const DATE_MESSAGE = '$property must be a date (YYYY-MM-DD) or an ISO instant';
+import { IsDateOrInstant } from '../../../common/validators/date-or-instant.validator';
 
 /** `GET /activity` filters (spec: type[], actorId, from, to, page, limit). */
 export class ActivityQueryDto extends PaginationQueryDto {
@@ -31,13 +26,11 @@ export class ActivityQueryDto extends PaginationQueryDto {
 
   /** A date means the start of that Cairo day. */
   @IsOptional()
-  @Matches(DATE_OR_INSTANT, { message: DATE_MESSAGE })
-  @IsISO8601({ strict: true }, { message: DATE_MESSAGE })
+  @IsDateOrInstant()
   from?: string;
 
   /** A date means through the end of that Cairo day. */
   @IsOptional()
-  @Matches(DATE_OR_INSTANT, { message: DATE_MESSAGE })
-  @IsISO8601({ strict: true }, { message: DATE_MESSAGE })
+  @IsDateOrInstant()
   to?: string;
 }

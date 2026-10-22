@@ -11,4 +11,5 @@ export * from './summary';
 export * from './notes';
 export * from './calls';
 export * from './reminders';
+export * from './call-outcomes';
 export * from './owners';

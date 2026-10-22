@@ -124,3 +124,16 @@ export function rangeBound(value: string, side: 'from' | 'to'): Date {
   }
   return instant;
 }
+
+/**
+ * Optional `from`/`to` filter bounds resolved with `rangeBound`. `valid` is false when both are
+ * given and `from` is not before `to` (the service answers 400).
+ */
+export function filterBounds(
+  from?: string,
+  to?: string,
+): { from?: Date; to?: Date; valid: boolean } {
+  const start = from ? rangeBound(from, 'from') : undefined;
+  const end = to ? rangeBound(to, 'to') : undefined;
+  return { from: start, to: end, valid: !(start && end && start >= end) };
+}
