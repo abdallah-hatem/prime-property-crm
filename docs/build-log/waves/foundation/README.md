@@ -20,3 +20,5 @@
 - Wave 6: T7 calls-reminders (agent 7) ∥ T18 PWA (agent 3) · T6 alignment review running.
 - T6 review DOC OUT OF DATE → doc updated (28000a0).
 - T18 merged (073b340) · verify: lint/tc 0, web 36 tests; icons look right. Real-phone checks (install prompt, maskable icon, iOS status bar, notch, no zoom) → listed for the user at the end.
+- T7 merged (d8375dd) · verify: lint/tc 0; unit 52+441+36; e2e 232/232 · contract updated with new codes · alignment review running.
+- Wave 7: T8 listings (agent 8, api) ∥ T13 calling screens (agent 3, web).
