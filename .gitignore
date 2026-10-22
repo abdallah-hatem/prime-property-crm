@@ -8,3 +8,4 @@ dist
 .vercel
 coverage
 design-directions/
+.claude/worktrees/
