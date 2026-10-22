@@ -18,13 +18,22 @@ describe('validateEnv', () => {
     ]);
   });
 
-  it.each(['DATABASE_URL', 'JWT_SECRET', 'PORT', 'CORS_ORIGINS'])(
+  it.each(['DATABASE_URL', 'JWT_SECRET', 'CORS_ORIGINS'])(
     'fails when %s is missing',
     (key) => {
       const { [key]: _removed, ...rest } = valid as Record<string, string>;
       expect(() => validateEnv(rest)).toThrow(key);
     },
   );
+
+  it('defaults PORT to 3000 when unset', () => {
+    const { PORT: _port, ...rest } = valid;
+    expect(validateEnv(rest).PORT).toBe(3000);
+  });
+
+  it('rejects a PORT that is not a port number', () => {
+    expect(() => validateEnv({ ...valid, PORT: '70000' })).toThrow('PORT');
+  });
 
   it('rejects a short JWT secret', () => {
     expect(() => validateEnv({ ...valid, JWT_SECRET: 'short' })).toThrow(
@@ -36,5 +45,45 @@ describe('validateEnv', () => {
     expect(() => validateEnv({ ...valid, CORS_ORIGINS: 'localhost' })).toThrow(
       'CORS_ORIGINS',
     );
+  });
+
+  describe('CRON_SECRET', () => {
+    it('is optional outside production (unset or empty)', () => {
+      expect(validateEnv(valid).CRON_SECRET).toBeUndefined();
+      expect(validateEnv({ ...valid, CRON_SECRET: '' }).CRON_SECRET).toBe(
+        undefined,
+      );
+    });
+
+    it('is required when NODE_ENV=production', () => {
+      expect(() => validateEnv({ ...valid, NODE_ENV: 'production' })).toThrow(
+        'CRON_SECRET',
+      );
+      expect(() =>
+        validateEnv({ ...valid, NODE_ENV: 'production', CRON_SECRET: '' }),
+      ).toThrow('CRON_SECRET');
+    });
+
+    it('is accepted in production when set', () => {
+      const env = validateEnv({
+        ...valid,
+        NODE_ENV: 'production',
+        CRON_SECRET: 'c'.repeat(32),
+      });
+      expect(env.CRON_SECRET).toBe('c'.repeat(32));
+    });
+
+    it('rejects a short secret', () => {
+      expect(() => validateEnv({ ...valid, CRON_SECRET: 'short' })).toThrow(
+        'CRON_SECRET',
+      );
+    });
+  });
+
+  it('treats BLOB_READ_WRITE_TOKEN and VERCEL as optional', () => {
+    const env = validateEnv(valid);
+    expect(env.BLOB_READ_WRITE_TOKEN).toBeUndefined();
+    expect(env.VERCEL).toBeUndefined();
+    expect(validateEnv({ ...valid, VERCEL: '1' }).VERCEL).toBe('1');
   });
 });

@@ -1,6 +1,10 @@
 import { HttpStatus } from '@nestjs/common';
 import { ErrorCode } from '@prime-crm/shared';
-import type { ApiResponse, Meta } from '../interfaces/api-response.interface';
+import type {
+  ApiResponse,
+  Meta,
+  Paginated,
+} from '../interfaces/api-response.interface';
 
 /** Builders so no route hand-writes the envelope. */
 export class ResponseUtil {
@@ -20,6 +24,14 @@ export class ResponseUtil {
       path,
       meta,
     };
+  }
+
+  /** A paginated list: rows in `data`, the rest of the page in `meta`. */
+  static paginated<T>(
+    { data, ...meta }: Paginated<T>,
+    message = 'Data retrieved successfully',
+  ): ApiResponse<T[]> {
+    return this.success(data, message, HttpStatus.OK, undefined, meta);
   }
 
   /** `data` carries structured detail for a domain error, e.g. `{ ownerId }` on PHONE_EXISTS. */
