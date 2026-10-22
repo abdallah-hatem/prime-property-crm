@@ -18,3 +18,5 @@
 - T12 merged (2e18be8) · verify: lint/tc 0, web 29 tests, next build ok.
 - T6 merged · conflicts additive (app.module, contract index, doc header); duplicates unified: IsPhone/DistinctPhones in common/validators/is-phone.validator.ts, IsOptionalNotNull in common/validators/optional-not-null.validator.ts, one UserSummarySchema (summary.ts), one PhoneInputSchema (auth.ts). Merged verify: unit 52+390+29, e2e 186/186 (+VERCEL=1).
 - Wave 6: T7 calls-reminders (agent 7) ∥ T18 PWA (agent 3) · T6 alignment review running.
+- T6 review DOC OUT OF DATE → doc updated (28000a0).
+- T18 merged (073b340) · verify: lint/tc 0, web 36 tests; icons look right. Real-phone checks (install prompt, maskable icon, iOS status bar, notch, no zoom) → listed for the user at the end.
