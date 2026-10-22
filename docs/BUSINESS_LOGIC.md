@@ -1,6 +1,6 @@
 # Prime Property CRM — Business Logic
 
-Last updated: 2026-10-22 (plan) · Source spec: `docs/specs/2026-10-22-property-crm.md`
+Last updated: 2026-10-22 (T1) · Source spec: `docs/specs/2026-10-22-property-crm.md`
 
 This file is what the business is and how it behaves **now**. Every behavior change updates it in the
 same commit. Items not built yet are marked **Planned**. Nothing is built yet: everything below is the
@@ -29,8 +29,8 @@ Accounts are created by the admin only. A deactivated user cannot sign in, and t
 ## Entities and rules
 
 ### Owner (homeowner lead)
-- Identified by a normalised phone number (international format, Egypt +20 by default). Two owners can
-  never share a phone number.
+- Identified by a normalised phone number (international format, Egypt +20 by default), with up to
+  three phone numbers. Two owners can never share a phone number.
 - Has at most one assigned member at a time. Unassigned owners are visible to the admin only.
 - Lead status: **New → Contacted → Interested / Not interested / Call back**, plus **Listed** and
   **Do not call**. The latest call outcome sets the status, through the outcome's mapping.
@@ -73,7 +73,9 @@ Accounts are created by the admin only. A deactivated user cannot sign in, and t
   appear in client search by default.
 - Has one assigned member (the member who created it from an owner, or one chosen by the admin).
 - A listing whose owner phone matches an owner lead is linked to it, and the lead becomes **Listed**.
-- Price is a whole EGP amount from 1 to 1,000,000,000.
+- Price is a whole EGP amount from 1 to 1,000,000,000. Size is above zero; bedrooms and bathrooms
+  are zero or more.
+- Two live listings never share an owner phone, and an owner has at most one live listing.
 - A listing that stops being Available gets no more check-ins.
 - Property Finder ad: link, ad status (**Not posted, Live, Taken down**), posted date, last check-in.
 
@@ -99,7 +101,7 @@ Accounts are created by the admin only. A deactivated user cannot sign in, and t
 5. **Listing added directly.** Manual or bulk upload; phone match links it to the owner lead.
 6. **Client search.** Filters: purpose, type, area, price, size, bedrooms, bathrooms, floor.
 7. **Ad follow-up.** While an ad is Live, a check-in reminder is created every 7 days (admin-set
-   interval). At each check-in the member records whether the home is still available; if not, the
+   interval, 1 to 90 days). At each check-in the member records whether the home is still available; if not, the
    listing becomes Off market. Marking a listing Sold, Rented or Off market while its ad is Live
    creates a "Take down the ad" task that closes only when the ad is marked Taken down. An ad can
    go Live only on an Available listing.
