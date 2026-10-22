@@ -14,3 +14,7 @@
 - Wave 4: T4 auth alone (T5, T6, T12 all depend on it).
 - T4 merged (1451633). Verify on merged dev: lint/tc 0; unit 46+175+4; e2e 103/103 x3 (+VERCEL=1). First cold run timed out in hooks (scrypt) → e2e testTimeout 30s (3dae2a8). Alignment: DOC OUT OF DATE → doc + contract updated (sid, 30 s grace, family revoke, success clears count).
 - Wave 5: T5 users-roles (agent 5) ∥ T6 owners (agent 6) ∥ T12 web shell (agent 2) · T5/T6 both add a module to app.module.ts and exports to packages/shared index (additive; merge by hand) · T12 web only
+- T5 merged (6a087c1) · review DOC OUT OF DATE → contract gains 400 INVALID_ROLE.
+- T12 merged (2e18be8) · verify: lint/tc 0, web 29 tests, next build ok.
+- T6 merged · conflicts additive (app.module, contract index, doc header); duplicates unified: IsPhone/DistinctPhones in common/validators/is-phone.validator.ts, IsOptionalNotNull in common/validators/optional-not-null.validator.ts, one UserSummarySchema (summary.ts), one PhoneInputSchema (auth.ts). Merged verify: unit 52+390+29, e2e 186/186 (+VERCEL=1).
+- Wave 6: T7 calls-reminders (agent 7) ∥ T18 PWA (agent 3) · T6 alignment review running.

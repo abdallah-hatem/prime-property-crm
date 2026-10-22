@@ -277,6 +277,7 @@ alone in its wave against any other schema-changing task.
 - [ ] Ad safety-net cron skips listings that aren't AVAILABLE or are deleted (business: check-ins only while for sale)
 - [ ] Stats: assignedOwners and adsLive counted at the range end; adsTakenDown, interestedOwners, listingsCreated, remindersDone counted inside the range (contract: Stats)
 - [ ] Team totals equal the sum of members (contract)
+- [ ] Reminders closed because their owner/listing was deleted are not counted as "done" (T6 closes them by setting doneAt — add a close reason or exclude them)
 - [ ] remindersOverdue = reminders still open at the range end whose due time is before it (contract: Stats, decided in review)
 
 ### T12 — Web shell (auth routing)
