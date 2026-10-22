@@ -24,6 +24,7 @@ import { MeModule } from './domains/me/me.module';
 import { ListingsModule } from './domains/listings/listings.module';
 import { PhotosModule } from './domains/photos/photos.module';
 import { UploadsModule } from './domains/uploads/uploads.module';
+import { ImportsModule } from './domains/imports/imports.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { UploadsModule } from './domains/uploads/uploads.module';
     ListingsModule,
     PhotosModule,
     UploadsModule,
+    ImportsModule,
   ],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },

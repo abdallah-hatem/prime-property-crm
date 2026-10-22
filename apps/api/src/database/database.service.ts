@@ -53,9 +53,13 @@ export class DatabaseService
   /**
    * Runs `work` in one interactive transaction. Services open it and hand `tx` to every
    * repository call (and to ActivityService.record), so all of it commits or none does.
+   * `options` lifts Prisma's 5 s default for bulk work (an import of 20 000 rows).
    */
-  transaction<T>(work: (tx: Tx) => Promise<T>): Promise<T> {
-    return this.$transaction(work);
+  transaction<T>(
+    work: (tx: Tx) => Promise<T>,
+    options?: { timeout?: number; maxWait?: number },
+  ): Promise<T> {
+    return this.$transaction(work, options);
   }
 
   /** True when the database answers a trivial query. */

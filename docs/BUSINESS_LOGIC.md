@@ -1,6 +1,6 @@
 # Prime Property CRM — Business Logic
 
-Last updated: 2026-10-23 (T5, T6, T7, T8) · Source spec: `docs/specs/2026-10-22-property-crm.md`
+Last updated: 2026-10-23 (T5, T6, T7, T8, T9) · Source spec: `docs/specs/2026-10-22-property-crm.md`
 
 This file is what the business is and how it behaves **now**. Every behavior change updates it in the
 same commit. Items not built yet are marked **Planned**. Nothing is built yet: everything below is the
@@ -49,6 +49,7 @@ ends all of them. Role and permission changes reach a signed-in user within 15 m
 ## Entities and rules
 
 ### Owner (homeowner lead)
+
 - Identified by a normalised phone number (international format, Egypt +20 by default), with up to
   three phone numbers. Two owners can never share a phone number.
 - Has at most one assigned member at a time. Unassigned owners are visible to the admin only.
@@ -66,6 +67,7 @@ ends all of them. Role and permission changes reach a signed-in user within 15 m
   back to **Interested**.
 
 ### Call
+
 - Created when a member taps Call on an owner assigned to them.
 - Gets exactly one outcome. Tapping Call twice by accident creates one call.
 - The lead status follows the latest call that has an outcome: setting a late outcome on an older
@@ -75,6 +77,7 @@ ends all of them. Role and permission changes reach a signed-in user within 15 m
   survives the owner being removed for good after 30 days in the trash.
 
 ### Call outcome
+
 - An admin-editable list. Each outcome maps to the lead status it sets. An outcome in use can be
   renamed or hidden, not deleted. No outcome can set **Listed** — only creating a listing does.
 - Defaults: No answer, Busy, Switched off → Contacted · Interested to sell, Interested to rent →
@@ -82,6 +85,7 @@ ends all of them. Role and permission changes reach a signed-in user within 15 m
   Wrong number, Do not call again → Do not call.
 
 ### Reminder
+
 - Belongs to one owner or listing and that record's member (or to nobody while it is unassigned),
   with a due date and time.
 - Deleting an owner or listing closes its open reminders.
@@ -116,6 +120,7 @@ ad tasks (every open take-down task, and check-ins due by the end of today), the
 made today and the number of open reminders.
 
 ### Listing
+
 - Purpose: sale or rent. Status: **Available, Sold, Rented, Off market**. Only Available listings
   appear in client search by default.
 - Has one assigned member (the member who created it from an owner, or one chosen by the admin).
@@ -134,6 +139,7 @@ title is made from its type, bedrooms and area, in the reader's language. Only t
 Anyone else is refused. Deleting a listing is only for someone who manages all listings — its own
 member can't delete it. Only someone who assigns work picks or changes a listing's member; each
 assign batch is one activity entry.
+
 - From an owner: the owner's details fill the contact, the owner becomes **Listed** and the listing
   goes to the owner's member. An owner with a live listing can't get a second one.
 - Added directly: the listing goes to its creator unless the assigner picks someone. A phone of an
@@ -164,9 +170,11 @@ assign batch is one activity entry.
   end of the list.
 
 ### Note
+
 - Free text on an owner or a listing, with author and time. Notes are added, not edited.
 
 ### Activity log
+
 - Records imports, assignments and reassignments, deletions, restores, user changes (create, edit,
   deactivate, reactivate, password reset), role changes, settings and call-outcome changes, and
   exports, with who and when. It cannot be edited or deleted.
@@ -205,6 +213,28 @@ assign batch is one activity entry.
 11. **Users.** The admin can reset a member's password (their sessions end) and reactivate a
     deactivated member, who then starts with no owners.
 
+**Imports (built, T9).** Owners are imported by whoever may import owners, listings by whoever
+may add listings directly. A file is .xlsx, .xls or .csv, at most 4 MB and 20 000 rows; only its
+first sheet is read, its first non-empty row is the header and empty rows are skipped. The columns
+are matched to fields from their names (English or Arabic) and the importer can change that; owners
+need a name and a phone (up to three phones per row), listings also need purpose, type, area,
+size and price, checked exactly like a listing added by hand. Purpose, type and furnishing can be
+written in English or Arabic; numbers and phones can use Arabic digits, and a phone that lost its
+leading 0 in Excel (1001234567) is read as 01001234567. A row is rejected when a required field is
+empty, a phone is not a valid number or a value is out of range. A row is a duplicate when one of
+its phones belongs to an owner (a deleted one included, marked "in the trash"), to a live listing,
+or to an earlier row of the same file that will be added. In a listings import, a phone of an owner
+lead links the new listing to it as in flow 5 (the lead becomes Listed and moves to the listing's
+member); if that lead already has a listing, or an earlier row already linked it, the row is a
+duplicate. The preview shows the counts and the first issues; confirming checks every row again
+(owners added since the preview become duplicates) and saves all rows or none. A failed import
+saves nothing and can be previewed and confirmed again; a finished one can't be changed. Imported
+rows can go to one active member (only for whoever may assign); otherwise imported owners are
+unassigned and imported listings go to the importer. Each import writes one activity entry with its
+counts, plus one assignment entry when it assigned anything. Owner ids in the issue list are shown
+only to whoever may see all owners (a deleted owner's only to whoever may restore). Arabic digits in
+a phone are accepted everywhere phones are typed.
+
 ## Invariants
 
 - A team member never sees an owner phone number unless that owner or listing is assigned to them.
@@ -240,6 +270,7 @@ Not applicable: listing prices are information only, stored as whole EGP amounts
 **Version 1:** everything above.
 
 **Planned:**
+
 - Automatic posting and removal of Property Finder ads through its API.
 - Push and email notifications for reminders.
 - A client (buyer / tenant) requests database with matching.

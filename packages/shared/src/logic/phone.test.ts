@@ -95,3 +95,26 @@ describe('normalizePhone', () => {
     expect(toE164('01001234567')?.endsWith('1001234567')).toBe(true);
   });
 });
+
+describe('normalizePhone: Arabic digits and spreadsheet numbers', () => {
+  it('reads Arabic-Indic and Extended Arabic-Indic digits', () => {
+    expect(toE164('٠١٠٠١٢٣٤٥٦٧')).toBe('+201001234567');
+    expect(toE164('۰۱۰۰ ۱۲۳ ۴۵۶۷')).toBe('+201001234567');
+    expect(toE164('+٢٠ ١٠٠ ١٢٣ ٤٥٦٧')).toBe('+201001234567');
+  });
+
+  it('accepts a number that lost its leading zero only when asked', () => {
+    expect(toE164('1001234567')).toBeNull();
+    expect(toE164('1001234567', { missingTrunkZero: true })).toBe(
+      '+201001234567',
+    );
+    expect(toE164('225551234', { missingTrunkZero: true })).toBe(
+      '+20225551234',
+    );
+  });
+
+  it('still rejects a bare number that is not Egyptian', () => {
+    expect(toE164('12345', { missingTrunkZero: true })).toBeNull();
+    expect(toE164('1001234567.5', { missingTrunkZero: true })).toBeNull();
+  });
+});
