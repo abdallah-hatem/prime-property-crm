@@ -1,6 +1,6 @@
 # Prime Property CRM — Business Logic
 
-Last updated: 2026-10-23 (T5, T6, T7, T8, T9, T10) · Source spec: `docs/specs/2026-10-22-property-crm.md`
+Last updated: 2026-10-23 (T5–T11) · Source spec: `docs/specs/2026-10-22-property-crm.md`
 
 This file is what the business is and how it behaves **now**. Every behavior change updates it in the
 same commit. Items not built yet are marked **Planned**. Nothing is built yet: everything below is the
@@ -225,7 +225,12 @@ assign batch is one activity entry.
    the owner has another listing by then); a photo is restored only after its listing. A restored
    owner is Listed if it still has a live listing, goes back to Interested if it was Listed but its
    listing is gone, and comes back unassigned if its member was deactivated meanwhile.
-10. **Export.** Admin exports owners or listings, with the current filters, to Excel.
+10. **Export.** Admin exports owners or listings, with the current filters, to Excel. An export
+    holds at most 50,000 rows (more is refused: narrow the filters). It shows what the exporter may
+    see: without "see all owners" only their own owners, and a listing's owner and phone only where
+    they may see that phone. Phone numbers keep their leading `+`. Headers and labels are in the
+    exporter's language (Arabic sheets run right to left). Every export is in the activity log
+    with its filters and row count.
 11. **Users.** The admin can reset a member's password (their sessions end) and reactivate a
     deactivated member, who then starts with no owners.
 
@@ -271,10 +276,30 @@ Per member and for the team, over a date range (default today): calls made, outc
 reminders done and overdue, assigned owners, interested owners, listings created, ads live and ads
 taken down.
 
+**Built (T11).** A range is whole Cairo days, both included, at most 366; with no dates it is today,
+with one date it is that day. Calls count by when they started; the outcomes breakdown covers those
+calls that have an outcome. Interested owners are the different owners whose call in the range got
+an outcome that sets Interested. Listings created count by who created them. Reminders done count by
+when they were marked done; reminders closed because their owner or listing was deleted are not
+"done". Ads taken down count by when the ad was taken down. Assigned owners, ads live and reminders
+overdue are counted at the end of the range, or now when the range ends later: assigned owners
+follow the assignment history (who held the owner at that moment, not who holds it today), and a
+reminder is overdue when it was still open then and due before then. Every active user is listed;
+a deactivated member is listed only for a range in which they did something, and their history
+never disappears. Team totals are the sum of the members, so work on unassigned records isn't in
+them.
+
 ## Data protection
 
 - Nightly full database copy kept for 30 days in separate storage.
 - Delayed deletion of 30 days for records and photos.
+- Every night, owners, listings and photos that have been in the trash for more than 30 days are
+  removed for good, photo files included (a file that can't be removed keeps its record until the
+  next night). Calls stay: a removed owner's calls keep the owner's name. Sign-in sessions that
+  expired more than 30 days ago and failed sign-in records older than a day are removed too.
+- Every morning a safety check makes sure each Live ad on an Available listing that isn't in the
+  trash has exactly one open check-in: a missing one is added (due one interval after the last
+  check-in or after going Live, or at once if that time has passed) and extra ones are removed.
 - Point-in-time restore as the database plan allows.
 
 ## Money

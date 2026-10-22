@@ -26,6 +26,9 @@ import { PhotosModule } from './domains/photos/photos.module';
 import { UploadsModule } from './domains/uploads/uploads.module';
 import { SettingsModule } from './domains/settings/settings.module';
 import { ImportsModule } from './domains/imports/imports.module';
+import { AnalyticsModule } from './domains/analytics/analytics.module';
+import { ExportsModule } from './domains/exports/exports.module';
+import { CronModule } from './domains/cron/cron.module';
 
 @Module({
   imports: [
@@ -54,6 +57,9 @@ import { ImportsModule } from './domains/imports/imports.module';
     UploadsModule,
     SettingsModule,
     ImportsModule,
+    AnalyticsModule,
+    ExportsModule,
+    CronModule,
   ],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },

@@ -431,4 +431,43 @@ describe('OwnersService', () => {
       expect(assignment.reassignOwnerAndListing).not.toHaveBeenCalled();
     });
   });
+
+  describe('exportRows (T11 export)', () => {
+    it('uses the list scope: a member exports only their own owners', async () => {
+      const { svc, owners } = makeService({
+        owners: {
+          count: jest.fn().mockResolvedValue(1),
+          findRows: jest.fn().mockResolvedValue({ rows: [DETAIL], total: 1 }),
+        },
+      });
+      const out = await svc.exportRows(
+        { assignedTo: 'unassigned' },
+        member,
+        50_000,
+      );
+      expect(owners.whereOf).toHaveBeenCalledWith(
+        expect.objectContaining({ memberId: 'member' }),
+      );
+      expect(owners.findRows).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        0,
+        50_000,
+      );
+      expect(out.total).toBe(1);
+      expect(out.rows[0]).toMatchObject({
+        id: 'o1',
+        phones: ['+201001234567'],
+      });
+    });
+
+    it('over the limit: counts only, reads no rows', async () => {
+      const { svc, owners } = makeService({
+        owners: { count: jest.fn().mockResolvedValue(50_001) },
+      });
+      const out = await svc.exportRows({}, admin, 50_000);
+      expect(out).toEqual({ total: 50_001, rows: [] });
+      expect(owners.findRows).not.toHaveBeenCalled();
+    });
+  });
 });

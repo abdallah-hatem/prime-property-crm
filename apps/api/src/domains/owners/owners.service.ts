@@ -146,6 +146,25 @@ export class OwnersService {
   }
 
   /**
+   * The owners export (T11): the list's rows with the list's filters and scope, every page at
+   * once. Counts first: over `max` matches, no rows are read (`rows` is empty).
+   */
+  async exportRows(
+    query: OwnerFilterQuery,
+    user: CurrentUser,
+    max: number,
+  ): Promise<{ total: number; rows: OwnerRow[] }> {
+    const where = this.owners.whereOf(this.filterFor(query, user));
+    const total = await this.owners.count(where);
+    if (total > max || total === 0) return { total, rows: [] };
+    const [{ rows }, language] = await Promise.all([
+      this.owners.findRows(where, ownerOrder(query.sort), 0, max),
+      this.users.languageOf(user.id),
+    ]);
+    return { total, rows: rows.map((row) => toOwnerRow(row, language)) };
+  }
+
+  /**
    * For "select all" and "next 200 unassigned" (owners.assign): ids over every owner, same
    * order as the list.
    */

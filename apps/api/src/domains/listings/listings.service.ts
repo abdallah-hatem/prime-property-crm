@@ -14,6 +14,7 @@ import {
   type ListingRow,
   type ListingStatus,
   type Note,
+  listingTitle,
 } from '@prime-crm/shared';
 import type { Prisma } from '@prisma/client';
 import type { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
@@ -43,7 +44,10 @@ import type {
 } from './dto/listing-actions.dto';
 import type { ListingListQueryDto } from './dto/listing-query.dto';
 import type { UpdateListingDto } from './dto/update-listing.dto';
-import type { ListingFilter } from './interfaces/listing.interface';
+import type {
+  ListingExportRow,
+  ListingFilter,
+} from './interfaces/listing.interface';
 import { toListing, toListingRow } from './listing.shape';
 import {
   adChange,
@@ -102,6 +106,9 @@ function fieldsOf(dto: CreateListingDto): ListingFields {
   };
 }
 
+/** The search filters without paging (the search and the export share them). */
+type ListingFilterQuery = Omit<ListingListQueryDto, 'page' | 'limit'>;
+
 /**
  * Listings. Anyone searches and opens any listing; the owner phone shows only to its member
  * and to listings.manageAll. Changes (edit, status, ad, check-in, notes, photos) need the
@@ -125,7 +132,7 @@ export class ListingsService {
 
   // ------------------------------------------------------------------ search
 
-  private filterFor(query: ListingListQueryDto, user: CurrentUser) {
+  private filterFor(query: ListingFilterQuery, user: CurrentUser) {
     const now = this.clock.now();
     const search = parseSearch(query.q);
     const filter: ListingFilter = {
@@ -181,6 +188,37 @@ export class ListingsService {
       total,
       window,
     );
+  }
+
+  /**
+   * The listings export (T11): the search's filters and order, every page at once, with the
+   * owner's name and phone only where the caller may see them. Counts first: over `max`
+   * matches, no rows are read (`rows` is empty).
+   */
+  async exportRows(
+    query: ListingFilterQuery,
+    user: CurrentUser,
+    max: number,
+  ): Promise<{ total: number; rows: ListingExportRow[] }> {
+    const where = this.listings.whereOf(this.filterFor(query, user));
+    const total = await this.listings.count(where);
+    if (total > max || total === 0) return { total, rows: [] };
+    const [rows, language] = await Promise.all([
+      this.listings.findExportRows(where, listingOrder(query.sort), max),
+      this.users.languageOf(user.id),
+    ]);
+    return {
+      total,
+      rows: rows.map(({ assignedToId, ownerName, ownerPhone, ...row }) => {
+        const visible = canSeePhone({ assignedToId }, user);
+        return {
+          ...row,
+          title: listingTitle(row, language),
+          ownerName: visible ? ownerName : null,
+          ownerPhone: visible ? ownerPhone : null,
+        };
+      }),
+    };
   }
 
   // ------------------------------------------------------------------ one listing

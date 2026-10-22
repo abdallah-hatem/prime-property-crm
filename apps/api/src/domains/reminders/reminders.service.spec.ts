@@ -188,12 +188,14 @@ describe('RemindersService', () => {
 
   it('closing uses the clock; moving passes the target member through', async () => {
     const { svc, reminders } = makeService();
+    // No kinds = the record is deleted: flagged closedByDelete (analytics: not "done").
     await svc.closeOpenReminders({} as never, { ownerIds: ['o1'] });
     expect(reminders.closeOpen).toHaveBeenCalledWith(
       {},
       { ownerIds: ['o1'] },
       NOW,
       undefined,
+      true,
     );
     await svc.closeOpenReminders({} as never, { listingIds: ['l1'] }, [
       'AD_TAKE_DOWN',
@@ -203,6 +205,7 @@ describe('RemindersService', () => {
       { listingIds: ['l1'] },
       NOW,
       ['AD_TAKE_DOWN'],
+      false,
     );
     await svc.moveOpenReminders({} as never, { listingIds: ['l1'] }, null);
     expect(reminders.moveOpen).toHaveBeenCalledWith(
