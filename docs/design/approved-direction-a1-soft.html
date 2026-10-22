@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Switchboard Soft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===== Direction A, modern 1 — Switchboard Soft =====
+   Same layout as Switchboard. Rounded 14–24px, pill chips and buttons, layered soft shadows,
+   refined indigo-cobalt, amber only for urgency, 200–250ms ease-out. */
+:root{
+  --f:"Plus Jakarta Sans","IBM Plex Sans Arabic",system-ui,sans-serif;
+  --f-ar:"IBM Plex Sans Arabic","Plus Jakarta Sans",system-ui,sans-serif;
+  --ease:cubic-bezier(.22,1,.36,1);
+  --r-sm:12px; --r-md:18px; --r-lg:24px;
+}
+.theme-light{
+  --bg:#F3F5FB; --surface:#FFFFFF; --surface-2:#ECEFF8; --line:#E1E5F0;
+  --ink:#141833; --muted:#5B6180;
+  --primary:#3446F0; --primary-2:#5B4DF5; --on-primary:#FFFFFF; --primary-soft:#E8EBFF;
+  --accent:#F4A524; --accent-soft:#FFF3DC; --on-accent:#3A2500;
+  --success:#0E8C63; --warning:#AE5E08; --danger:#D9344A;
+  --success-bg:#E1F5EC; --warning-bg:#FFF1DE; --danger-bg:#FDE7EA;
+  --sh-1:0 1px 2px rgba(20,24,51,.05),0 2px 6px rgba(20,24,51,.04);
+  --sh-2:0 1px 2px rgba(20,24,51,.05),0 8px 24px -6px rgba(20,24,51,.10);
+  --sh-primary:0 6px 16px -4px rgba(52,70,240,.45);
+}
+.theme-dark{
+  --bg:#0E1122; --surface:#171B30; --surface-2:#20253F; --line:#2A3050;
+  --ink:#EDEFFA; --muted:#9AA1C2;
+  --primary:#7484FF; --primary-2:#8F7BFF; --on-primary:#0B0E24; --primary-soft:#232A5A;
+  --accent:#FFB940; --accent-soft:#3A2C12; --on-accent:#2A1A00;
+  --success:#3FD39C; --warning:#FFAE4D; --danger:#FF6B7E;
+  --success-bg:#11302A; --warning-bg:#382712; --danger-bg:#3D1828;
+  --sh-1:0 1px 2px rgba(0,0,0,.3);
+  --sh-2:0 1px 0 rgba(255,255,255,.04) inset,0 10px 30px -10px rgba(0,0,0,.6);
+  --sh-primary:0 8px 22px -6px rgba(116,132,255,.55);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#E9ECF6;color:#141833}
+body{font-family:var(--f);line-height:1.5}
+@media (prefers-color-scheme:dark){html,body{background:#090B17;color:#EDEFFA}}
+a{color:inherit}
+:focus-visible{outline:3px solid #7484FF;outline-offset:3px;border-radius:10px}
+
+.page{max-width:1320px;margin:0 auto;padding:40px 16px 96px}
+.hero{padding-block:16px 48px;display:grid;gap:16px}
+.hero .back{font-size:14px;opacity:.7}
+.hero h1{font-weight:800;font-size:clamp(44px,8vw,96px);line-height:1;letter-spacing:-.035em;
+  background:linear-gradient(100deg,#3446F0,#7B4DF5 60%,#F4A524);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{max-width:62ch;font-size:18px;opacity:.85}
+.hero .meta{display:flex;flex-wrap:wrap;gap:8px}
+.hero .meta span{background:rgba(52,70,240,.1);padding:6px 14px;border-radius:999px;font-weight:600;font-size:13px}
+section.block{margin-block-end:72px}
+section.block>h2{font-weight:800;font-size:30px;letter-spacing:-.02em;margin-block-end:6px}
+section.block>p.lead{max-width:70ch;margin-block-end:24px;opacity:.78}
+
+.pal{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}
+.pal-col{background:var(--bg);color:var(--ink);padding:20px;border-radius:24px;box-shadow:var(--sh-2)}
+.pal-col h3{font-size:18px;font-weight:700;margin-block-end:14px}
+.sw{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.sw div{display:grid;grid-template-rows:60px auto auto;background:var(--surface);border-radius:16px;overflow:hidden;box-shadow:var(--sh-1)}
+.sw i{display:block;margin:6px;border-radius:11px}
+.sw b{font-size:12px;padding:2px 10px 0;font-weight:700}
+.sw code{font:500 11px/1.3 var(--f);padding:0 10px 8px;color:var(--muted)}
+
+.type{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:24px}
+.type-col{background:#fff;color:#141833;padding:24px;border-radius:24px;box-shadow:0 8px 24px -8px rgba(20,24,51,.12)}
+@media (prefers-color-scheme:dark){.type-col{background:#171B30;color:#EDEFFA}}
+.type-row{display:grid;gap:2px;padding-block:12px;border-block-end:1px solid rgba(127,135,170,.25)}
+.type-row small{font-size:12px;opacity:.6}
+.t-display{font-weight:800;font-size:44px;line-height:1.05;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.t-h1{font-weight:700;font-size:28px;line-height:1.2;letter-spacing:-.02em}
+.t-h2{font-weight:700;font-size:19px;line-height:1.3}
+.t-body{font-weight:400;font-size:16px;line-height:1.55}
+.t-label{font-weight:600;font-size:14px}
+.t-caption{font-weight:500;font-size:12px;opacity:.7}
+[lang=ar] [class^=t-]{font-family:var(--f-ar);letter-spacing:0}
+[lang=ar] .t-display{font-weight:700;font-size:40px;line-height:1.35}
+[lang=ar] .t-h1{line-height:1.5} [lang=ar] .t-body{line-height:1.85}
+
+.motion{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.motion div{background:#fff;border-radius:20px;padding:18px;box-shadow:0 8px 24px -10px rgba(20,24,51,.15)}
+@media (prefers-color-scheme:dark){.motion div{background:#171B30}}
+.motion h4{font-size:16px;font-weight:700;margin-block-end:4px}
+.motion p{font-size:15px;opacity:.8}
+.demo-btn{margin-block-start:12px;font:700 14px var(--f);background:linear-gradient(135deg,#3446F0,#5B4DF5);color:#fff;border:0;border-radius:999px;padding:11px 20px;cursor:pointer;
+  box-shadow:0 6px 16px -4px rgba(52,70,240,.45);transition:transform 200ms var(--ease),box-shadow 200ms var(--ease)}
+.demo-btn:active{transform:scale(.97);box-shadow:0 2px 6px -2px rgba(52,70,240,.45)}
+
+.screens{display:flex;flex-wrap:wrap;gap:40px 32px;justify-content:center}
+figure.shot{display:grid;gap:12px;justify-items:center}
+figure.shot figcaption{font-weight:600;font-size:14px;opacity:.75}
+
+/* ===================== PHONE ===================== */
+.phone{width:390px;max-width:calc(100vw - 32px);height:844px;border-radius:50px;border:10px solid #0A0C18;overflow:hidden;
+  background:var(--bg);color:var(--ink);display:flex;flex-direction:column;position:relative;font-family:var(--f);
+  box-shadow:0 40px 80px -30px rgba(10,12,40,.45)}
+.phone[lang=ar]{font-family:var(--f-ar)}
+.scroll{flex:1;overflow-y:auto;scrollbar-width:none;padding-block-end:92px}
+.scroll::-webkit-scrollbar{display:none}
+.status{display:flex;justify-content:space-between;align-items:center;padding:14px 26px 6px;font:700 14px var(--f);direction:ltr}
+.status .dots{display:flex;gap:4px;align-items:center}
+.status .dots i{width:16px;height:9px;border:1.5px solid currentColor;border-radius:3px;display:block}
+.status .dots i.bar{width:4px;height:10px;background:currentColor;border:0;border-radius:2px}
+
+.tday{padding:8px 18px 4px;background:radial-gradient(120% 80% at 100% 0,var(--primary-soft),transparent 60%)}
+.phone[dir=rtl] .tday{background:radial-gradient(120% 80% at 0 0,var(--primary-soft),transparent 60%)}
+.tday .who{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);font-weight:600}
+.avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-2));color:var(--on-primary);display:grid;place-items:center;font-weight:700;font-size:14px;box-shadow:var(--sh-primary)}
+.tday h1{font-weight:800;font-size:36px;letter-spacing:-.03em;line-height:1.1;margin-block:4px 14px}
+.phone[lang=ar] .tday h1{letter-spacing:0;line-height:1.4}
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.board div{background:var(--surface);border-radius:var(--r-md);padding:12px 12px 10px;box-shadow:var(--sh-2);display:grid;gap:4px}
+.board b{font-weight:800;font-size:30px;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;font-family:var(--f)}
+.board span{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted)}
+.board span::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--line)}
+.board .od{background:linear-gradient(160deg,var(--danger-bg),var(--surface) 70%)}
+.board .od b{color:var(--danger)} .board .od span::before{background:var(--danger)}
+.board .dt span::before{background:var(--primary)}
+.board .om{background:linear-gradient(160deg,var(--accent-soft),var(--surface) 70%)}
+.board .om span::before{background:var(--accent)}
+.board b{animation:count 250ms var(--ease) both}
+.board div:nth-child(2) b{animation-delay:50ms}.board div:nth-child(3) b{animation-delay:100ms}
+@keyframes count{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.sec{display:flex;justify-content:space-between;align-items:center;padding:20px 20px 10px}
+.sec h2{font-weight:700;font-size:16px}
+.sec span{font-size:12px;font-weight:700;color:var(--muted);background:var(--surface-2);border-radius:999px;padding:2px 9px}
+
+.miss{margin-inline:16px;border-radius:var(--r-lg);padding:16px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;
+  background:linear-gradient(135deg,var(--accent-soft),var(--surface) 80%);box-shadow:var(--sh-2);border:1px solid color-mix(in oklab,var(--accent) 35%,transparent)}
+.miss .ic{grid-row:span 3;width:40px;height:40px;border-radius:14px;background:var(--accent);color:var(--on-accent);display:grid;place-items:center}
+.miss strong{font-weight:700;font-size:15px}
+.miss p{font-size:13px;color:var(--muted)}
+.miss button{justify-self:start;margin-block-start:8px;background:var(--ink);color:var(--bg);border:0;border-radius:999px;padding:9px 16px;font:700 13px var(--f);font-family:inherit;cursor:pointer}
+
+.rows{display:grid;gap:10px;padding-inline:16px}
+.row{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;background:var(--surface);border-radius:var(--r-md);padding:14px 12px;box-shadow:var(--sh-2)}
+.row .pill{width:5px;align-self:stretch;border-radius:999px;background:var(--line);margin-block:4px}
+.row.od .pill{background:var(--danger)} .row.dt .pill{background:var(--primary)} .row.pf .pill{background:var(--accent)}
+.row .body{display:grid;gap:4px;min-width:0}
+.row .name{font-weight:700;font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .area{display:flex;gap:5px;align-items:center;font-size:13px;color:var(--muted)}
+.row .meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-block-start:2px}
+.row .when{font-size:12px;font-weight:600;color:var(--muted)}
+.row.od .when{color:var(--danger)}
+.call{height:48px;padding-inline:16px 18px;border-radius:999px;border:0;background:linear-gradient(135deg,var(--primary),var(--primary-2));color:var(--on-primary);
+  display:flex;align-items:center;gap:6px;font:700 14px var(--f);font-family:inherit;cursor:pointer;box-shadow:var(--sh-primary);transition:transform 200ms var(--ease),box-shadow 200ms var(--ease)}
+.phone[dir=rtl] .call{padding-inline:16px 18px}
+.call:active{transform:scale(.96);box-shadow:none}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--surface-2);color:var(--ink)}
+.chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.chip.cb{background:var(--warning-bg);color:var(--warning)}
+.chip.int,.chip.live{background:var(--success-bg);color:var(--success)}
+.chip.new{background:var(--primary-soft);color:var(--primary)}
+.chip.live::before{box-shadow:0 0 0 0 currentColor;animation:ping 2s var(--ease) infinite}
+@keyframes ping{0%{box-shadow:0 0 0 0 color-mix(in oklab,currentColor 60%,transparent)}100%{box-shadow:0 0 0 7px transparent}}
+
+.tabs{position:absolute;inset-inline:14px;inset-block-end:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px;border-radius:999px;
+  background:color-mix(in oklab,var(--surface) 82%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:var(--sh-2);border:1px solid var(--line)}
+.tabs a{display:flex;justify-content:center;align-items:center;gap:6px;height:46px;border-radius:999px;font-size:12px;font-weight:700;color:var(--muted);text-decoration:none;position:relative}
+.tabs a span.l{display:none}
+.tabs a.on{background:var(--primary);color:var(--on-primary);grid-column:span 1}
+.tabs a.on span.l{display:inline}
+.tabs a .dot{position:absolute;inset-block-start:9px;inset-inline-end:calc(50% - 14px);width:8px;height:8px;border-radius:50%;background:var(--danger);border:2px solid var(--surface)}
+
+/* listing */
+.photo{position:relative;height:320px;flex:none;margin-block-start:-44px}
+.photo svg{display:block;width:100%;height:100%}
+.photo .topbar{position:absolute;inset-inline:16px;inset-block-start:54px;display:flex;justify-content:space-between}
+.photo .rb{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.85);color:#141833;display:grid;place-items:center;backdrop-filter:blur(8px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.phone[dir=rtl] .flipx{transform:scaleX(-1)}
+.photo .count{position:absolute;inset-inline-end:16px;inset-block-end:40px;background:rgba(10,12,30,.55);color:#fff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;backdrop-filter:blur(8px)}
+.sheet{position:relative;margin-block-start:-24px;background:var(--bg);border-radius:28px 28px 0 0;padding-block-start:8px}
+.sheet::before{content:"";display:block;width:40px;height:5px;border-radius:999px;background:var(--line);margin:4px auto 8px}
+.price{padding:6px 20px 0;display:flex;align-items:baseline;gap:8px;justify-content:space-between}
+.price .amt{font-weight:800;font-size:34px;letter-spacing:-.03em;line-height:1.1;font-variant-numeric:tabular-nums;font-family:var(--f)}
+.price .amt small{font-size:15px;font-weight:600;color:var(--muted);letter-spacing:0;margin-inline-start:6px}
+.phone[lang=ar] .price .amt small{font-family:var(--f-ar)}
+.ltitle{padding:2px 20px 0}
+.ltitle h2{font-size:17px;font-weight:700}
+.ltitle p{font-size:13px;color:var(--muted)}
+.specs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 16px 0}
+.specs div{background:var(--surface);border-radius:16px;padding:12px 10px;box-shadow:var(--sh-1);display:grid;gap:2px}
+.specs b{font-weight:800;font-size:20px;font-family:var(--f)}
+.specs span{font-size:11px;color:var(--muted);font-weight:600}
+.card{margin:12px 16px 0;background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--sh-2);overflow:hidden;position:relative}
+.card.pfc{padding-inline-start:6px}
+.card.pfc::before{content:"";position:absolute;inset-inline-start:10px;inset-block:16px;width:5px;border-radius:999px;background:var(--success)}
+.card h3{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 10px 18px;font-size:14px;font-weight:700}
+.kv{display:flex;justify-content:space-between;padding:9px 16px 9px 18px;font-size:13px}
+.kv span{color:var(--muted)}
+.kv b{font-weight:700}
+.kv.due{margin:4px 10px 0 12px;border-radius:14px;background:var(--accent-soft);padding-inline:12px}
+.kv.due b{color:var(--warning)}
+.card .acts{display:flex;gap:8px;padding:12px 14px 14px 16px}
+.btn2{flex:1;background:var(--surface-2);color:var(--ink);border:0;border-radius:999px;padding:11px;font:700 13px var(--f);font-family:inherit;cursor:pointer}
+.btn2.pri{background:var(--primary-soft);color:var(--primary)}
+.owner{display:flex;gap:12px;align-items:center;padding:14px 16px}
+.owner .av{width:44px;height:44px;border-radius:50%;background:var(--accent-soft);color:var(--warning);display:grid;place-items:center;font-weight:800}
+.owner b{display:block;font-size:15px}
+.owner span{font-size:13px;color:var(--muted)}
+.desc{padding:14px 20px 0;font-size:14px;color:var(--muted)}
+.phone[lang=ar] .desc{line-height:1.9}
+.dock{position:absolute;inset-inline:14px;inset-block-end:16px;display:flex;gap:8px;padding:8px;border-radius:999px;
+  background:color-mix(in oklab,var(--surface) 82%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:var(--sh-2);border:1px solid var(--line)}
+.dock .big{flex:1;height:52px;border:0;border-radius:999px;background:linear-gradient(135deg,var(--primary),var(--primary-2));color:var(--on-primary);font:700 16px var(--f);font-family:inherit;display:flex;gap:8px;justify-content:center;align-items:center;cursor:pointer;box-shadow:var(--sh-primary);transition:transform 200ms var(--ease)}
+.dock .big:active{transform:scale(.97)}
+.dock .sm{width:52px;height:52px;border-radius:50%;border:0;background:var(--surface-2);color:var(--ink);display:grid;place-items:center}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:opacity 150ms!important}}
+</style>
+</head>
+<body>
+<div class="page">
+<header class="hero">
+  <a class="back" href="index.html">All directions</a>
+  <h1>Switchboard Soft</h1>
+  <p>The Switchboard layout you picked, restyled. The counter board, the urgency marker on each row and the big Call action all stay in place. The boxes are gone: rounded cards with soft layered shadows, pill chips and buttons, a refined indigo-cobalt, and amber kept only for urgency. Motion is a smooth 200–250ms ease-out.</p>
+  <div class="meta"><span>Plus Jakarta Sans + IBM Plex Sans Arabic</span><span>Radius 12 / 18 / 24, pills</span><span>Ease-out 200–250ms</span></div>
+</header>
+
+<section class="block">
+  <h2>Palette</h2>
+  <p class="lead">Indigo-cobalt, with a slight shift toward violet across a gradient, is the only colour that means "act": Call, save, the active tab. Amber appears only when something is waiting on you. The overdue counter and urgency pills carry the red; nothing else does.</p>
+  <div class="pal" id="pal"></div>
+</section>
+
+<section class="block">
+  <h2>Type scale</h2>
+  <p class="lead">Plus Jakarta Sans is geometric and friendly, with tight, modern numerals for the counters and prices. IBM Plex Sans Arabic has the same open, even texture, so mixed lines read as one voice.</p>
+  <div class="type">
+    <div class="type-col" lang="en">
+      <div class="type-row"><small>Display 44 / 800 / -3%</small><span class="t-display">8,500,000</span></div>
+      <div class="type-row"><small>H1 28 / 700</small><span class="t-h1">Good afternoon, Mariam</span></div>
+      <div class="type-row"><small>H2 19 / 700</small><span class="t-h2">Mivida, New Cairo</span></div>
+      <div class="type-row"><small>Body 16 / 400</small><span class="t-body">Wants a valuation before deciding. Call after 6 pm.</span></div>
+      <div class="type-row"><small>Label 14 / 600</small><span class="t-label">Interested to sell</span></div>
+      <div class="type-row"><small>Caption 12 / 500</small><span class="t-caption">Last check-in 15 Oct</span></div>
+    </div>
+    <div class="type-col" lang="ar" dir="rtl">
+      <div class="type-row"><small>عرض 40 / 700</small><span class="t-display">مكالمات اليوم</span></div>
+      <div class="type-row"><small>عنوان 28 / 700</small><span class="t-h1">مساء الخير يا مريم</span></div>
+      <div class="type-row"><small>عنوان فرعي 19 / 700</small><span class="t-h2">ميفيدا، القاهرة الجديدة</span></div>
+      <div class="type-row"><small>نص 16 / 400</small><span class="t-body">عايزة تقييم قبل ما تقرر. اتصل بعد الساعة 6 مساءً.</span></div>
+      <div class="type-row"><small>تسمية 14 / 600</small><span class="t-label">مهتم بالبيع</span></div>
+      <div class="type-row"><small>تعليق 12 / 500</small><span class="t-caption">آخر متابعة 15 أكتوبر</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <h2>Screens</h2>
+  <p class="lead">Phone width, 390px; each screen scrolls inside its frame. The urgency marker is now a rounded pill at the row's start edge: red for overdue, indigo for due today, amber for a listing check-in.</p>
+  <div class="screens" id="screens"></div>
+</section>
+
+<section class="block">
+  <h2>Motion</h2>
+  <div class="motion">
+    <div><h4>Soft press</h4><p>Buttons scale to 96–97% and their shadow settles in 200ms, ease-out. Nothing bounces.</p><button class="demo-btn" type="button">Press me</button></div>
+    <div><h4>Counters rise</h4><p>Board numbers fade up 6px, 50ms apart, when Today opens or a count changes. The rows don't animate.</p><button class="demo-btn" type="button" id="replay">Replay</button></div>
+    <div><h4>Live ripples</h4><p>A Live ad's dot sends out a soft ring every two seconds. Sheets slide up in 250ms and close in 150ms.</p></div>
+  </div>
+</section>
+</div>
+
+<script>
+const IC={
+ phone:'<svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M5 2.5h4.2l2.2 5.4-2.8 1.7a11 11 0 0 0 5.8 5.8l1.7-2.8 5.4 2.2v4.2a2.5 2.5 0 0 1-2.5 2.5A18 18 0 0 1 2.5 5 2.5 2.5 0 0 1 5 2.5z"/></svg>',
+ pin:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s7-7 7-12a7 7 0 0 0-14 0c0 5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+ warn:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.2"/></svg>',
+ back:'<svg class="flipx" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 5 8 12l7 7"/></svg>',
+ share:'<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v12M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>',
+ msg:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4V6a2 2 0 0 1 1-2z"/></svg>',
+ t1:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="5" width="16" height="15" rx="4"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
+ t2:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>',
+ t3:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 11 12 4l9 7v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+ t4:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></svg>'
+};
+const T={
+ en:{date:'Thursday 22 October',today:'Today',od:'Overdue',dt:'Due today',om:'No outcome',
+  secMiss:'Needs an outcome',missT:'Outcome missing',missP:'You called Hossam El-Sayed at 10:42 and left without an outcome.',missB:'Add outcome',
+  secOd:'Overdue',secDt:'Due today',secNew:'New owners',call:'Call',
+  tabs:['Today','Owners','Listings','Search'],
+  rows:{
+   od:[{n:'Nadia Fathy',a:'Fifth Settlement, New Cairo',s:['cb','Call back'],w:'1 day late'},
+       {n:'Karim Mansour',a:'Madinaty, B12',s:['int','Interested to sell'],w:'3 h late'}],
+   dt:[{n:'Amr Zaki',a:'Beverly Hills, Sheikh Zayed',s:['int','Interested to rent'],w:'2:30 PM'},
+       {n:'Check-in: Mivida flat',a:'Mivida, New Cairo',s:['live','Ad live'],w:'5:00 PM',pf:1}],
+   nw:[{n:'Yasmin Raouf',a:'Allegria, Sheikh Zayed',s:['new','New'],w:'Imported 20 Oct'},
+       {n:'Ahmed Shokry',a:'Rehab City, New Cairo',s:['new','New'],w:'Imported 20 Oct'},
+       {n:'Mona El-Gamal',a:'Palm Hills, 6th of October',s:['new','New'],w:'Imported 20 Oct'}]},
+  cur:'EGP',price:'8,500,000',lt:'Apartment for sale',la:'Mivida, New Cairo, Building 14',avail:'Available',
+  specs:[['3','Beds'],['3','Baths'],['185','m²'],['2','Floor']],
+  pf:'Property Finder ad',live:'Live',posted:'Posted',postedV:'4 Oct',last:'Last check-in',lastV:'15 Oct',next:'Next check-in',nextV:'Today',
+  logci:'Log check-in',openad:'Open ad',owner:'Owner',ownerN:'Nadia Fathy',phV:'+20 100 482 1937',ini:'NF',
+  callOwner:'Call owner',desc:'Semi-furnished, garden view, two parking spots. Owner wants a quick sale before December.'},
+ ar:{date:'الخميس 22 أكتوبر',today:'اليوم',od:'متأخرة',dt:'مستحقة اليوم',om:'بدون نتيجة',
+  secMiss:'بانتظار نتيجة',missT:'نتيجة المكالمة غير مسجلة',missP:'اتصلت بحسام السيد الساعة 10:42 ولم تسجل النتيجة.',missB:'سجّل النتيجة',
+  secOd:'متأخرة',secDt:'مواعيد اليوم',secNew:'ملاك جدد',call:'اتصال',
+  tabs:['اليوم','الملاك','الوحدات','بحث'],
+  rows:{
+   od:[{n:'نادية فتحي',a:'التجمع الخامس، القاهرة الجديدة',s:['cb','معاودة الاتصال'],w:'متأخرة يوم'},
+       {n:'كريم منصور',a:'مدينتي، B12',s:['int','مهتم بالبيع'],w:'متأخرة 3 ساعات'}],
+   dt:[{n:'عمرو زكي',a:'بيفرلي هيلز، الشيخ زايد',s:['int','مهتم بالإيجار'],w:'2:30 م'},
+       {n:'متابعة: شقة ميفيدا',a:'ميفيدا، القاهرة الجديدة',s:['live','الإعلان منشور'],w:'5:00 م',pf:1}],
+   nw:[{n:'ياسمين رؤوف',a:'أليجريا، الشيخ زايد',s:['new','جديد'],w:'استيراد 20 أكتوبر'},
+       {n:'أحمد شكري',a:'الرحاب، القاهرة الجديدة',s:['new','جديد'],w:'استيراد 20 أكتوبر'},
+       {n:'منى الجمل',a:'بالم هيلز، 6 أكتوبر',s:['new','جديد'],w:'استيراد 20 أكتوبر'}]},
+  cur:'ج.م',price:'8,500,000',lt:'شقة للبيع',la:'ميفيدا، القاهرة الجديدة، مبنى 14',avail:'متاحة',
+  specs:[['3','غرف'],['3','حمامات'],['185','م²'],['2','الدور']],
+  pf:'إعلان Property Finder',live:'منشور',posted:'تاريخ النشر',postedV:'4 أكتوبر',last:'آخر متابعة',lastV:'15 أكتوبر',next:'المتابعة القادمة',nextV:'اليوم',
+  logci:'سجّل المتابعة',openad:'افتح الإعلان',owner:'المالك',ownerN:'نادية فتحي',phV:'+20 100 482 1937',ini:'ن',
+  callOwner:'اتصل بالمالك',desc:'نصف مفروشة، تطل على الحديقة، مكانين جراج. المالكة عايزة تبيع بسرعة قبل ديسمبر.'}
+};
+const status=()=>`<div class="status"><span>2:14</span><span class="dots"><i class="bar"></i><i class="bar"></i><i class="bar"></i><i></i></span></div>`;
+const tabs=(t,on)=>`<nav class="tabs">${t.tabs.map((x,i)=>`<a href="#" class="${i===on?'on':''}">${IC['t'+(i+1)]}<span class="l">${x}</span>${i===0&&i!==on?'<i class="dot"></i>':''}</a>`).join('')}</nav>`;
+const row=(r,k,t)=>`<div class="row ${r.pf?'pf':k}"><span class="pill"></span><div class="body"><div class="name">${r.n}</div><div class="area">${IC.pin}${r.a}</div><div class="meta"><span class="chip ${r.s[0]}">${r.s[1]}</span><span class="when">${r.w}</span></div></div><button class="call" type="button">${IC.phone}${t.call}</button></div>`;
+function today(L){const t=T[L];return status()+`<div class="scroll">
+ <div class="tday"><div class="who"><span>${t.date}</span><span class="avatar">${L==='ar'?'م':'MA'}</span></div>
+ <h1>${t.today}</h1>
+ <div class="board"><div class="od"><b>3</b><span>${t.od}</span></div><div class="dt"><b>5</b><span>${t.dt}</span></div><div class="om"><b>1</b><span>${t.om}</span></div></div></div>
+ <div class="sec"><h2>${t.secMiss}</h2><span>1</span></div>
+ <div class="miss"><span class="ic">${IC.warn}</span><strong>${t.missT}</strong><p>${t.missP}</p><button type="button">${t.missB}</button></div>
+ <div class="sec"><h2>${t.secOd}</h2><span>2</span></div><div class="rows">${t.rows.od.map(r=>row(r,'od',t)).join('')}</div>
+ <div class="sec"><h2>${t.secDt}</h2><span>2</span></div><div class="rows">${t.rows.dt.map(r=>row(r,'dt',t)).join('')}</div>
+ <div class="sec"><h2>${t.secNew}</h2><span>24</span></div><div class="rows">${t.rows.nw.map(r=>row(r,'nw',t)).join('')}</div>
+ </div>`+tabs(t,0);}
+let pid=0;
+const photo=()=>{pid++;return `<svg viewBox="0 0 390 320" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="p${pid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8FB0F2"/><stop offset="1" stop-color="#F6DDB8"/></linearGradient></defs>
+ <rect width="390" height="320" fill="url(#p${pid})"/><circle cx="300" cy="110" r="26" fill="#FFF0C4"/>
+ <rect x="40" y="96" width="230" height="230" rx="6" fill="#F1EBE2"/>
+ ${[0,1,2,3].map(r=>[0,1,2].map(c=>`<rect x="${58+c*72}" y="${120+r*48}" width="54" height="34" rx="5" fill="#3F4E78"/><rect x="${54+c*72}" y="${154+r*48}" width="62" height="5" rx="2" fill="#B9AB95"/>`).join('')).join('')}
+ <rect x="270" y="170" width="120" height="150" rx="6" fill="#E4DBCD"/>${[0,1].map(r=>`<rect x="286" y="${190+r*50}" width="88" height="30" rx="5" fill="#3F4E78"/>`).join('')}
+ <path d="M0 320v-40c40-14 70-10 110 0s80 10 120 0 100-12 160 0v40z" fill="#5C8A55"/>
+ <path d="M330 320v-90" stroke="#5B4632" stroke-width="5"/><path d="M330 232c-20-8-34 0-40 10M330 232c18-10 34-4 42 6M330 232c-6-16-20-20-30-20M330 232c6-16 20-18 30-16" stroke="#3E6B3A" stroke-width="6" fill="none" stroke-linecap="round"/></svg>`};
+function listing(L){const t=T[L];return `<div class="scroll" style="padding-block-start:0">
+ <div style="position:relative;z-index:2">${status().replace('class="status"','class="status" style="color:#141833"')}</div>
+ <div class="photo">${photo()}<div class="topbar"><span class="rb">${IC.back}</span><span class="rb">${IC.share}</span></div><span class="count">1 / 12</span></div>
+ <div class="sheet">
+ <div class="price"><span class="amt">${t.price}<small>${t.cur}</small></span><span class="chip int">${t.avail}</span></div>
+ <div class="ltitle"><h2>${t.lt}</h2><p>${t.la}</p></div>
+ <div class="specs">${t.specs.map(s=>`<div><b>${s[0]}</b><span>${s[1]}</span></div>`).join('')}</div>
+ <div class="card pfc"><h3>${t.pf}<span class="chip live">${t.live}</span></h3>
+  <div class="kv"><span>${t.posted}</span><b>${t.postedV}</b></div><div class="kv"><span>${t.last}</span><b>${t.lastV}</b></div><div class="kv due"><span>${t.next}</span><b>${t.nextV}</b></div>
+  <div class="acts"><button class="btn2 pri" type="button">${t.logci}</button><button class="btn2" type="button">${t.openad}</button></div></div>
+ <div class="card"><div class="owner"><span class="av">${t.ini}</span><div><b>${t.ownerN}</b><span dir="ltr">${t.phV}</span></div></div></div>
+ <p class="desc">${t.desc}</p></div></div>
+ <div class="dock"><button class="big" type="button">${IC.phone}${t.callOwner}</button><button class="sm" type="button" aria-label="Note">${IC.msg}</button></div>`;}
+const shots=[['today','en','light','Today, English, light'],['today','en','dark','Today, English, dark'],['today','ar','light','Today, Arabic RTL, light'],
+ ['listing','en','light','Listing, English, light'],['listing','en','dark','Listing, English, dark'],['listing','ar','dark','Listing, Arabic RTL, dark']];
+document.getElementById('screens').innerHTML=shots.map(([s,L,th,c])=>`<figure class="shot"><div class="phone theme-${th}" lang="${L}" dir="${L==='ar'?'rtl':'ltr'}">${s==='today'?today(L):listing(L)}</div><figcaption>${c}</figcaption></figure>`).join('');
+const roles=[['bg','Background'],['surface','Surface'],['surface-2','Surface 2'],['primary','Primary'],['primary-2','Primary end'],['accent','Accent'],['ink','Text'],['muted','Text muted'],['success','Success'],['warning','Warning'],['danger','Danger'],['line','Line']];
+document.getElementById('pal').innerHTML=['light','dark'].map(th=>`<div class="pal-col theme-${th}"><h3>${th==='light'?'Light':'Dark'}</h3><div class="sw">${roles.map(([v,n])=>`<div><i style="background:var(--${v})"></i><b>${n}</b><code data-v="${v}"></code></div>`).join('')}</div></div>`).join('');
+document.querySelectorAll('.pal-col').forEach(col=>col.querySelectorAll('code').forEach(c=>c.textContent=getComputedStyle(col).getPropertyValue('--'+c.dataset.v).trim()));
+document.getElementById('replay').onclick=()=>document.querySelectorAll('.board b').forEach(s=>{s.style.animation='none';s.offsetWidth;s.style.animation='';});
+</script>
+</body>
+</html>

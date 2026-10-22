@@ -53,3 +53,8 @@
 - **[Stage 3] Photos upload browser → Vercel Blob directly**, resized to 2560 px and HEIC converted
   in the browser; 30 photos per listing.
 - **[Stage 3] Purge and ad check-in safety net as daily Vercel crons.**
+- **[Stage 4] Design: user likes direction A (Switchboard) layout, rejects its boxy style** — 2026-10-22.
+  Two modern restylings mocked (A1 Soft, A2 Sleek).
+- **[Stage 4] Look approved by the user: A1 Switchboard Soft** — 2026-10-22. Plus Jakarta Sans +
+  IBM Plex Sans Arabic, indigo-cobalt gradient, 12/18/24px radii, soft layered shadows, amber only for
+  urgency, 200–250ms ease-out. Reference mockup: `docs/design/approved-direction-a1-soft.html`.
