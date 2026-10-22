@@ -263,6 +263,7 @@ alone in its wave against any other schema-changing task.
 
 ### T10b — Assign vs deactivate race
 - Also extract the ASSIGN activity entry text (now written in owners, listings and imports) into the assignment domain — one helper, three callers.
+- [ ] Listings import with `assignTo` writes one ASSIGN activity entry for the listings it assigned, even when no owner lead was linked (business: "one assignment entry when it assigned anything"; T9 review CONFLICT)
 - [ ] Assigning owners to a member while that member is being deactivated → the assign is refused (400 INVALID_ASSIGNEE) or the owners end up with the hand-over recipient; never on the inactive member (invariant: assign only to active members)
 
 ### T11 — Analytics, exports, crons
