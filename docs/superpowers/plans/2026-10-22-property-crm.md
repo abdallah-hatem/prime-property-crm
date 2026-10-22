@@ -27,6 +27,7 @@ and emoji text, deleted id → 404. They are tested once per endpoint group, not
 | T8 | Listings: CRUD, search, status, ad lifecycle + check-ins, assign, notes, photos (Blob client upload) | backend | logic | T7 | `feature/listings` |
 | T9 | Imports: upload/parse, mapping, preview, confirm (owners and listings) | backend | logic | T8 | `feature/imports` |
 | T10 | Deactivate / reactivate with hand-over; trash list + restore; activity endpoint; settings | backend | logic | T8 | `feature/admin-ops` |
+| T10b | Race fix: deactivation locks the user row (FOR UPDATE) before reading their work; `UserDirectoryRepository.findActive` inside a tx takes FOR SHARE, so an assignment racing a deactivation is either refused or handed over | backend | logic | T10 | `fix/assign-deactivate-race` |
 | T11 | Analytics, Excel exports, crons (purge, ad check-in safety net) | backend | logic | T8 | `feature/analytics-exports` |
 | T12 | Web shell: middleware auth routing + in-place refresh, `apiFetch`/`callApi`, login, app layout (bottom nav on phones, sidebar on desktop), language + theme, shared components (page header, list/table, status chip, counter card, empty state, confirm dialog, phone input, money and date display, skeletons) | frontend | logic (auth routing, refresh) + ui | T0, T4 | `feature/web-shell` |
 | T13 | Today + calling list + owner detail + call flow (tel:) + outcome sheet + reminders screens | frontend | ui | T12, T7 | `feature/web-calling` |
@@ -259,6 +260,9 @@ alone in its wave against any other schema-changing task.
 - [ ] Item deleted exactly 30 days ago is still restorable; 30 days + 1 minute is not (business: 30 days)
 - [ ] Member calls restore → 403 (role)
 - [ ] Restore an item that isn't in the trash → 404 (checklist: wrong state)
+
+### T10b — Assign vs deactivate race
+- [ ] Assigning owners to a member while that member is being deactivated → the assign is refused (400 INVALID_ASSIGNEE) or the owners end up with the hand-over recipient; never on the inactive member (invariant: assign only to active members)
 
 ### T11 — Analytics, exports, crons
 - [ ] Member calls analytics → 403 (role)
