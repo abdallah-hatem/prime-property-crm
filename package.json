@@ -18,6 +18,10 @@
     "dev:api": "npm run start:dev -w @prime-crm/api",
     "dev:web": "npm run dev -w @prime-crm/web",
     "db:up": "docker compose -p prime-crm up -d",
-    "db:down": "docker compose -p prime-crm down"
+    "db:down": "docker compose -p prime-crm down",
+    "db:seed": "npm run db:seed -w @prime-crm/api",
+    "db:agent": "node scripts/db-agent.mjs",
+    "test:e2e": "npm run build:shared && npm run test:e2e -w @prime-crm/api",
+    "test:smoke": "npm run test:e2e -w @prime-crm/web -- --grep @smoke"
   }
 }

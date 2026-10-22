@@ -13,3 +13,6 @@ design-directions/
 *.tsbuildinfo
 test-results
 playwright-report
+# Playwright saved sessions (live tokens) and screenshots
+**/e2e/.auth/
+**/e2e/shots/
