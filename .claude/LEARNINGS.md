@@ -21,3 +21,6 @@ Corrections recorded so they don't have to be repeated. Loaded at session start.
   stalled two agents for 10+ minutes. Any single tool call over ~10 minutes trips the agent
   watchdog: prefix tests/builds/Playwright with `timeout 420`, run e2e per spec file with
   `--forceExit`. Ask for a WIP commit before long steps. — 2026-10-23
+- Keep at most 3 agents that run tests or servers at once on this machine (16 GB): with 5,
+  free memory fell to ~3 GB, a `next dev` grew to 3 GB, and agents stalled. Kill a stalled agent's
+  servers before resuming it. — 2026-10-23
