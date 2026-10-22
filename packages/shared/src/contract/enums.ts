@@ -89,3 +89,25 @@ export const ActivityTypeSchema = z.enum([
 ]);
 export type ActivityType = z.infer<typeof ActivityTypeSchema>;
 export const ActivityType = ActivityTypeSchema.enum;
+
+export const ImportKindSchema = z.enum(['OWNERS', 'LISTINGS']);
+export type ImportKind = z.infer<typeof ImportKindSchema>;
+export const ImportKind = ImportKindSchema.enum;
+
+export const ImportStatusSchema = z.enum([
+  'MAPPING',
+  'PREVIEWED',
+  'DONE',
+  'FAILED',
+]);
+export type ImportStatus = z.infer<typeof ImportStatusSchema>;
+export const ImportStatus = ImportStatusSchema.enum;
+
+export const ImportIssueReasonSchema = z.enum([
+  'DUPLICATE',
+  'INVALID_PHONE',
+  'MISSING_REQUIRED',
+  'INVALID_VALUE',
+]);
+export type ImportIssueReason = z.infer<typeof ImportIssueReasonSchema>;
+export const ImportIssueReason = ImportIssueReasonSchema.enum;

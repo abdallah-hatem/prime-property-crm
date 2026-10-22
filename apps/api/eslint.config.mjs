@@ -54,12 +54,14 @@ const PRISMA_ZONES = [
   'src/domains/*/repositories/**/*.ts',
   'src/database/**/*.ts',
   'src/common/repositories/**/*.ts',
+  'prisma/**/*.ts',
 ];
 
 /** Zones where process.env is legitimate. */
 const ENV_ZONES = [
   'src/config/**/*.ts',
   'prisma.config.ts',
+  'test/global-setup.ts',
   'test/**/setup*.ts',
   'test/**/*.setup.ts',
 ];
@@ -138,6 +140,16 @@ export default tseslint.config(
         'error',
         { paths: [prismaValueImportBan] },
       ],
+      'no-restricted-properties': ['error', ...rawUnsafeBans],
+    },
+  },
+
+  // The seed entrypoint and the e2e db helpers build their own Prisma client from the
+  // environment: both a Prisma value import and process.env are allowed there.
+  {
+    files: ['prisma/seed.ts', 'test/**/helpers*.ts'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': 'off',
       'no-restricted-properties': ['error', ...rawUnsafeBans],
     },
   },
