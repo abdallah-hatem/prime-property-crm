@@ -12,7 +12,7 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
-import { IsOptionalNotNull } from '../../users/dto/optional.decorator';
+import { IsOptionalNotNull } from '../../../common/validators/optional-not-null.validator';
 import { trimRoleName } from './create-role.dto';
 
 /**

@@ -1,6 +1,6 @@
 # Prime Property CRM — Business Logic
 
-Last updated: 2026-10-22 (T5) · Source spec: `docs/specs/2026-10-22-property-crm.md`
+Last updated: 2026-10-22 (T5, T6) · Source spec: `docs/specs/2026-10-22-property-crm.md`
 
 This file is what the business is and how it behaves **now**. Every behavior change updates it in the
 same commit. Items not built yet are marked **Planned**. Nothing is built yet: everything below is the
@@ -56,10 +56,12 @@ ends all of them. Role and permission changes reach a signed-in user within 15 m
   **Do not call**. The latest call outcome sets the status, through the outcome's mapping.
 - **Listed** and **Do not call** owners never appear in any calling list.
 - A member can mark their own owner **Do not call**; only the admin can clear it (the owner goes
-  back to Contacted).
+  back to Contacted). A **Listed** owner can't be marked Do not call: it leaves the calling list
+  through its listing.
 - An owner and its listing always have the same member: reassigning either moves the other.
-- Calling list order: owners with an overdue reminder, then a reminder due today, then New, Call
-  back, Contacted, Interested, Not interested; within each, the one called longest ago first.
+- Calling list order: owners with an overdue reminder (open, due before now), then a reminder due
+  later today (Cairo time), then New, Call back, Contacted, Interested, Not interested; within each,
+  never-called owners first, then the one called longest ago, ties by the oldest added.
 - An owner with a listing can't be deleted until the listing is. Deleting a listing sends its owner
   back to **Interested**.
 
@@ -113,8 +115,9 @@ ends all of them. Role and permission changes reach a signed-in user within 15 m
    (as an owner or a listing's owner) are skipped as duplicates. Rows with no valid phone are rejected.
    The import report lists added, duplicate and rejected rows. If the import fails partway, nothing is
    saved.
-2. **Assign.** Admin assigns selected owners to an active member. Reassigning moves the owner, its open
-   reminders and its listing (if any) with full history.
+2. **Assign.** Admin assigns selected owners to an active member (or to nobody). Reassigning moves the
+   owner, its open reminders and its listing (if any) with full history; deleted owners in the
+   selection are skipped. Each batch is one activity-log entry with the count.
 3. **Call.** Member taps Call → phone dials → outcome sheet → outcome, note, optional reminder.
 4. **Listing from an owner.** Creating a listing from an owner prefills the contact and flags the owner
    **Listed**.

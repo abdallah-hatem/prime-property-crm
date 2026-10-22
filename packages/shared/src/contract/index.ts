@@ -7,3 +7,8 @@ export * from './permissions';
 export * from './trash';
 export * from './roles';
 export * from './users';
+export * from './summary';
+export * from './notes';
+export * from './calls';
+export * from './reminders';
+export * from './owners';

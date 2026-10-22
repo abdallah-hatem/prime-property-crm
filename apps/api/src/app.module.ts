@@ -13,6 +13,11 @@ import { AuthModule } from './domains/auth/auth.module';
 import { HealthModule } from './domains/health/health.module';
 import { TrashModule } from './domains/trash/trash.module';
 import { UsersModule } from './domains/users/users.module';
+import { AssignmentModule } from './domains/assignment/assignment.module';
+import { LookupsModule } from './domains/lookups/lookups.module';
+import { NotesModule } from './domains/notes/notes.module';
+import { OwnersModule } from './domains/owners/owners.module';
+import { RemindersModule } from './domains/reminders/reminders.module';
 
 @Module({
   imports: [
@@ -28,6 +33,11 @@ import { UsersModule } from './domains/users/users.module';
     ActivityModule,
     TrashModule,
     UsersModule,
+    RemindersModule,
+    NotesModule,
+    AssignmentModule,
+    OwnersModule,
+    LookupsModule,
   ],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },

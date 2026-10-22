@@ -10,24 +10,11 @@ import {
   Matches,
 } from 'class-validator';
 import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
+import { toList } from '../../../common/utils/query-list.util';
 
 /** A Cairo date (YYYY-MM-DD) or a full ISO instant; week and ordinal ISO forms are refused. */
 const DATE_OR_INSTANT = /^\d{4}-\d{2}-\d{2}(T.+)?$/;
 const DATE_MESSAGE = '$property must be a date (YYYY-MM-DD) or an ISO instant';
-
-/** `?type=IMPORT&type=ASSIGN` and `?type=IMPORT,ASSIGN` both become ['IMPORT', 'ASSIGN']. */
-function toList(value: unknown): unknown {
-  if (value === undefined || value === '') return undefined;
-  const items = Array.isArray(value) ? value : [value];
-  return items.flatMap((item) =>
-    typeof item === 'string'
-      ? item
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean)
-      : [item],
-  );
-}
 
 /** `GET /activity` filters (spec: type[], actorId, from, to, page, limit). */
 export class ActivityQueryDto extends PaginationQueryDto {

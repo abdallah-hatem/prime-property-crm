@@ -5,4 +5,4 @@ import { ValidateIf } from 'class-validator';
  * any other value. `@IsOptional()` lets null through, which zod's `.optional()` refuses.
  */
 export const IsOptionalNotNull = () =>
-  ValidateIf((_, value: unknown) => value !== undefined);
+  ValidateIf((_object: object, value: unknown) => value !== undefined);

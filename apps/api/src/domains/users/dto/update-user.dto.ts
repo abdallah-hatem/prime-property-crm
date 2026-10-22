@@ -15,7 +15,7 @@ import {
   MaxLength,
   ValidateIf,
 } from 'class-validator';
-import { IsOptionalNotNull } from './optional.decorator';
+import { IsOptionalNotNull } from '../../../common/validators/optional-not-null.validator';
 import { IsPhone } from '../../../common/validators/is-phone.validator';
 
 /**

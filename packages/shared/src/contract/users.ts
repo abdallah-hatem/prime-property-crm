@@ -38,9 +38,6 @@ const pageField = z.coerce.number().int().min(1).default(1);
 const limitField = (max: number) =>
   z.coerce.number().int().min(1).max(max).default(max);
 
-/** `UserSummary { id, name }` (spec, Shapes). */
-export const UserSummarySchema = z.object({ id: z.uuid(), name: z.string() });
-export type UserSummary = z.infer<typeof UserSummarySchema>;
 
 /** `GET /users` query: search by name, email or phone; filter by role and active. */
 export const UserListQuerySchema = z.strictObject({
