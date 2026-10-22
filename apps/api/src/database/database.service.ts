@@ -3,6 +3,27 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 import type { Env } from '../config/env.validation';
+import type { Tx } from '../common/interfaces/transaction.interface';
+
+/** Pool settings for the pg driver adapter (`connection_limit` in the URL does not apply). */
+export interface PoolOptions {
+  connectionString: string;
+  max?: number;
+  connectionTimeoutMillis?: number;
+}
+
+/**
+ * On Vercel every function instance opens its own pool: one connection each keeps Neon from
+ * running out, and a 20 s connect timeout fails a request instead of hanging it.
+ */
+export function poolOptions(
+  env: Pick<Env, 'DATABASE_URL' | 'VERCEL'>,
+): PoolOptions {
+  const base = { connectionString: env.DATABASE_URL };
+  return env.VERCEL
+    ? { ...base, max: 1, connectionTimeoutMillis: 20_000 }
+    : base;
+}
 
 /** The one Prisma client. Repositories use it; controllers never do. */
 @Injectable()
@@ -12,9 +33,12 @@ export class DatabaseService
 {
   constructor(config: ConfigService<Env, true>) {
     super({
-      adapter: new PrismaPg({
-        connectionString: config.get('DATABASE_URL', { infer: true }),
-      }),
+      adapter: new PrismaPg(
+        poolOptions({
+          DATABASE_URL: config.get('DATABASE_URL', { infer: true }),
+          VERCEL: config.get('VERCEL', { infer: true }),
+        }),
+      ),
     });
   }
 
@@ -24,6 +48,14 @@ export class DatabaseService
 
   async onModuleDestroy(): Promise<void> {
     await this.$disconnect();
+  }
+
+  /**
+   * Runs `work` in one interactive transaction. Services open it and hand `tx` to every
+   * repository call (and to ActivityService.record), so all of it commits or none does.
+   */
+  transaction<T>(work: (tx: Tx) => Promise<T>): Promise<T> {
+    return this.$transaction(work);
   }
 
   /** True when the database answers a trivial query. */

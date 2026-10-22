@@ -1,29 +1,54 @@
 import { z } from 'zod';
 
+/** An optional variable: unset and empty both mean "not configured". */
+const optionalString = z.preprocess(
+  (value) => (value === '' ? undefined : value),
+  z.string().min(1).optional(),
+);
+
 /**
  * Every environment variable the API reads. Validated once by ConfigModule at boot:
  * a missing or malformed value stops the process before it serves a request.
  */
-export const envSchema = z.object({
-  NODE_ENV: z
-    .enum(['development', 'test', 'production'])
-    .default('development'),
-  PORT: z.coerce.number().int().min(1).max(65535),
-  DATABASE_URL: z
-    .string()
-    .regex(/^postgres(ql)?:\/\//, 'must be a postgres:// connection string'),
-  JWT_SECRET: z.string().min(32, 'must be at least 32 characters'),
-  CORS_ORIGINS: z
-    .string()
-    .min(1)
-    .transform((value) =>
-      value
-        .split(',')
-        .map((origin) => origin.trim())
-        .filter(Boolean),
-    )
-    .pipe(z.array(z.url()).min(1)),
-});
+export const envSchema = z
+  .object({
+    NODE_ENV: z
+      .enum(['development', 'test', 'production'])
+      .default('development'),
+    PORT: z.coerce.number().int().min(1).max(65535).default(3000),
+    DATABASE_URL: z
+      .string()
+      .regex(/^postgres(ql)?:\/\//, 'must be a postgres:// connection string'),
+    JWT_SECRET: z.string().min(32, 'must be at least 32 characters'),
+    CORS_ORIGINS: z
+      .string()
+      .min(1)
+      .transform((value) =>
+        value
+          .split(',')
+          .map((origin) => origin.trim())
+          .filter(Boolean),
+      )
+      .pipe(z.array(z.url()).min(1)),
+    /** Shared secret Vercel crons send. Optional in dev and test, required in production. */
+    CRON_SECRET: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z.string().min(16, 'must be at least 16 characters').optional(),
+    ),
+    /** Vercel Blob token for photo uploads (the photos task makes it required). */
+    BLOB_READ_WRITE_TOKEN: optionalString,
+    /** Set by Vercel on every deployment: the database pool shrinks to one connection. */
+    VERCEL: optionalString,
+  })
+  .superRefine((env, ctx) => {
+    if (env.NODE_ENV === 'production' && !env.CRON_SECRET) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['CRON_SECRET'],
+        message: 'is required when NODE_ENV=production',
+      });
+    }
+  });
 
 export type Env = z.infer<typeof envSchema>;
 
