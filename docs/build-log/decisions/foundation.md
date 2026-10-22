@@ -58,3 +58,28 @@
 - **[Stage 4] Look approved by the user: A1 Switchboard Soft** — 2026-10-22. Plus Jakarta Sans +
   IBM Plex Sans Arabic, indigo-cobalt gradient, 12/18/24px radii, soft layered shadows, amber only for
   urgency, 200–250ms ease-out. Reference mockup: `docs/design/approved-direction-a1-soft.html`.
+- **[Run mode] User re-confirmed fully autonomous on 2026-10-22: "go ahead and implement, don't wait
+  for me, you approve".** Gates are self-approved; money, access and irreversible data loss still stop.
+- **[Stage 5] Plan written and self-approved** — `docs/superpowers/plans/2026-10-22-property-crm.md`,
+  20 tasks (T0–T19) with classes, dependencies and edge cases.
+- **[Stage 5] Deactivation with no recipient leaves open reminders unassigned**; they follow the
+  owner/listing to its next member. Alternatives: close them (loses follow-ups); give them to the admin.
+- **[Stage 5] Restoring a photo of a deleted listing → 409, restore the listing first.**
+- **[Stage 5] Calls keep an owner-name snapshot** so purging an owner after 30 days never deletes calls.
+- **[Stage 5] Alignment review round 1: CONFLICTS → resolved** (business doc wins; gaps decided):
+  - Reminders can be unassigned (`member: null`) and follow their owner/listing.
+  - Only `owners.assign` holders set an assignee anywhere (create owner, create listing); PATCH
+    listing can't reassign. An owner and its listing always share a member.
+  - Leaving Available closes the open check-in; the safety-net cron skips non-Available listings;
+    deleting an owner or listing closes its open reminders.
+  - Trashed owners keep their phones until purge (`409 PHONE_IN_TRASH`). Alternatives: release the
+    phone on delete (restore could then conflict). Why: restore always works and dedupe stays strict.
+  - Price capped at 1,000,000,000 EGP (fits `Int`).
+  - Call start is idempotent by `clientRequestId`; a late outcome on an older call never overrides
+    the status set by a newer one.
+  - `PHONE_EXISTS` reveals ids only to `owners.viewAll` holders.
+  - Do not call: member can set on own owner, only admin clears (→ Contacted).
+  - T12 auth routing and T19 backups reclassified to `logic` with cases (restore drill).
+  - Business doc gained: Note entity, full activity list, reactivation and password reset, restore
+    side effects, invariants for ad Live and take-down tasks.
+- **[Stage 5] Alignment review round 2: 5 small gaps (activity cases, import assign permission, note immutability, price bounds, restore of non-trashed) added → plan self-approved as ALIGNED.**

@@ -1,6 +1,6 @@
 # Prime Property CRM — Business Logic
 
-Last updated: 2026-10-22 (contract) · Source spec: `docs/specs/2026-10-22-property-crm.md`
+Last updated: 2026-10-22 (plan) · Source spec: `docs/specs/2026-10-22-property-crm.md`
 
 This file is what the business is and how it behaves **now**. Every behavior change updates it in the
 same commit. Items not built yet are marked **Planned**. Nothing is built yet: everything below is the
@@ -35,6 +35,9 @@ Accounts are created by the admin only. A deactivated user cannot sign in, and t
 - Lead status: **New → Contacted → Interested / Not interested / Call back**, plus **Listed** and
   **Do not call**. The latest call outcome sets the status, through the outcome's mapping.
 - **Listed** and **Do not call** owners never appear in any calling list.
+- A member can mark their own owner **Do not call**; only the admin can clear it (the owner goes
+  back to Contacted).
+- An owner and its listing always have the same member: reassigning either moves the other.
 - Calling list order: owners with an overdue reminder, then a reminder due today, then New, Call
   back, Contacted, Interested, Not interested; within each, the one called longest ago first.
 - An owner with a listing can't be deleted until the listing is. Deleting a listing sends its owner
@@ -42,9 +45,12 @@ Accounts are created by the admin only. A deactivated user cannot sign in, and t
 
 ### Call
 - Created when a member taps Call on an owner assigned to them.
-- Gets exactly one outcome. A call without an outcome stays in the member's to-do as "Outcome missing"
+- Gets exactly one outcome. Tapping Call twice by accident creates one call.
+- The lead status follows the latest call that has an outcome: setting a late outcome on an older
+  call never overrides a newer one. A call without an outcome stays in the member's to-do as "Outcome missing"
   until one is set.
-- Calls are never deleted; they are the activity record.
+- Calls are never deleted; they are the activity record. A call keeps the owner's name, so it
+  survives the owner being removed for good after 30 days in the trash.
 
 ### Call outcome
 - An admin-editable list. Each outcome maps to the lead status it sets. An outcome in use can be
@@ -54,20 +60,30 @@ Accounts are created by the admin only. A deactivated user cannot sign in, and t
   Wrong number, Do not call again → Do not call.
 
 ### Reminder
-- Belongs to one member and one owner or listing, with a due date and time.
+- Belongs to one owner or listing and that record's member (or to nobody while it is unassigned),
+  with a due date and time.
+- Deleting an owner or listing closes its open reminders.
 - Overdue reminders stay at the top of the member's list until done.
-- Reassigning an owner or listing moves its open reminders to the new member.
+- Reassigning an owner or listing moves its open reminders to the new member. When an owner or
+  listing becomes unassigned, its open reminders become unassigned too (visible to the admin) and
+  follow it to the next member it is assigned to.
 
 ### Listing
 - Purpose: sale or rent. Status: **Available, Sold, Rented, Off market**. Only Available listings
   appear in client search by default.
 - Has one assigned member (the member who created it from an owner, or one chosen by the admin).
 - A listing whose owner phone matches an owner lead is linked to it, and the lead becomes **Listed**.
+- Price is a whole EGP amount from 1 to 1,000,000,000.
+- A listing that stops being Available gets no more check-ins.
 - Property Finder ad: link, ad status (**Not posted, Live, Taken down**), posted date, last check-in.
 
+### Note
+- Free text on an owner or a listing, with author and time. Notes are added, not edited.
+
 ### Activity log
-- Records imports, assignments and reassignments, deletions, restores, user and role changes, with who
-  and when. It cannot be edited or deleted.
+- Records imports, assignments and reassignments, deletions, restores, user changes (create, edit,
+  deactivate, reactivate, password reset), role changes, settings and call-outcome changes, and
+  exports, with who and when. It cannot be edited or deleted.
 
 ## Flows
 
@@ -90,8 +106,12 @@ Accounts are created by the admin only. A deactivated user cannot sign in, and t
 8. **Deactivate a member.** The admin chooses who receives their owners, listings and open reminders
    (a member or unassigned) before deactivation completes.
 9. **Delete and restore.** Deleted owners, listings and photos are hidden and can be restored by the
-   admin for 30 days, then removed for good.
+   admin for 30 days, then removed for good. A deleted owner keeps its phone numbers until then, so
+   nobody else can be added with them. Restoring a listing makes its owner Listed again (refused if
+   the owner has another listing by then); a photo is restored only after its listing.
 10. **Export.** Admin exports owners or listings, with the current filters, to Excel.
+11. **Users.** The admin can reset a member's password (their sessions end) and reactivate a
+    deactivated member, who then starts with no owners.
 
 ## Invariants
 
@@ -103,6 +123,9 @@ Accounts are created by the admin only. A deactivated user cannot sign in, and t
 - Calls and activity log entries are never deleted or edited.
 - There is always at least one active admin.
 - A deleted record is restorable for 30 days.
+- An ad goes Live only on an Available listing.
+- A "Take down the ad" task closes only when the ad is marked Taken down.
+- Assigning work is done only by users with the assign permission, and only to active members.
 
 ## Analytics
 
