@@ -1,10 +1,18 @@
 import type { CallHandler, ExecutionContext } from '@nestjs/common';
 import { lastValueFrom, of } from 'rxjs';
+import { RawResponse } from '../decorators/raw-response.decorator';
 import { ResponseUtil } from '../utils/response.util';
 import { ResponseInterceptor } from './response.interceptor';
 
-function contextFor(method: string, url: string, statusCode: number) {
+function contextFor(
+  method: string,
+  url: string,
+  statusCode: number,
+  handler: () => void = () => undefined,
+) {
   return {
+    getHandler: () => handler,
+    getClass: () => Object,
     switchToHttp: () => ({
       getRequest: () => ({ method, url }),
       getResponse: () => ({ statusCode }),
@@ -26,6 +34,22 @@ function run(
 }
 
 describe('ResponseInterceptor', () => {
+  it('leaves a @RawResponse() route as it is (Blob upload handshake)', async () => {
+    class Probe {
+      @RawResponse()
+      handshake() {}
+    }
+    const value = { type: 'blob.generate-client-token', clientToken: 't' };
+    const next: CallHandler = { handle: () => of(value) };
+    const body = await lastValueFrom(
+      new ResponseInterceptor().intercept(
+        contextFor('POST', '/api/uploads', 200, Probe.prototype.handshake),
+        next,
+      ),
+    );
+    expect(body).toEqual(value);
+  });
+
   it('wraps a returned value in the success envelope', async () => {
     const body = await run({ id: 'a1' });
     expect(body).toEqual({

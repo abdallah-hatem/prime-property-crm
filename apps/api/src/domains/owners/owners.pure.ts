@@ -1,9 +1,4 @@
-import {
-  DEFAULT_COUNTRY_CODE,
-  type LeadStatus,
-  type OwnerSort,
-} from '@prime-crm/shared';
-import type { OwnerSearch } from './interfaces/owner.interface';
+import type { LeadStatus, OwnerSort } from '@prime-crm/shared';
 
 /**
  * Calling-list order after the reminder buckets (business doc): New, Call back, Contacted,
@@ -25,43 +20,12 @@ export const NEVER_IN_CALLING_LIST = [
 /** The latest notes an `Owner` carries. */
 export const OWNER_LATEST_NOTES = 3;
 
-const ARABIC_INDIC = /[٠-٩۰-۹]/g;
-
-/** ٠١٠ / ۰۱۰ → 010, so a phone typed on an Arabic keyboard still matches. */
-export function latinDigits(text: string): string {
-  return text.replace(ARABIC_INDIC, (d) => {
-    const code = d.charCodeAt(0);
-    return String(code - (code >= 0x06f0 ? 0x06f0 : 0x0660));
-  });
-}
-
-/** Phone search starts at this many significant digits (fewer would match almost everyone). */
-export const PHONE_SEARCH_MIN_DIGITS = 3;
-
-/**
- * `q` matches a name (as typed) or a phone. For phones, separators are ignored and a leading
- * `0`, `+20` or `0020` is dropped, so `0100 123`, `+20100123` and `100123` all find
- * +20100123xxxx. Text with letters is a name search only.
- */
-export function parseSearch(q: string | undefined): OwnerSearch | undefined {
-  const text = q?.trim();
-  if (!text) return undefined;
-  const latin = latinDigits(text);
-  const looksLikePhone = /^[+\d\s\-.()]+$/.test(latin);
-  let digits = looksLikePhone ? latin.replace(/\D/g, '') : '';
-  if (latin.trim().startsWith('+') || digits.startsWith('00')) {
-    digits = digits.replace(/^0*/, '');
-    if (digits.startsWith(DEFAULT_COUNTRY_CODE)) {
-      digits = digits.slice(DEFAULT_COUNTRY_CODE.length);
-    }
-  } else {
-    digits = digits.replace(/^0+/, '');
-  }
-  return {
-    text,
-    phoneDigits: digits.length >= PHONE_SEARCH_MIN_DIGITS ? digits : null,
-  };
-}
+// Name-or-phone search moved to common (listings search uses it too); re-exported for owners.
+export {
+  latinDigits,
+  parseSearch,
+  PHONE_SEARCH_MIN_DIGITS,
+} from '../../common/utils/phone-search.util';
 
 /** What `doNotCall` in a PATCH does to the lead status. */
 export type DoNotCallChange =

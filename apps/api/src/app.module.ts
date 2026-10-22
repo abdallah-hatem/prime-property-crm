@@ -21,6 +21,9 @@ import { RemindersModule } from './domains/reminders/reminders.module';
 import { CallOutcomesModule } from './domains/call-outcomes/call-outcomes.module';
 import { CallsModule } from './domains/calls/calls.module';
 import { MeModule } from './domains/me/me.module';
+import { ListingsModule } from './domains/listings/listings.module';
+import { PhotosModule } from './domains/photos/photos.module';
+import { UploadsModule } from './domains/uploads/uploads.module';
 
 @Module({
   imports: [
@@ -44,6 +47,9 @@ import { MeModule } from './domains/me/me.module';
     CallOutcomesModule,
     CallsModule,
     MeModule,
+    ListingsModule,
+    PhotosModule,
+    UploadsModule,
   ],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },

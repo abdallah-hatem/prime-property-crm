@@ -4,9 +4,11 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import type { Request, Response } from 'express';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { RAW_RESPONSE_KEY } from '../decorators/raw-response.decorator';
 import type { ApiResponse } from '../interfaces/api-response.interface';
 import { ResponseUtil } from '../utils/response.util';
 
@@ -29,12 +31,14 @@ function defaultMessage(method: string, statusCode: number): string {
   return 'Operation successful';
 }
 
-/** Wraps whatever a controller returns in the envelope. */
+/** Wraps whatever a controller returns in the envelope, except routes marked `@RawResponse()`. */
 @Injectable()
 export class ResponseInterceptor<T> implements NestInterceptor<
   T,
   ApiResponse<T> | ApiResponse
 > {
+  constructor(private readonly reflector: Reflector = new Reflector()) {}
+
   intercept(
     context: ExecutionContext,
     next: CallHandler<T>,
@@ -42,6 +46,11 @@ export class ResponseInterceptor<T> implements NestInterceptor<
     const http = context.switchToHttp();
     const request = http.getRequest<Request>();
     const response = http.getResponse<Response>();
+    const raw = this.reflector.getAllAndOverride<boolean | undefined>(
+      RAW_RESPONSE_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+    if (raw) return next.handle() as Observable<ApiResponse<T>>;
 
     return next.handle().pipe(
       map((data) => {
