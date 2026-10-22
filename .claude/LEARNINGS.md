@@ -14,3 +14,8 @@ Corrections recorded so they don't have to be repeated. Loaded at session start.
   catch it. — 2026-10-22
 - Test databases must end in `_test` (the harness refuses others); create them with
   `npm run db:agent -- create <name> --agent N` (N = 1..9). — 2026-10-22
+
+## Agents and servers
+- Briefs must tell agents to start API/web servers only with the Bash tool's `run_in_background`
+  and poll readiness with a bounded loop; a foreground server (or `&` inside a foreground command)
+  stalled two agents for 10+ minutes. Ask for a WIP commit before long steps. — 2026-10-23
