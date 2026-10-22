@@ -131,7 +131,9 @@ phone shows only to the listing's member and to whoever may manage all listings,
 search results. A phone search matches only listings whose phone the searcher may see. A listing's
 title is made from its type, bedrooms and area, in the reader's language. Only the listing's member
 (or someone who manages all listings) changes it: details, status, ad, check-ins, notes and photos.
-Anyone else is refused. Only someone who assigns work picks or changes a listing's member.
+Anyone else is refused. Deleting a listing is only for someone who manages all listings — its own
+member can't delete it. Only someone who assigns work picks or changes a listing's member; each
+assign batch is one activity entry.
 - From an owner: the owner's details fill the contact, the owner becomes **Listed** and the listing
   goes to the owner's member. An owner with a live listing can't get a second one.
 - Added directly: the listing goes to its creator unless the assigner picks someone. A phone of an
