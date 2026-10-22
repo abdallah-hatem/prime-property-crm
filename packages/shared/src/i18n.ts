@@ -14,7 +14,9 @@ export const LOCALE_COOKIE = 'prime_locale';
 export const messages: Record<Locale, Messages> = { en, ar };
 
 export function isLocale(value: unknown): value is Locale {
-  return typeof value === 'string' && (LOCALES as readonly string[]).includes(value);
+  return (
+    typeof value === 'string' && (LOCALES as readonly string[]).includes(value)
+  );
 }
 
 export function directionOf(locale: Locale): 'ltr' | 'rtl' {

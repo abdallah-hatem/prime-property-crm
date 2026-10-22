@@ -15,8 +15,7 @@ export const DEFAULT_COUNTRY_CODE = '20';
 export type PhoneRejection = 'EMPTY' | 'INVALID';
 
 export type PhoneResult =
-  | { ok: true; e164: string }
-  | { ok: false; reason: PhoneRejection };
+  { ok: true; e164: string } | { ok: false; reason: PhoneRejection };
 
 /** Spaces, dashes, dots, brackets and the bidi marks Arabic keyboards insert. */
 const SEPARATORS = /[\s\-.()‎‏]/g;

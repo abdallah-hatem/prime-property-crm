@@ -1,0 +1,11 @@
+// Prime Property CRM — database schema.
+// Models arrive with their features; this file starts with the datasource and generator only.
+// The connection URL lives in prisma.config.ts (Prisma 7), read from DATABASE_URL.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}

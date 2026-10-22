@@ -19,24 +19,35 @@ describe('normalizePhone', () => {
     expect(toE164('00201001234567')).toBe('+201001234567');
   });
 
-  it.each(['0100 123 4567', '0100-123-4567', '+20 100 123 4567', '(0100) 123.4567'])(
-    'ignores spaces, dashes, dots and brackets in %s',
-    (input) => {
-      expect(toE164(input)).toBe('+201001234567');
-    },
-  );
+  it.each([
+    '0100 123 4567',
+    '0100-123-4567',
+    '+20 100 123 4567',
+    '(0100) 123.4567',
+  ])('ignores spaces, dashes, dots and brackets in %s', (input) => {
+    expect(toE164(input)).toBe('+201001234567');
+  });
 
   it('ignores the bidi marks an Arabic keyboard adds', () => {
     expect(toE164('‎0100 123 4567‏')).toBe('+201001234567');
   });
 
   it('rejects a mobile number with a 12th digit', () => {
-    expect(normalizePhone('010012345678')).toEqual({ ok: false, reason: 'INVALID' });
-    expect(normalizePhone('+2010012345678')).toEqual({ ok: false, reason: 'INVALID' });
+    expect(normalizePhone('010012345678')).toEqual({
+      ok: false,
+      reason: 'INVALID',
+    });
+    expect(normalizePhone('+2010012345678')).toEqual({
+      ok: false,
+      reason: 'INVALID',
+    });
   });
 
   it('rejects a mobile number one digit short', () => {
-    expect(normalizePhone('0100123456')).toEqual({ ok: false, reason: 'INVALID' });
+    expect(normalizePhone('0100123456')).toEqual({
+      ok: false,
+      reason: 'INVALID',
+    });
   });
 
   it.each(['01312345678', '01412345678', '01912345678', '+201312345678'])(
@@ -58,9 +69,12 @@ describe('normalizePhone', () => {
     expect(toE164('040 123 4567')).toBe('+20401234567');
   });
 
-  it.each([null, undefined, '', '   ', ' - '])('rejects empty input %j', (input) => {
-    expect(normalizePhone(input)).toEqual({ ok: false, reason: 'EMPTY' });
-  });
+  it.each([null, undefined, '', '   ', ' - '])(
+    'rejects empty input %j',
+    (input) => {
+      expect(normalizePhone(input)).toEqual({ ok: false, reason: 'EMPTY' });
+    },
+  );
 
   it.each(['abc', '0100abc4567', '1001234567', '+20', '++201001234567'])(
     'rejects malformed input %j',
