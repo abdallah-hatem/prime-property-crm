@@ -237,6 +237,18 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
+/// A failed sign-in, kept for the rate limit (10 failures in 15 minutes per email). Rows older than
+/// the window are deleted on the next failure. Email is stored trimmed and lower-cased.
+model LoginAttempt {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String
+  createdAt DateTime @map("created_at")
+
+  @@index([email, createdAt])
+  @@index([createdAt])
+  @@map("login_attempts")
+}
+
 // ------------------------------------------------------------------ owners
 
 model Owner {

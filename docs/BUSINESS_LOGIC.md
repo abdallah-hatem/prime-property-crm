@@ -1,6 +1,6 @@
 # Prime Property CRM — Business Logic
 
-Last updated: 2026-10-22 (T1) · Source spec: `docs/specs/2026-10-22-property-crm.md`
+Last updated: 2026-10-22 (T4) · Source spec: `docs/specs/2026-10-22-property-crm.md`
 
 This file is what the business is and how it behaves **now**. Every behavior change updates it in the
 same commit. Items not built yet are marked **Planned**. Nothing is built yet: everything below is the
@@ -25,6 +25,14 @@ The system does not handle money: no payments, commissions or invoices.
   member are built in and cannot be deleted.
 
 Accounts are created by the admin only. A deactivated user cannot sign in, and their history stays.
+
+**Signing in (built, T4).** Email and password; the email ignores case and surrounding spaces. A
+wrong password, an unknown email and a deactivated account get the same answer, so nobody can tell
+which emails exist. After 10 failed attempts in 15 minutes for one email, sign-in for that email is
+refused until the oldest failure is 15 minutes old. A session lasts 30 days of inactivity and renews
+itself while used; signing out ends that device's session. A deactivated user is locked out at once,
+even mid-session. Changing your own password ends your other sessions; a password reset by the admin
+ends all of them. Role and permission changes reach a signed-in user within 15 minutes.
 
 ## Entities and rules
 
