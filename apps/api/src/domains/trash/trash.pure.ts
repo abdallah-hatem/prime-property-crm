@@ -1,33 +1,25 @@
-import type { TrashKind } from '@prime-crm/shared';
-
-/** APARTMENT -> Apartment, TWIN_HOUSE -> Twin house. */
-function humanize(value: string): string {
-  const words = value.toLowerCase().replace(/_/g, ' ');
-  return words.charAt(0).toUpperCase() + words.slice(1);
-}
+import {
+  listingTitle,
+  type PropertyType,
+  type TrashKind,
+} from '@prime-crm/shared';
 
 /**
- * The trash and activity label of a listing: type · bedrooms · area. An English snapshot; the
- * listings task owns the localized title and may replace this.
+ * The trash and activity label of a listing: its title in English (type · bedrooms · area), a
+ * snapshot that doesn't change with the reader's language.
  */
 export function listingLabel(listing: {
-  type: string;
+  type: PropertyType;
   bedrooms: number | null;
   area: string;
 }): string {
-  return [
-    humanize(listing.type),
-    listing.bedrooms != null ? `${listing.bedrooms} BR` : null,
-    listing.area,
-  ]
-    .filter(Boolean)
-    .join(' · ');
+  return listingTitle(listing, 'en');
 }
 
 /** A photo's label: its position and its listing's label. */
 export function photoLabel(photo: {
   order: number;
-  listing: { type: string; bedrooms: number | null; area: string };
+  listing: { type: PropertyType; bedrooms: number | null; area: string };
 }): string {
   return `Photo ${photo.order + 1} · ${listingLabel(photo.listing)}`;
 }

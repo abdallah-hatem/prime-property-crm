@@ -35,8 +35,25 @@ export const envSchema = z
       (value) => (value === '' ? undefined : value),
       z.string().min(16, 'must be at least 16 characters').optional(),
     ),
-    /** Vercel Blob token for photo uploads (the photos task makes it required). */
+    /**
+     * Vercel Blob read-write token: signs the photo upload tokens. Unset = photo uploads answer
+     * 503 UPLOADS_NOT_CONFIGURED (local dev without a store).
+     */
     BLOB_READ_WRITE_TOKEN: optionalString,
+    /**
+     * Host of our Blob store (`<store id>.private.blob.vercel-storage.com`): a registered photo
+     * URL must be on it. Unset = derived from BLOB_READ_WRITE_TOKEN's store id.
+     */
+    BLOB_STORE_HOST: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z
+        .string()
+        .regex(
+          /^(?=.{1,253}$)[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i,
+          'must be a host name, like abc.private.blob.vercel-storage.com',
+        )
+        .optional(),
+    ),
     /** Set by Vercel on every deployment: the database pool shrinks to one connection. */
     VERCEL: optionalString,
   })

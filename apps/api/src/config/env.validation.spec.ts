@@ -80,6 +80,25 @@ describe('validateEnv', () => {
     });
   });
 
+  it('BLOB_STORE_HOST is optional and must be a host name', () => {
+    expect(validateEnv(valid).BLOB_STORE_HOST).toBeUndefined();
+    expect(
+      validateEnv({
+        ...valid,
+        BLOB_STORE_HOST: 'abc123.private.blob.vercel-storage.com',
+      }).BLOB_STORE_HOST,
+    ).toBe('abc123.private.blob.vercel-storage.com');
+    for (const bad of [
+      'https://abc.blob.vercel-storage.com',
+      'abc',
+      'a b.com',
+    ]) {
+      expect(() => validateEnv({ ...valid, BLOB_STORE_HOST: bad })).toThrow(
+        /BLOB_STORE_HOST/,
+      );
+    }
+  });
+
   it('treats BLOB_READ_WRITE_TOKEN and VERCEL as optional', () => {
     const env = validateEnv(valid);
     expect(env.BLOB_READ_WRITE_TOKEN).toBeUndefined();

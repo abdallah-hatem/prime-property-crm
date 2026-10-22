@@ -13,3 +13,5 @@ export * from './calls';
 export * from './reminders';
 export * from './call-outcomes';
 export * from './owners';
+export * from './photos';
+export * from './listings';

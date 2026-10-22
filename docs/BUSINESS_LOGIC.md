@@ -1,6 +1,6 @@
 # Prime Property CRM — Business Logic
 
-Last updated: 2026-10-22 (T5, T6, T7) · Source spec: `docs/specs/2026-10-22-property-crm.md`
+Last updated: 2026-10-23 (T5, T6, T7, T8) · Source spec: `docs/specs/2026-10-22-property-crm.md`
 
 This file is what the business is and how it behaves **now**. Every behavior change updates it in the
 same commit. Items not built yet are marked **Planned**. Nothing is built yet: everything below is the
@@ -125,6 +125,41 @@ made today and the number of open reminders.
 - Two live listings never share an owner phone, and an owner has at most one live listing.
 - A listing that stops being Available gets no more check-ins.
 - Property Finder ad: link, ad status (**Not posted, Live, Taken down**), posted date, last check-in.
+
+**Listings, ads and photos (built, T8).** Everyone can search and open every listing. The owner's
+phone shows only to the listing's member and to whoever may manage all listings, and never in the
+search results. A phone search matches only listings whose phone the searcher may see. A listing's
+title is made from its type, bedrooms and area, in the reader's language. Only the listing's member
+(or someone who manages all listings) changes it: details, status, ad, check-ins, notes and photos.
+Anyone else is refused. Only someone who assigns work picks or changes a listing's member.
+- From an owner: the owner's details fill the contact, the owner becomes **Listed** and the listing
+  goes to the owner's member. An owner with a live listing can't get a second one.
+- Added directly: the listing goes to its creator unless the assigner picks someone. A phone of an
+  owner lead links the two, the lead becomes **Listed** and moves (with its open reminders) to the
+  listing's member, logged as an assignment. A phone already on another live listing, or on an
+  owner in the trash, is refused.
+- Editing the phone: refused when another live listing or another owner has that number.
+- Status: leaving Available closes the open check-in. While the ad is Live it also opens one "Take
+  down the ad" task, never a second while one is open. Back to Available with the ad still Live,
+  check-ins start again.
+- Ad: Live needs a link and an Available listing. The first check-in is due one interval (the
+  setting at that moment) after it goes Live. Saving a Live ad again adds no check-in. Taken down
+  closes the take-down task and any open check-in and records when. Back to Not posted stops
+  check-ins, but an open take-down task stays until the ad is marked Taken down.
+- Check-in: only on a Live ad of an Available listing. It records the time, closes the open
+  check-in and schedules the next one with the current interval. The optional note is added to the
+  listing's notes. "No longer available" makes the listing Off market, which opens the take-down
+  task. A check-in counts as due when it is due by the end of today (Cairo).
+- Deleting a listing closes all its open reminders and sends its owner back to Interested.
+  Restoring it brings the owner back to Listed and to the same member as the owner. A Live ad gets
+  its check-in back, or a take-down task if the listing is no longer Available. A restore is
+  refused if the owner has another listing by then, or if the phone now belongs to another listing
+  or owner.
+- Photos: up to 30 per listing. Uploads go straight to the photo store into that listing's folder:
+  JPEG, PNG or WebP, up to 10 MB each. Only files from our store, in that listing's folder, can be
+  added. Adding the same file twice adds it once. The first photo is the cover, and a new order
+  must list every photo once. A deleted photo goes to the trash. When restored, it goes back to the
+  end of the list.
 
 ### Note
 - Free text on an owner or a listing, with author and time. Notes are added, not edited.

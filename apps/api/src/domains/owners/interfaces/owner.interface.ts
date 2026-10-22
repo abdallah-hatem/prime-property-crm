@@ -1,11 +1,9 @@
 import type { LeadStatus, OwnerSort } from '@prime-crm/shared';
 
-/** Parsed `q`: the raw text for names, and the digits to look for in phones (if any). */
-export interface OwnerSearch {
-  text: string;
-  /** Digits without leading zeros or the country code: matches inside any stored E.164. */
-  phoneDigits: string | null;
-}
+import type { TextPhoneSearch } from '../../../common/utils/phone-search.util';
+
+/** Parsed `q` (common/utils/phone-search.util). */
+export type OwnerSearch = TextPhoneSearch;
 
 /**
  * The `GET /owners` filters after scoping. `memberId` is the caller's own id when they lack
