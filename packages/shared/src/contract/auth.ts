@@ -37,10 +37,20 @@ export type AuthErrorCode = (typeof AuthErrorCode)[keyof typeof AuthErrorCode];
 export const normalizeEmail = (email: string): string =>
   email.trim().toLowerCase();
 
-const EmailSchema = z
+/** An email as typed: trimmed and lower-cased, then checked. */
+export const EmailSchema = z
   .string()
   .transform(normalizeEmail)
   .pipe(z.email().max(EMAIL_MAX_LENGTH));
+
+/** A person's name: trimmed, 1–100 characters (Arabic welcome). */
+export const NameSchema = z.string().trim().min(1).max(NAME_MAX_LENGTH);
+
+/** A phone as typed (local, +20, spaces...); the API stores it as E.164. */
+export const PhoneInputSchema = z
+  .string()
+  .max(40)
+  .refine((value) => normalizePhone(value).ok, 'must be a valid phone number');
 
 export const PasswordSchema = z
   .string()
@@ -64,13 +74,8 @@ export type LogoutRequest = RefreshRequest;
 
 /** `PATCH /auth/me`: name, phone (as typed, `null` clears it) and language only. */
 export const UpdateMeRequestSchema = z.strictObject({
-  name: z.string().trim().min(1).max(NAME_MAX_LENGTH).optional(),
-  phone: z
-    .string()
-    .max(40)
-    .refine((value) => normalizePhone(value).ok, 'must be a valid phone number')
-    .nullable()
-    .optional(),
+  name: NameSchema.optional(),
+  phone: PhoneInputSchema.nullable().optional(),
   language: LanguageSchema.optional(),
 });
 export type UpdateMeRequest = z.input<typeof UpdateMeRequestSchema>;
