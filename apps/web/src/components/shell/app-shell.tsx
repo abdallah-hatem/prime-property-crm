@@ -46,7 +46,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <PhoneTopBar />
         <main
           id="main"
-          className="mx-auto w-full max-w-5xl px-4 pt-2 pb-[calc(7rem+env(safe-area-inset-bottom))] md:px-8 md:pt-8 md:pb-12"
+          className="mx-auto w-full max-w-5xl px-safe-4 pt-2 pb-[calc(7rem+env(safe-area-inset-bottom))] md:px-8 md:pt-8 md:pb-12"
         >
           {children}
         </main>
@@ -86,8 +86,8 @@ function AccountMenu({ variant }: { variant: 'avatar' | 'row' }) {
         className={cn(
           'cursor-pointer outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring',
           variant === 'avatar'
-            ? 'rounded-pill'
-            : 'flex w-full min-w-0 items-center gap-3 rounded-md p-2 text-start transition-colors duration-150 hover:bg-accent',
+            ? 'rounded-pill transition-transform duration-150 ease-snappy active:scale-[0.97] motion-reduce:active:scale-100'
+            : 'flex w-full min-w-0 items-center gap-3 rounded-md p-2 text-start transition-colors duration-150 hover:bg-accent active:bg-accent',
         )}
       >
         <UserAvatar name={me.name} />
@@ -122,7 +122,7 @@ function SidebarLink({ route, active }: { route: NavRoute; active: boolean }) {
         'flex h-11 items-center gap-3 rounded-pill px-4 text-sm font-semibold transition-colors duration-150',
         active
           ? 'bg-primary text-primary-foreground shadow-glow'
-          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground active:bg-accent active:text-accent-foreground',
       )}
     >
       <Icon aria-hidden className="size-[18px] shrink-0" />
@@ -145,7 +145,7 @@ function Sidebar() {
         </div>
         <nav
           aria-label={t('nav.mainNavigation')}
-          className="-me-1.5 grid scrollbar-clean min-h-0 flex-1 content-start gap-6 overflow-y-auto pe-1.5"
+          className="-me-1.5 grid scrollbar-clean min-h-0 flex-1 content-start gap-6 overflow-y-auto overscroll-contain pe-1.5"
         >
           <ul className="grid gap-1">
             {MAIN_ROUTES.map((route) => (
@@ -183,7 +183,7 @@ function Sidebar() {
 
 function PhoneTopBar() {
   return (
-    <div className="flex items-center justify-between px-4 pt-[calc(0.75rem+env(safe-area-inset-top))] pb-2 md:hidden">
+    <div className="flex items-center justify-between px-safe-4 pt-[calc(0.75rem+env(safe-area-inset-top))] pb-2 md:hidden">
       <Brand />
       <AccountMenu variant="avatar" />
     </div>
@@ -203,7 +203,7 @@ function BottomNav() {
   return (
     <nav
       aria-label={t('nav.mainNavigation')}
-      className="fixed inset-x-3.5 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40 md:hidden"
+      className="fixed inset-x-[max(0.875rem,env(safe-area-inset-left),env(safe-area-inset-right))] bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40 md:hidden"
     >
       <ul className="grid grid-cols-4 gap-1 rounded-pill border border-border bg-card/80 p-1.5 shadow-raised backdrop-blur-lg">
         {tabs.map((route) => {
@@ -223,7 +223,7 @@ function BottomNav() {
                   'flex h-12 items-center justify-center gap-1.5 rounded-pill px-2 text-xs font-bold transition-colors duration-200 ease-snappy',
                   active
                     ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground',
+                    : 'text-muted-foreground hover:text-foreground active:bg-accent active:text-accent-foreground',
                 )}
               >
                 <Icon aria-hidden className="size-5 shrink-0" />

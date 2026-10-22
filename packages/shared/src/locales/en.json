@@ -107,6 +107,17 @@
     "signingOut": "Signing out…",
     "preferences": "Preferences"
   },
+  "install": {
+    "title": "Install Prime CRM",
+    "body": "Open it from your home screen like an app, full screen and one tap away.",
+    "action": "Install",
+    "installing": "Installing…",
+    "dismiss": "Not now",
+    "iosTitle": "Add Prime CRM to your home screen",
+    "iosStep1": "Tap Share in Safari’s toolbar.",
+    "iosStep2": "Choose Add to Home Screen, then Add.",
+    "gotIt": "Got it"
+  },
   "comingSoon": {
     "title": "Coming soon",
     "body": "This page is being built. It will appear here once it's ready."

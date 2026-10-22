@@ -13,6 +13,9 @@ function Toaster(props: ToasterProps) {
       theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
       dir={dir}
       position="top-center"
+      // Below the notch / status bar when installed full screen (viewport-fit=cover).
+      offset={{ top: 'calc(24px + env(safe-area-inset-top))' }}
+      mobileOffset={{ top: 'calc(16px + env(safe-area-inset-top))' }}
       toastOptions={{
         classNames: {
           toast:

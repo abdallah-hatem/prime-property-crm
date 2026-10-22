@@ -12,6 +12,16 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Hover styles only where a real pointer can hover. On touch, a tapped element would keep its
+   hover look until the next tap ("sticky hover"); touch gets :active feedback instead. */
+@custom-variant hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @slot;
+    }
+  }
+}
+
 /* ------------------------------------------------------------------ light */
 :root,
 .light {
@@ -356,6 +366,15 @@
   }
 }
 
+/* Side padding that clears a landscape phone's notch (viewport-fit=cover). */
+@utility px-safe-4 {
+  padding-inline: max(
+    1rem,
+    env(safe-area-inset-left),
+    env(safe-area-inset-right)
+  );
+}
+
 /* Mirror an icon that points in the reading direction (back, chevrons) under RTL. */
 @utility flip-rtl {
   &:where([dir='rtl'], [dir='rtl'] *) {
@@ -370,6 +389,31 @@
   }
   html {
     @apply scrollbar-clean;
+    /* No grey flash on tap; every control has its own :active and :focus-visible state. */
+    -webkit-tap-highlight-color: transparent;
+    /* Keep the phone's text size; don't let iOS inflate it in landscape. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  /* Inner scrollers (lists, menus, sheets) keep their scroll to themselves: reaching the end
+     doesn't drag the page, start the browser's pull-to-refresh, or swipe back a page. The page
+     itself keeps the browser's default so pull-to-refresh still works in a tab. */
+  .scrollbar-clean:not(html, body) {
+    overscroll-behavior: contain;
+  }
+  /* iOS Safari zooms into any field under 16px and stays zoomed. Components set their own size
+     (16px on phones, 14px from md); this floor covers any field that doesn't. */
+  @media (max-width: 47.999rem) {
+    input,
+    select,
+    textarea {
+      font-size: max(16px, 1em);
+    }
+  }
+  /* Long-press on the shell's chrome (tabs, buttons) shouldn't select text or open the callout. */
+  nav a,
+  button {
+    -webkit-touch-callout: none;
   }
   body {
     @apply bg-background font-sans text-foreground antialiased;
