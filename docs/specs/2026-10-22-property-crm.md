@@ -311,8 +311,8 @@ until confirmed, so nothing depends on the server's disk. Limits: `.xlsx`, `.xls
 | Endpoint | Who | Body | Returns | Errors |
 |---|---|---|---|---|
 | `POST /imports` | `owners.import` (owners) · `listings.create` (listings) | multipart `file`, `kind` | `ImportJob` with `headers` and a suggested `mapping` | `400 FILE_TYPE` · `400 FILE_TOO_LARGE` · `400 TOO_MANY_ROWS` · `400 EMPTY_FILE` |
-| `POST /imports/:id/preview` | its creator | `{ mapping, assignTo?: userId }` (`assignTo` needs `owners.assign`) | `{ job, sample: object[] (first 20 mapped rows), issues: ImportIssue[] (first 100) }` | `400 MAPPING_INCOMPLETE` (owners: name, phone; listings also purpose, type, area, price) · `409 IMPORT_NOT_EDITABLE` |
-| `POST /imports/:id/confirm` | its creator | — | `ImportJob` with `counts`; one transaction, so a failure saves nothing and the job becomes `FAILED` | `409 IMPORT_NOT_PREVIEWED` · `409 IMPORT_ALREADY_DONE` |
+| `POST /imports/:id/preview` | its creator | `{ mapping, assignTo?: userId }` (`assignTo` needs `owners.assign`) | `{ job, sample: object[] (first 20 mapped rows), issues: ImportIssue[] (first 100) }` | `400 MAPPING_INCOMPLETE` (owners: name, phone; listings also purpose, type, area, price, sizeSqm) · `400 MAPPING_INVALID` (unknown field or header) · `409 IMPORT_NOT_EDITABLE` |
+| `POST /imports/:id/confirm` | its creator | — | `ImportJob` with `counts`; one transaction, so a failure saves nothing and the job becomes `FAILED` | `409 IMPORT_NOT_PREVIEWED` · `409 IMPORT_ALREADY_DONE` · `500 IMPORT_FAILED` (nothing saved; a FAILED import can be previewed and confirmed again) |
 | `GET /imports` | `owners.import` or `listings.create` | `kind, page, limit` | `ImportJob[]` | — |
 | `GET /imports/:id/issues` | its creator or `owners.import` | `reason, page, limit` | `ImportIssue[]` | — |
 

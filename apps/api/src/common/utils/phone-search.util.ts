@@ -1,4 +1,4 @@
-import { DEFAULT_COUNTRY_CODE } from '@prime-crm/shared';
+import { DEFAULT_COUNTRY_CODE, latinDigits } from '@prime-crm/shared';
 
 /** Parsed `q`: the raw text for names, and the digits to look for in phones (if any). */
 export interface TextPhoneSearch {
@@ -7,15 +7,8 @@ export interface TextPhoneSearch {
   phoneDigits: string | null;
 }
 
-const ARABIC_INDIC = /[٠-٩۰-۹]/g;
-
-/** ٠١٠ / ۰۱۰ → 010, so a phone typed on an Arabic keyboard still matches. */
-export function latinDigits(text: string): string {
-  return text.replace(ARABIC_INDIC, (d) => {
-    const code = d.charCodeAt(0);
-    return String(code - (code >= 0x06f0 ? 0x06f0 : 0x0660));
-  });
-}
+/** Re-exported: the digit folding now lives with the phone normaliser in packages/shared. */
+export { latinDigits };
 
 /** Phone search starts at this many significant digits (fewer would match almost everyone). */
 export const PHONE_SEARCH_MIN_DIGITS = 3;

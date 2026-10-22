@@ -25,6 +25,7 @@ import { ListingsModule } from './domains/listings/listings.module';
 import { PhotosModule } from './domains/photos/photos.module';
 import { UploadsModule } from './domains/uploads/uploads.module';
 import { SettingsModule } from './domains/settings/settings.module';
+import { ImportsModule } from './domains/imports/imports.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { SettingsModule } from './domains/settings/settings.module';
     PhotosModule,
     UploadsModule,
     SettingsModule,
+    ImportsModule,
   ],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },
