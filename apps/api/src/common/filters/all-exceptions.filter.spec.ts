@@ -203,4 +203,31 @@ describe('AllExceptionsFilter', () => {
     expect(body.success).toBe(false);
     expect(body.message).toBe('Internal server error');
   });
+
+  it("body-parser's too-large error → 413 PAYLOAD_TOO_LARGE envelope, not 500", () => {
+    // The shape body-parser (http-errors) throws when a JSON body exceeds the limit.
+    const tooLarge = Object.assign(new Error('request entity too large'), {
+      name: 'PayloadTooLargeError',
+      status: 413,
+      statusCode: 413,
+      expose: true,
+      type: 'entity.too.large',
+    });
+    const { status, body } = capture(makeFilter('production'), tooLarge);
+    expect(status).toBe(413);
+    expect(body).toMatchObject({
+      success: false,
+      statusCode: 413,
+      error: 'PAYLOAD_TOO_LARGE',
+      message: 'The request body is too large',
+    });
+  });
+
+  it('a non-exposed or 5xx http-errors error stays a 500', () => {
+    const internal = Object.assign(new Error('boom'), {
+      status: 500,
+      expose: false,
+    });
+    expect(capture(makeFilter(), internal).status).toBe(500);
+  });
 });

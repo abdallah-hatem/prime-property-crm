@@ -4,7 +4,7 @@ import { ErrorCode } from '@prime-crm/shared';
 import type { Paginated } from '../../common/interfaces/api-response.interface';
 import type { Tx } from '../../common/interfaces/transaction.interface';
 import { ActivityEntryRepository } from '../../common/repositories/activity-entry.repository';
-import { rangeBound } from '../../common/utils/cairo-date.util';
+import { filterBounds } from '../../common/utils/cairo-date.util';
 import { toActivityEntry } from './activity.pure';
 import type { ActivityQueryDto } from './dto/activity-query.dto';
 import type {
@@ -47,9 +47,8 @@ export class ActivityService {
   }
 
   async list(query: ActivityQueryDto): Promise<Paginated<ActivityEntryView>> {
-    const from = query.from ? rangeBound(query.from, 'from') : undefined;
-    const to = query.to ? rangeBound(query.to, 'to') : undefined;
-    if (from && to && from >= to) {
+    const { from, to, valid } = filterBounds(query.from, query.to);
+    if (!valid) {
       throw new BadRequestException({
         message: '`from` must be before `to`',
         error: ErrorCode.VALIDATION_FAILED,

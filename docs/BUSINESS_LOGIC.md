@@ -1,6 +1,6 @@
 # Prime Property CRM — Business Logic
 
-Last updated: 2026-10-22 (T5, T6) · Source spec: `docs/specs/2026-10-22-property-crm.md`
+Last updated: 2026-10-22 (T5, T6, T7) · Source spec: `docs/specs/2026-10-22-property-crm.md`
 
 This file is what the business is and how it behaves **now**. Every behavior change updates it in the
 same commit. Items not built yet are marked **Planned**. Nothing is built yet: everything below is the
@@ -89,6 +89,27 @@ ends all of them. Role and permission changes reach a signed-in user within 15 m
 - Reassigning an owner or listing moves its open reminders to the new member. When an owner or
   listing becomes unassigned, its open reminders become unassigned too (visible to the admin) and
   follow it to the next member it is assigned to.
+
+**Calls, outcomes and reminders (built, T7).** A call is started only on an owner assigned to the
+caller (not even the admin calls someone else's owner) and only on one of that owner's numbers. A
+repeated tap returns the call already made. Starting a call moves the owner's last call time, which
+orders the calling list. The outcome is set once, by the member who made the call. It sets the lead
+status unless a newer call already has an outcome. It never changes a **Listed** owner (only the
+listing does) or a **Do not call** owner (only the admin clears it). An outcome on a call whose
+owner is in the trash is saved without a status change. The outcome's optional reminder goes to
+the owner's current member. If that reminder is in the past, nothing is saved, the outcome
+included. Outcome names are shown in each user's own language. Hidden outcomes can't be picked.
+Creating, editing or deleting an outcome writes one activity entry; saving with nothing changed
+writes none. Only an outcome no call has ever used can be deleted.
+
+A reminder is due in the future when it is created or moved. Only its member edits it or marks it
+done. A done reminder can't be edited; marking it done again changes nothing. "Take down the ad"
+tasks and ad check-ins can't be marked done by hand. A take-down task's due time can't be moved;
+a check-in's can. Reminder lists put open reminders first, earliest due first, so overdue ones
+lead; done ones follow. Reminders of an owner or listing in the trash are hidden. The today screen
+shows calls still missing an outcome, manual reminders overdue and due later today (Cairo), the
+ad tasks (every open take-down task, and check-ins due by the end of today), the number of calls
+made today and the number of open reminders.
 
 ### Listing
 - Purpose: sale or rent. Status: **Available, Sold, Rented, Off market**. Only Available listings

@@ -62,6 +62,24 @@ function isPrismaValidationError(
 }
 
 /**
+ * An error from Express middleware that ran before Nest (body-parser: 413 `entity.too.large`,
+ * 400 for malformed JSON). They follow the `http-errors` shape: a 4xx `status` and
+ * `expose: true` when the message is safe to show.
+ */
+function isClientHttpError(
+  e: unknown,
+): e is Error & { status: number; expose: true; type?: string } {
+  if (!(e instanceof Error)) return false;
+  const { status, expose } = e as { status?: unknown; expose?: unknown };
+  return (
+    typeof status === 'number' &&
+    status >= 400 &&
+    status < 500 &&
+    expose === true
+  );
+}
+
+/**
  * Turns every thrown thing into the envelope, with `error` always a stable UPPER_SNAKE code.
  * Throw `new ConflictException({ message, error: 'EMAIL_TAKEN', data? })` for a domain code.
  */
@@ -97,6 +115,16 @@ export class AllExceptionsFilter implements ExceptionFilter {
   private normalize(exception: unknown): Normalized {
     if (exception instanceof HttpException) return this.fromHttp(exception);
     if (isPrismaKnownError(exception)) return this.fromPrisma(exception);
+    if (isClientHttpError(exception)) {
+      return {
+        status: exception.status,
+        message:
+          exception.status === HttpStatus.PAYLOAD_TOO_LARGE
+            ? 'The request body is too large'
+            : exception.message,
+        error: codeForStatus(exception.status),
+      };
+    }
     if (isPrismaValidationError(exception)) {
       return {
         status: HttpStatus.BAD_REQUEST,

@@ -4,8 +4,9 @@ import { RemindersController } from './reminders.controller';
 import { RemindersService } from './reminders.service';
 
 /**
- * Import it and inject RemindersService to move (`moveOpenReminders`) or close
- * (`closeOpenReminders`) reminders inside your transaction.
+ * Reminders: list, create, edit, done. Other domains import it and inject RemindersService to
+ * move (`moveOpenReminders`) or close (`closeOpenReminders`, optionally only some kinds) a
+ * record's reminders, or add an ad task (`addListingTask`), inside their transaction.
  */
 @Module({
   controllers: [RemindersController],
