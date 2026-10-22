@@ -10,3 +10,5 @@
 - T1 merged (a6cb858) after verify (lint/tc 0; unit 43+50+4; e2e 21) and alignment review (DOC OUT OF DATE → doc updated on the branch).
 - Wave 3: T2 test infra ∥ T3 common core · T2 owns prisma/seed*, test harness, playwright, scripts/db-*; T3 owns src/common, env validation, database.service · both may add package.json scripts (merge by hand) · T3 uses its own DB prime_crm_t3 + ports 3111/3113 until T2 lands isolation
 - T2 merged (5337ef2) after verify (lint/tc 0; unit pass; e2e 33/33). Agent DBs: `npm run db:agent -- create <name> --agent N` → prime_crm_<name>_test, ports 31N1/31N3.
+- T3 merged (f242937) after verify on merged dev (lint/tc 0; unit 43+111+4; e2e 79/79, also with VERCEL=1) and alignment review ALIGNED.
+- Wave 4: T4 auth alone (T5, T6, T12 all depend on it).
