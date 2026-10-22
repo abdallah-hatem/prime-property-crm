@@ -134,8 +134,10 @@ The seam between `apps/api` and `apps/web`. Request and response shapes live as 
 - **Lists** are paginated: `?page=1&limit=20`, `limit` max 20 (100 for endpoints marked *picker*),
   `meta = { total, page, limit, hasNextPage, hasPreviousPage }`.
 - **Auth.** `Authorization: Bearer <accessToken>` on every endpoint except those marked *public*.
-  Access token: JWT, 15 minutes, carries `sub`, `roleId`, `permissions[]`. Refresh token: opaque,
-  30 days, rotated on every use, stored hashed, revoked on sign-out, password reset and
+  Access token: JWT, 15 minutes, carries `sub`, `roleId`, `permissions[]`, `sid` (session id).
+  Refresh token: opaque, 30 days, rotated on every use, stored hashed, one family per sign-in; a
+  rotated token reused within 30 s returns a new pair in the same family, after 30 s it revokes the
+  family; revoked on sign-out, password reset and
   deactivation. Every request re-checks that the user is active.
 - **Permissions** are checked by the API on every endpoint. "Own" means assigned to the caller.
 - **Ids** are UUIDs. **Times** are ISO 8601 UTC; "today" and date ranges are computed in

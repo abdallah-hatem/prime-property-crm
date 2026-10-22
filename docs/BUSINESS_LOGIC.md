@@ -29,8 +29,11 @@ Accounts are created by the admin only. A deactivated user cannot sign in, and t
 **Signing in (built, T4).** Email and password; the email ignores case and surrounding spaces. A
 wrong password, an unknown email and a deactivated account get the same answer, so nobody can tell
 which emails exist. After 10 failed attempts in 15 minutes for one email, sign-in for that email is
-refused until the oldest failure is 15 minutes old. A session lasts 30 days of inactivity and renews
-itself while used; signing out ends that device's session. A deactivated user is locked out at once,
+refused until the oldest failure is 15 minutes old; a successful sign-in clears the count. A session
+lasts 30 days of inactivity and renews itself while used; signing out ends that device's session.
+If an old session key is used again more than 30 seconds after it was renewed, the whole session is
+ended (a copied key stops working); within 30 seconds it still works, so two open tabs renewing at
+once don't sign the user out. A deactivated user is locked out at once,
 even mid-session. Changing your own password ends your other sessions; a password reset by the admin
 ends all of them. Role and permission changes reach a signed-in user within 15 minutes.
 
