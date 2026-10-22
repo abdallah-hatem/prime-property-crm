@@ -11,7 +11,16 @@
     "search": "بحث",
     "team": "الفريق",
     "settings": "الإعدادات",
-    "mainNavigation": "التنقل الرئيسي"
+    "mainNavigation": "التنقل الرئيسي",
+    "more": "المزيد",
+    "users": "المستخدمون",
+    "roles": "الأدوار",
+    "imports": "الاستيراد",
+    "analytics": "التحليلات",
+    "trash": "المحذوفات",
+    "activity": "النشاط",
+    "admin": "الإدارة",
+    "primary": "الأساسية"
   },
   "theme": {
     "label": "المظهر",
@@ -32,7 +41,9 @@
     "needsOutcome": "بانتظار نتيجة",
     "outcomeMissing": "نتيجة المكالمة غير مسجلة",
     "addOutcome": "سجّل النتيجة",
-    "newOwners": "ملاك جدد"
+    "newOwners": "ملاك جدد",
+    "emptyTitle": "لا يوجد ما يستحق الآن",
+    "emptyBody": "ستظهر هنا المكالمات والتذكيرات المستحقة اليوم."
   },
   "action": {
     "call": "اتصال",
@@ -70,6 +81,60 @@
     "NOT_FOUND": "لم نجد هذا العنصر. ربما تم حذفه.",
     "VALIDATION_FAILED": "بعض الحقول تحتاج إلى تصحيح.",
     "CONFLICT": "يتعارض هذا مع بيانات موجودة.",
-    "INTERNAL_ERROR": "حدث خطأ من جهتنا. حاول مرة أخرى."
+    "INTERNAL_ERROR": "حدث خطأ من جهتنا. حاول مرة أخرى.",
+    "INVALID_CREDENTIALS": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+    "TOO_MANY_REQUESTS": "محاولات كثيرة. انتظر بضع دقائق ثم حاول مرة أخرى."
+  },
+  "auth": {
+    "title": "تسجيل الدخول",
+    "subtitle": "استخدم البريد وكلمة المرور اللذين أعطاك إياهما المسؤول.",
+    "email": "البريد الإلكتروني",
+    "emailPlaceholder": "name@company.com",
+    "password": "كلمة المرور",
+    "passwordPlaceholder": "كلمة المرور الخاصة بك",
+    "submit": "تسجيل الدخول",
+    "submitting": "جارٍ تسجيل الدخول…",
+    "emailRequired": "أدخل بريدك الإلكتروني.",
+    "emailInvalid": "أدخل بريدًا صحيحًا، مثل name@company.com.",
+    "passwordRequired": "أدخل كلمة المرور.",
+    "showPassword": "إظهار كلمة المرور",
+    "hidePassword": "إخفاء كلمة المرور",
+    "noAccount": "ليس لديك حساب؟ اطلب من المسؤول إنشاء حساب لك."
+  },
+  "account": {
+    "menu": "الحساب",
+    "signOut": "تسجيل الخروج",
+    "signingOut": "جارٍ تسجيل الخروج…",
+    "preferences": "التفضيلات"
+  },
+  "comingSoon": {
+    "title": "قريبًا",
+    "body": "هذه الصفحة قيد الإنشاء، وستظهر هنا عندما تكون جاهزة."
+  },
+  "list": {
+    "emptyTitle": "لا يوجد شيء هنا بعد",
+    "previous": "الصفحة السابقة",
+    "next": "الصفحة التالية",
+    "pageOf": "صفحة {page} من {pages}",
+    "range": "{from}–{to} من {total}",
+    "pagination": "التنقل بين الصفحات",
+    "loading": "جارٍ التحميل"
+  },
+  "dialog": {
+    "close": "إغلاق",
+    "confirm": "تأكيد",
+    "working": "جارٍ التنفيذ…"
+  },
+  "form": {
+    "required": "مطلوب",
+    "phoneInvalid": "أدخل رقم موبايل من 11 رقمًا يبدأ بـ 01.",
+    "phonePlaceholder": "01012345678"
+  },
+  "money": {
+    "amount": "{amount} ج.م"
+  },
+  "shell": {
+    "unavailableTitle": "تعذر الوصول إلى الخادم",
+    "unavailableBody": "تحقق من الاتصال ثم حاول مرة أخرى."
   }
 }

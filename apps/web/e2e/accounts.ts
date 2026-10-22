@@ -14,5 +14,5 @@ export type Role = keyof typeof ROLES;
 /** Saved session for a role, written by auth.setup.ts (gitignored: it holds live tokens). */
 export const storageStateFor = (role: Role): string => `e2e/.auth/${role}.json`;
 
-/** TODO(T12): set to the login route once the web shell's login page exists. */
+/** The web shell's sign-in page (src/app/login). */
 export const LOGIN_PATH = '/login';

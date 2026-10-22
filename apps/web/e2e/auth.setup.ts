@@ -7,9 +7,7 @@ import { LOGIN_PATH, ROLES, type Role, storageStateFor } from './accounts';
  * (`npm run db:seed` with SEED_ALLOW_SAMPLE=true) against the database the API uses.
  */
 for (const role of Object.keys(ROLES) as Role[]) {
-  // TODO(T12): remove `.fixme` when the login page (test ids login-email, login-password,
-  // login-submit) lands in the web shell. Until then this must not run against a missing page.
-  setup.fixme(`sign in as ${role}`, async ({ page }) => {
+  setup(`sign in as ${role}`, async ({ page }) => {
     const { email, passwordEnv } = ROLES[role];
     const password = process.env[passwordEnv];
     if (!password)
