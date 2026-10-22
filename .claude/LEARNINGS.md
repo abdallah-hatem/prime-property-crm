@@ -18,4 +18,6 @@ Corrections recorded so they don't have to be repeated. Loaded at session start.
 ## Agents and servers
 - Briefs must tell agents to start API/web servers only with the Bash tool's `run_in_background`
   and poll readiness with a bounded loop; a foreground server (or `&` inside a foreground command)
-  stalled two agents for 10+ minutes. Ask for a WIP commit before long steps. — 2026-10-23
+  stalled two agents for 10+ minutes. Any single tool call over ~10 minutes trips the agent
+  watchdog: prefix tests/builds/Playwright with `timeout 420`, run e2e per spec file with
+  `--forceExit`. Ask for a WIP commit before long steps. — 2026-10-23
