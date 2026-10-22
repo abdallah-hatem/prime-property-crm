@@ -5,7 +5,10 @@ import { defineConfig } from 'prisma/config';
 // `prisma generate` only needs it to be parseable, so a placeholder is used when it is absent.
 export default defineConfig({
   schema: 'prisma/schema.prisma',
-  migrations: { path: 'prisma/migrations' },
+  migrations: {
+    path: 'prisma/migrations',
+    seed: 'tsx prisma/seed.ts',
+  },
   datasource: {
     url:
       process.env.DATABASE_URL ??

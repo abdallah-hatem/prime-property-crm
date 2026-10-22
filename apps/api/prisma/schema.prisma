@@ -1,11 +1,599 @@
 // Prime Property CRM — database schema.
-// Models arrive with their features; this file starts with the datasource and generator only.
 // The connection URL lives in prisma.config.ts (Prisma 7), read from DATABASE_URL.
+//
+// Conventions: UUID keys, camelCase fields mapped to snake_case, an index on every foreign key
+// and filtered column. Guards Prisma can't express (CHECK constraints) are added by hand at the
+// end of the migration that creates the table — see prisma/migrations/*/migration.sql.
+//
+// Enums mirror packages/shared/src/contract/enums.ts; src/database/schema-enums.spec.ts fails
+// if the two drift.
+//
+// Deletion rules:
+// - Calls and activity entries are never deleted. Their foreign keys never cascade: deleting a
+//   user or an outcome they point at fails (Restrict); purging an owner nulls Call.ownerId and
+//   the call keeps its ownerName snapshot.
+// - Owners, listings and photos are soft-deleted (deletedAt) and purged after 30 days. Their
+//   phones, notes, reminders and photos go with them on purge (Cascade).
+// - Users are never deleted (deactivated instead), so FKs to users default to Restrict.
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["partialIndexes"]
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+// ------------------------------------------------------------------ enums
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  INTERESTED
+  NOT_INTERESTED
+  CALL_BACK
+  LISTED
+  DO_NOT_CALL
+
+  @@map("lead_status")
+}
+
+enum ListingPurpose {
+  SALE
+  RENT
+
+  @@map("listing_purpose")
+}
+
+enum ListingStatus {
+  AVAILABLE
+  SOLD
+  RENTED
+  OFF_MARKET
+
+  @@map("listing_status")
+}
+
+enum PropertyType {
+  APARTMENT
+  DUPLEX
+  PENTHOUSE
+  STUDIO
+  VILLA
+  TOWNHOUSE
+  TWIN_HOUSE
+  CHALET
+  OFFICE
+  SHOP
+  LAND
+
+  @@map("property_type")
+}
+
+enum Furnishing {
+  UNFURNISHED
+  SEMI_FURNISHED
+  FURNISHED
+
+  @@map("furnishing")
+}
+
+enum AdStatus {
+  NOT_POSTED
+  LIVE
+  TAKEN_DOWN
+
+  @@map("ad_status")
+}
+
+enum ReminderKind {
+  MANUAL
+  AD_CHECK_IN
+  AD_TAKE_DOWN
+
+  @@map("reminder_kind")
+}
+
+enum Language {
+  en
+  ar
+
+  @@map("language")
+}
+
+enum ActivityType {
+  IMPORT
+  ASSIGN
+  DELETE
+  RESTORE
+  USER_CREATE
+  USER_UPDATE
+  USER_DEACTIVATE
+  USER_REACTIVATE
+  PASSWORD_RESET
+  ROLE_CREATE
+  ROLE_UPDATE
+  ROLE_DELETE
+  SETTINGS_UPDATE
+  OUTCOME_UPDATE
+  EXPORT
+
+  @@map("activity_type")
+}
+
+enum BuiltInRole {
+  ADMIN
+  TEAM_MEMBER
+
+  @@map("built_in_role")
+}
+
+enum ImportKind {
+  OWNERS
+  LISTINGS
+
+  @@map("import_kind")
+}
+
+enum ImportStatus {
+  MAPPING
+  PREVIEWED
+  DONE
+  FAILED
+
+  @@map("import_status")
+}
+
+enum ImportIssueReason {
+  DUPLICATE
+  INVALID_PHONE
+  MISSING_REQUIRED
+  INVALID_VALUE
+
+  @@map("import_issue_reason")
+}
+
+// ------------------------------------------------------------ users, auth
+
+model Role {
+  id          String       @id @default(uuid()) @db.Uuid
+  name        String       @unique
+  /// ADMIN / TEAM_MEMBER for the two built-in roles (never deleted), null for custom roles.
+  builtIn     BuiltInRole? @unique @map("built_in")
+  /// Keys from the fixed list in packages/shared (PERMISSIONS); validated by the API on write.
+  permissions String[]     @default([])
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  users User[]
+
+  @@map("roles")
+}
+
+model User {
+  id            String    @id @default(uuid()) @db.Uuid
+  name          String
+  /// Stored trimmed and lower-cased; lookups lower-case the input.
+  email         String    @unique
+  phone         String?
+  passwordHash  String    @map("password_hash")
+  roleId        String    @map("role_id") @db.Uuid
+  language      Language  @default(en)
+  active        Boolean   @default(true)
+  deactivatedAt DateTime? @map("deactivated_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  role          Role           @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  refreshTokens RefreshToken[]
+
+  ownersAssigned   Owner[]   @relation("OwnerAssignee")
+  ownersCreated    Owner[]   @relation("OwnerCreator")
+  ownersDeleted    Owner[]   @relation("OwnerDeleter")
+  listingsAssigned Listing[] @relation("ListingAssignee")
+  listingsCreated  Listing[] @relation("ListingCreator")
+  listingsDeleted  Listing[] @relation("ListingDeleter")
+  photosDeleted    Photo[]   @relation("PhotoDeleter")
+
+  calls             Call[]
+  reminders         Reminder[]        @relation("ReminderMember")
+  remindersCreated  Reminder[]        @relation("ReminderCreator")
+  notes             Note[]
+  imports           ImportJob[]       @relation("ImportCreator")
+  importsAssignedTo ImportJob[]       @relation("ImportAssignee")
+  activity          ActivityEntry[]
+  assignmentsFrom   OwnerAssignment[] @relation("AssignmentFrom")
+  assignmentsTo     OwnerAssignment[] @relation("AssignmentTo")
+  assignmentsBy     OwnerAssignment[] @relation("AssignmentBy")
+  settingsUpdated   Setting[]
+
+  @@index([roleId])
+  @@index([active])
+  @@map("users")
+}
+
+/// Opaque refresh token, stored as a hash. Rotated on every use: the used row gets usedAt and
+/// replacedById; reuse after the grace window revokes the whole family.
+model RefreshToken {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  tokenHash    String    @unique @map("token_hash")
+  /// Every token rotated from one sign-in shares a family id.
+  familyId     String    @map("family_id") @db.Uuid
+  expiresAt    DateTime  @map("expires_at")
+  usedAt       DateTime? @map("used_at")
+  revokedAt    DateTime? @map("revoked_at")
+  replacedById String?   @unique @map("replaced_by_id") @db.Uuid
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replacedBy RefreshToken? @relation("Rotation", fields: [replacedById], references: [id], onDelete: SetNull)
+  replaces   RefreshToken? @relation("Rotation")
+
+  @@index([userId])
+  @@index([familyId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+// ------------------------------------------------------------------ owners
+
+model Owner {
+  id             String     @id @default(uuid()) @db.Uuid
+  name           String
+  area           String?
+  status         LeadStatus @default(NEW)
+  assignedToId   String?    @map("assigned_to_id") @db.Uuid
+  /// The import that created this owner, if any.
+  sourceImportId String?    @map("source_import_id") @db.Uuid
+  /// Start time of the latest call (any outcome), for the calling-list order.
+  lastCallAt     DateTime?  @map("last_call_at")
+  createdById    String     @map("created_by_id") @db.Uuid
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  deletedAt      DateTime?  @map("deleted_at")
+  deletedById    String?    @map("deleted_by_id") @db.Uuid
+
+  assignedTo   User?      @relation("OwnerAssignee", fields: [assignedToId], references: [id], onDelete: Restrict)
+  createdBy    User       @relation("OwnerCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  deletedBy    User?      @relation("OwnerDeleter", fields: [deletedById], references: [id], onDelete: Restrict)
+  sourceImport ImportJob? @relation(fields: [sourceImportId], references: [id], onDelete: SetNull)
+
+  /// Phones stay with a trashed owner until it is purged.
+  phones      OwnerPhone[]
+  /// At most one live (not deleted) listing per owner — a partial unique index on listings.
+  listings    Listing[]
+  calls       Call[]
+  reminders   Reminder[]
+  notes       Note[]
+  assignments OwnerAssignment[]
+
+  @@index([assignedToId, status, lastCallAt])
+  @@index([status])
+  @@index([createdById])
+  @@index([deletedById])
+  @@index([sourceImportId])
+  @@index([deletedAt])
+  @@index([name])
+  @@index([area])
+  @@index([createdAt])
+  @@map("owners")
+}
+
+/// An owner's phone, normalised to E.164. Unique across every owner and slot, trashed owners
+/// included (they keep their phones until purged).
+model OwnerPhone {
+  id        String   @id @default(uuid()) @db.Uuid
+  ownerId   String   @map("owner_id") @db.Uuid
+  phone     String   @unique
+  /// Slot 0..2, the order the phones were entered.
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  owner Owner @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerId, position])
+  @@index([ownerId])
+  @@map("owner_phones")
+}
+
+/// One row per owner per (re)assignment, for the owner timeline's ASSIGN items.
+model OwnerAssignment {
+  id           String   @id @default(uuid()) @db.Uuid
+  ownerId      String   @map("owner_id") @db.Uuid
+  fromMemberId String?  @map("from_member_id") @db.Uuid
+  toMemberId   String?  @map("to_member_id") @db.Uuid
+  byId         String   @map("by_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  owner      Owner @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  fromMember User? @relation("AssignmentFrom", fields: [fromMemberId], references: [id], onDelete: Restrict)
+  toMember   User? @relation("AssignmentTo", fields: [toMemberId], references: [id], onDelete: Restrict)
+  by         User  @relation("AssignmentBy", fields: [byId], references: [id], onDelete: Restrict)
+
+  @@index([ownerId, createdAt])
+  @@index([fromMemberId])
+  @@index([toMemberId])
+  @@index([byId])
+  @@map("owner_assignments")
+}
+
+// ------------------------------------------------------------------- calls
+
+/// Never deleted, never edited except setting the outcome once.
+model Call {
+  id              String    @id @default(uuid()) @db.Uuid
+  /// Null once the owner is purged; ownerName keeps who it was.
+  ownerId         String?   @map("owner_id") @db.Uuid
+  ownerName       String    @map("owner_name")
+  memberId        String    @map("member_id") @db.Uuid
+  /// The E.164 number dialled (one of the owner's phones at the time).
+  phone           String
+  /// Client-generated UUID: a repeat by the same member returns the same call.
+  clientRequestId String    @map("client_request_id") @db.Uuid
+  startedAt       DateTime  @default(now()) @map("started_at")
+  outcomeId       String?   @map("outcome_id") @db.Uuid
+  note            String?
+  outcomeAt       DateTime? @map("outcome_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  owner   Owner?       @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  member  User         @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  outcome CallOutcome? @relation(fields: [outcomeId], references: [id], onDelete: Restrict)
+
+  @@unique([memberId, clientRequestId])
+  @@index([ownerId, startedAt])
+  @@index([memberId, startedAt])
+  @@index([outcomeId])
+  @@index([startedAt])
+  @@map("calls")
+}
+
+model CallOutcome {
+  id         String     @id @default(uuid()) @db.Uuid
+  labelEn    String     @map("label_en")
+  labelAr    String     @map("label_ar")
+  /// Never LISTED (CHECK in the migration).
+  setsStatus LeadStatus @map("sets_status")
+  hidden     Boolean    @default(false)
+  order      Int        @default(0)
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+
+  calls Call[]
+
+  @@index([order])
+  @@map("call_outcomes")
+}
+
+// --------------------------------------------------------- reminders, notes
+
+/// Belongs to exactly one owner or listing (CHECK in the migration). memberId null = unassigned:
+/// it follows its owner/listing to the next member.
+model Reminder {
+  id          String       @id @default(uuid()) @db.Uuid
+  kind        ReminderKind @default(MANUAL)
+  ownerId     String?      @map("owner_id") @db.Uuid
+  listingId   String?      @map("listing_id") @db.Uuid
+  memberId    String?      @map("member_id") @db.Uuid
+  dueAt       DateTime     @map("due_at")
+  note        String?
+  doneAt      DateTime?    @map("done_at")
+  createdById String?      @map("created_by_id") @db.Uuid
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  owner     Owner?   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  listing   Listing? @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  member    User?    @relation("ReminderMember", fields: [memberId], references: [id], onDelete: Restrict)
+  createdBy User?    @relation("ReminderCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([memberId, doneAt, dueAt])
+  @@index([ownerId, doneAt])
+  @@index([listingId, kind, doneAt])
+  @@index([createdById])
+  @@index([dueAt])
+  @@map("reminders")
+}
+
+/// Added, never edited. Belongs to exactly one owner or listing (CHECK in the migration).
+model Note {
+  id        String   @id @default(uuid()) @db.Uuid
+  ownerId   String?  @map("owner_id") @db.Uuid
+  listingId String?  @map("listing_id") @db.Uuid
+  authorId  String   @map("author_id") @db.Uuid
+  body      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  owner   Owner?   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  listing Listing? @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  author  User     @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([ownerId, createdAt])
+  @@index([listingId, createdAt])
+  @@index([authorId])
+  @@map("notes")
+}
+
+// ---------------------------------------------------------------- listings
+
+model Listing {
+  id             String         @id @default(uuid()) @db.Uuid
+  purpose        ListingPurpose
+  type           PropertyType
+  area           String
+  compound       String?
+  address        String?
+  /// Whole square metres, > 0 (CHECK).
+  sizeSqm        Int            @map("size_sqm")
+  /// Negative for basements.
+  floor          Int?
+  bedrooms       Int?
+  bathrooms      Int?
+  /// Whole EGP, 1 – 1,000,000,000 (CHECK).
+  price          Int
+  furnishing     Furnishing?
+  description    String?
+  ownerName      String         @map("owner_name")
+  /// Normalised E.164. Unique among live listings (partial index).
+  ownerPhone     String         @map("owner_phone")
+  /// The linked owner lead. Unique among live listings (partial index).
+  ownerId        String?        @map("owner_id") @db.Uuid
+  assignedToId   String?        @map("assigned_to_id") @db.Uuid
+  status         ListingStatus  @default(AVAILABLE)
+  adLink         String?        @map("ad_link")
+  adStatus       AdStatus       @default(NOT_POSTED) @map("ad_status")
+  adPostedAt     DateTime?      @map("ad_posted_at")
+  adTakenDownAt  DateTime?      @map("ad_taken_down_at")
+  lastCheckInAt  DateTime?      @map("last_check_in_at")
+  sourceImportId String?        @map("source_import_id") @db.Uuid
+  createdById    String         @map("created_by_id") @db.Uuid
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+  deletedAt      DateTime?      @map("deleted_at")
+  deletedById    String?        @map("deleted_by_id") @db.Uuid
+
+  owner        Owner?     @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  assignedTo   User?      @relation("ListingAssignee", fields: [assignedToId], references: [id], onDelete: Restrict)
+  createdBy    User       @relation("ListingCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  deletedBy    User?      @relation("ListingDeleter", fields: [deletedById], references: [id], onDelete: Restrict)
+  sourceImport ImportJob? @relation(fields: [sourceImportId], references: [id], onDelete: SetNull)
+
+  photos    Photo[]
+  reminders Reminder[]
+  notes     Note[]
+
+  @@unique([ownerId], map: "listings_owner_id_live_key", where: raw("deleted_at IS NULL"))
+  @@unique([ownerPhone], map: "listings_owner_phone_live_key", where: raw("deleted_at IS NULL"))
+  @@index([ownerId])
+  @@index([ownerPhone])
+  @@index([status, purpose, type, price])
+  @@index([assignedToId, status])
+  @@index([adStatus, status])
+  @@index([area, compound])
+  @@index([price])
+  @@index([sizeSqm])
+  @@index([bedrooms])
+  @@index([bathrooms])
+  @@index([floor])
+  @@index([createdById, createdAt])
+  @@index([deletedById])
+  @@index([sourceImportId])
+  @@index([deletedAt])
+  @@index([createdAt])
+  @@map("listings")
+}
+
+model Photo {
+  id          String    @id @default(uuid()) @db.Uuid
+  listingId   String    @map("listing_id") @db.Uuid
+  url         String
+  /// Vercel Blob pathname, for deleting the file on purge.
+  pathname    String
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  deletedAt   DateTime? @map("deleted_at")
+  deletedById String?   @map("deleted_by_id") @db.Uuid
+
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  deletedBy User?   @relation("PhotoDeleter", fields: [deletedById], references: [id], onDelete: Restrict)
+
+  @@index([listingId, order])
+  @@index([deletedById])
+  @@index([deletedAt])
+  @@map("photos")
+}
+
+// ----------------------------------------------------------------- imports
+
+model ImportJob {
+  id             String       @id @default(uuid()) @db.Uuid
+  kind           ImportKind
+  fileName       String       @map("file_name")
+  status         ImportStatus @default(MAPPING)
+  headers        String[]     @default([])
+  /// { field: header } chosen at preview.
+  mapping        Json?
+  /// Member every imported row is assigned to (needs owners.assign).
+  assignToId     String?      @map("assign_to_id") @db.Uuid
+  totalRows      Int          @default(0) @map("total_rows")
+  addedCount     Int?         @map("added_count")
+  duplicateCount Int?         @map("duplicate_count")
+  rejectedCount  Int?         @map("rejected_count")
+  error          String?
+  createdById    String       @map("created_by_id") @db.Uuid
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  createdBy User  @relation("ImportCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  assignTo  User? @relation("ImportAssignee", fields: [assignToId], references: [id], onDelete: Restrict)
+
+  rows     ImportRow[]
+  owners   Owner[]
+  listings Listing[]
+
+  @@index([kind, createdAt])
+  @@index([createdById])
+  @@index([assignToId])
+  @@map("import_jobs")
+}
+
+/// One parsed row of an uploaded file, staged until confirm. `data` holds the raw cells
+/// keyed by header; the issue columns are filled by preview and re-checked at confirm.
+model ImportRow {
+  id             String             @id @default(uuid()) @db.Uuid
+  jobId          String             @map("job_id") @db.Uuid
+  /// 1-based row number in the sheet, header excluded.
+  rowNumber      Int                @map("row_number")
+  data           Json
+  issue          ImportIssueReason?
+  issueField     String?            @map("issue_field")
+  issueValue     String?            @map("issue_value")
+  matchOwnerId   String?            @map("match_owner_id") @db.Uuid
+  matchListingId String?            @map("match_listing_id") @db.Uuid
+
+  job ImportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, rowNumber])
+  @@index([jobId, issue])
+  @@map("import_rows")
+}
+
+// --------------------------------------------------------- activity, settings
+
+/// Append-only. No update or delete path exists in the API; the actor FK never cascades.
+/// The target is a label snapshot plus an id with no FK, so it outlives a purged record.
+model ActivityEntry {
+  id          String       @id @default(uuid()) @db.Uuid
+  type        ActivityType
+  actorId     String       @map("actor_id") @db.Uuid
+  summary     String
+  targetKind  String?      @map("target_kind")
+  targetId    String?      @map("target_id") @db.Uuid
+  targetLabel String?      @map("target_label")
+  details     Json?
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  actor User @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([createdAt])
+  @@index([actorId, createdAt])
+  @@index([type, createdAt])
+  @@index([targetKind, targetId])
+  @@map("activity_entries")
+}
+
+/// A single row (id = 1, CHECK in the migration).
+model Setting {
+  id            Int      @id @default(1)
+  /// 1–90 (CHECK).
+  adCheckInDays Int      @default(7) @map("ad_check_in_days")
+  updatedById   String?  @map("updated_by_id") @db.Uuid
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  updatedBy User? @relation(fields: [updatedById], references: [id], onDelete: Restrict)
+
+  @@index([updatedById])
+  @@map("settings")
 }
