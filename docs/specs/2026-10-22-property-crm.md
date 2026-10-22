@@ -266,9 +266,9 @@ Stats         { calls, outcomes: { outcomeId, label, count }[], remindersDone,
 |---|---|---|---|---|
 | `GET /users` | `users.manage` | `q, roleId, active, page, limit` | `User[]` | — |
 | `GET /users/options` | `owners.assign` or `users.manage`, *picker* | `active` | `UserSummary[]` | — |
-| `POST /users` | `users.manage` | `{ name, email, phone?, roleId, language, password }` | `User` | `409 EMAIL_TAKEN` |
+| `POST /users` | `users.manage` | `{ name, email, phone?, roleId, language, password }` | `User` | `409 EMAIL_TAKEN` · `400 INVALID_ROLE` |
 | `GET /users/:id` | `users.manage` | — | `User & { counts: { owners, listings, openReminders } }` | `404` |
-| `PATCH /users/:id` | `users.manage` | `{ name?, email?, phone?, roleId?, language? }` | `User` | `409 EMAIL_TAKEN` · `409 LAST_ADMIN` |
+| `PATCH /users/:id` | `users.manage` | `{ name?, email?, phone?, roleId?, language? }` | `User` | `409 EMAIL_TAKEN` · `409 LAST_ADMIN` · `400 INVALID_ROLE` |
 | `POST /users/:id/reset-password` | `users.manage` | `{ newPassword }` | `null`; revokes their sessions | — |
 | `POST /users/:id/deactivate` | `users.manage` | `{ handOverTo: userId \| null }` (`null` = unassigned) | `User`; owners, listings and open reminders move in one transaction | `409 LAST_ADMIN` · `400 SELF_DEACTIVATE` · `400 INVALID_HANDOVER` |
 | `POST /users/:id/reactivate` | `users.manage` | — | `User` | — |
