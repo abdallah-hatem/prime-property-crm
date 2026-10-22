@@ -15,3 +15,5 @@ export * from './call-outcomes';
 export * from './owners';
 export * from './photos';
 export * from './listings';
+export * from './user-status';
+export * from './settings';

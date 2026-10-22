@@ -21,4 +21,29 @@ export class SettingsRepository {
     });
     return row?.adCheckInDays ?? DEFAULT_AD_CHECK_IN_DAYS;
   }
+
+  /**
+   * The interval under a row lock held until `tx` ends, so two concurrent changes run one after
+   * the other and each logs the value it really replaced. Creates the row when it is missing.
+   */
+  async lockAdCheckInDays(tx: Tx): Promise<number> {
+    await tx.setting.upsert({
+      where: { id: 1 },
+      update: {},
+      create: { id: 1, adCheckInDays: DEFAULT_AD_CHECK_IN_DAYS },
+      select: { id: true },
+    });
+    const rows = await tx.$queryRaw<{ days: number }[]>`
+      SELECT ad_check_in_days AS days FROM settings WHERE id = 1 FOR UPDATE`;
+    return rows[0]?.days ?? DEFAULT_AD_CHECK_IN_DAYS;
+  }
+
+  async setAdCheckInDays(tx: Tx, days: number, byId: string): Promise<number> {
+    const row = await tx.setting.update({
+      where: { id: 1 },
+      data: { adCheckInDays: days, updatedById: byId },
+      select: { adCheckInDays: true },
+    });
+    return row.adCheckInDays;
+  }
 }
