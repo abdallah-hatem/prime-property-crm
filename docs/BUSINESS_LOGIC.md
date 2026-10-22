@@ -117,7 +117,10 @@ ends all of them. Role and permission changes reach a signed-in user within 15 m
    saved.
 2. **Assign.** Admin assigns selected owners to an active member (or to nobody). Reassigning moves the
    owner, its open reminders and its listing (if any) with full history; deleted owners in the
-   selection are skipped. Each batch is one activity-log entry with the count.
+   selection are skipped. Each batch that moves something is one activity-log entry with the count
+   (a batch that moves nothing writes none). To pick owners to assign ("select all", "next 200
+   unassigned"), anyone who may assign can list the ids of every owner — ids only, with no phone
+   search unless they may also see all owners.
 3. **Call.** Member taps Call → phone dials → outcome sheet → outcome, note, optional reminder.
 4. **Listing from an owner.** Creating a listing from an owner prefills the contact and flags the owner
    **Listed**.
@@ -133,7 +136,9 @@ ends all of them. Role and permission changes reach a signed-in user within 15 m
 9. **Delete and restore.** Deleted owners, listings and photos are hidden and can be restored by the
    admin for 30 days, then removed for good. A deleted owner keeps its phone numbers until then, so
    nobody else can be added with them. Restoring a listing makes its owner Listed again (refused if
-   the owner has another listing by then); a photo is restored only after its listing.
+   the owner has another listing by then); a photo is restored only after its listing. A restored
+   owner is Listed if it still has a live listing, goes back to Interested if it was Listed but its
+   listing is gone, and comes back unassigned if its member was deactivated meanwhile.
 10. **Export.** Admin exports owners or listings, with the current filters, to Excel.
 11. **Users.** The admin can reset a member's password (their sessions end) and reactivate a
     deactivated member, who then starts with no owners.
