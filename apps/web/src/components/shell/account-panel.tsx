@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/i18n/i18n-provider';
 import { callApi } from '@/lib/callApi';
+import { InstallCard } from './install-card';
 import { UserAvatar } from './user-avatar';
 
 /**
@@ -50,6 +51,7 @@ export function AccountPanel() {
         <p className="type-label">{t('theme.label')}</p>
         <ThemeToggle className="w-full *:flex-auto *:px-2" />
       </div>
+      <InstallCard />
       <form action={LOGOUT}>
         <SignOutButton />
       </form>

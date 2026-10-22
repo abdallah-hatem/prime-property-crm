@@ -30,7 +30,7 @@ export function MorePanel() {
                 <li key={route.href}>
                   <Link
                     href={route.href}
-                    className="flex h-13 items-center gap-3 rounded-md px-3 font-semibold transition-colors duration-150 hover:bg-accent hover:text-accent-foreground"
+                    className="flex h-13 items-center gap-3 rounded-md px-3 font-semibold transition-colors duration-150 hover:bg-accent hover:text-accent-foreground active:bg-accent active:text-accent-foreground"
                   >
                     <span
                       aria-hidden
