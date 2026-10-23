@@ -17,6 +17,7 @@ import {
   ReasonChip,
   reasonLabel,
 } from '@/components/imports/import-bits';
+import { ScrollEdgeCues, useScrollEdges } from '@/components/ui/scroll-cue';
 import { useTranslation } from '@/i18n/i18n-provider';
 import { formatNumber } from '@/lib/format';
 
@@ -36,6 +37,8 @@ const cellText = (value: unknown): string =>
 export function ImportPreview({ preview }: { preview: Preview }) {
   const { t } = useTranslation();
   const [reason, setReason] = useState<ReasonFilter>('ALL');
+  const { attach: attachSample, edges: sampleEdges } =
+    useScrollEdges<HTMLDivElement>('x');
   const { job, sample, issues } = preview;
   const mapped = importFieldsOf(job.kind).filter(
     (field) => job.mapping?.[field],
@@ -68,57 +71,65 @@ export function ImportPreview({ preview }: { preview: Preview }) {
           </p>
         ) : (
           <div className="min-w-0 rounded-lg bg-card py-2 shadow-raised">
-            <div className="mx-1.5 scrollbar-clean max-h-96 overflow-auto overscroll-contain">
-              <table
-                className="w-max min-w-full border-collapse text-sm"
-                data-testid="sample-table"
+            {/* Inset from the rounded card so the bar and the cues never sit on its edge. */}
+            <div className="relative mx-1.5">
+              <div
+                ref={attachSample}
+                className="scrollbar-clean max-h-96 overflow-auto overscroll-contain"
+                data-testid="sample-scroll"
               >
-                <thead className="sticky top-0 bg-card">
-                  <tr>
-                    <th
-                      scope="col"
-                      className="px-3 py-2.5 text-start text-xs font-semibold whitespace-nowrap text-muted-foreground"
-                    >
-                      {t('imports.rowColumn')}
-                    </th>
-                    {mapped.map((field) => (
+                <table
+                  className="w-max min-w-full border-collapse text-sm"
+                  data-testid="sample-table"
+                >
+                  <thead className="sticky top-0 bg-card">
+                    <tr>
                       <th
-                        key={field}
                         scope="col"
                         className="px-3 py-2.5 text-start text-xs font-semibold whitespace-nowrap text-muted-foreground"
                       >
-                        {fieldLabel(t, field)}
+                        {t('imports.rowColumn')}
                       </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {sample.map((row, index) => {
-                    const rowNumber = Number(row.row ?? index + 1);
-                    const issue = issueByRow.get(rowNumber);
-                    return (
-                      <tr key={index} className="border-t border-border">
-                        <td className="px-3 py-3 whitespace-nowrap">
-                          <span className="flex items-center gap-2">
-                            <span className="font-numeric font-bold text-muted-foreground tabular-nums">
-                              {formatNumber(rowNumber)}
+                      {mapped.map((field) => (
+                        <th
+                          key={field}
+                          scope="col"
+                          className="px-3 py-2.5 text-start text-xs font-semibold whitespace-nowrap text-muted-foreground"
+                        >
+                          {fieldLabel(t, field)}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sample.map((row, index) => {
+                      const rowNumber = Number(row.row ?? index + 1);
+                      const issue = issueByRow.get(rowNumber);
+                      return (
+                        <tr key={index} className="border-t border-border">
+                          <td className="px-3 py-3 whitespace-nowrap">
+                            <span className="flex items-center gap-2">
+                              <span className="font-numeric font-bold text-muted-foreground tabular-nums">
+                                {formatNumber(rowNumber)}
+                              </span>
+                              {issue && <ReasonChip reason={issue.reason} />}
                             </span>
-                            {issue && <ReasonChip reason={issue.reason} />}
-                          </span>
-                        </td>
-                        {mapped.map((field) => (
-                          <td
-                            key={field}
-                            className="max-w-60 truncate px-3 py-3 whitespace-nowrap"
-                          >
-                            <bdi dir="auto">{cellText(row[field])}</bdi>
                           </td>
-                        ))}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                          {mapped.map((field) => (
+                            <td
+                              key={field}
+                              className="max-w-60 truncate px-3 py-3 whitespace-nowrap"
+                            >
+                              <bdi dir="auto">{cellText(row[field])}</bdi>
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <ScrollEdgeCues axis="x" edges={sampleEdges} />
             </div>
           </div>
         )}

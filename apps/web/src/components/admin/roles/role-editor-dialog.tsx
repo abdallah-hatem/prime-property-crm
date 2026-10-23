@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { ScrollEdgeCues, useScrollEdges } from '@/components/ui/scroll-cue';
 import { useTranslation } from '@/i18n/i18n-provider';
 import { isUnauthorized } from '@/lib/api-result';
 import { callApi } from '@/lib/callApi';
@@ -92,6 +93,8 @@ function RoleForm({
   );
   const [errors, setErrors] = useState<{ name?: string; form?: string }>({});
   const [saving, setSaving] = useState(false);
+  const { attach: attachBody, edges: bodyEdges } =
+    useScrollEdges<HTMLDivElement>('y');
 
   const toggle = (key: Permission, on: boolean) => {
     if (isAdmin) return;
@@ -161,93 +164,101 @@ function RoleForm({
             : t('admin.roles.createTitle')}
         </DialogTitle>
       </DialogHeader>
-      <DialogBody className="grid content-start gap-5 pb-4">
-        <FormField
-          label={t('admin.roles.name')}
-          required
-          error={errors.name}
-          className="max-w-md"
+      {/* Header and footer stay; the body scrolls, faded at whichever edge hides more. */}
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        <DialogBody
+          ref={attachBody}
+          className="grid content-start gap-5 pb-4"
+          data-testid="role-body"
         >
-          {(field) => (
-            <Input
-              {...field}
-              value={name}
-              maxLength={ROLE_NAME_MAX_LENGTH}
-              disabled={saving}
-              placeholder={t('admin.roles.namePlaceholder')}
-              data-testid="role-name"
-              onChange={(event) => {
-                setName(event.target.value);
-                setErrors({});
-              }}
-            />
-          )}
-        </FormField>
-        <fieldset
-          className="grid gap-3"
-          aria-describedby={isAdmin ? reasonId : undefined}
-        >
-          <legend className="mb-2 type-label">
-            {t('admin.roles.permissions')}
-          </legend>
-          {isAdmin && (
-            <DisabledReason id={reasonId} className="mb-1">
-              {t('admin.roles.adminNote')}
-            </DisabledReason>
-          )}
-          <div className="grid gap-3 md:grid-cols-2">
-            {PERMISSION_GROUPS.map((group) => (
-              <div
-                key={group.key}
-                role="group"
-                aria-labelledby={`${reasonId}-${group.key}`}
-                className="grid content-start gap-1 rounded-md bg-secondary/60 p-2"
-              >
-                <h3
-                  id={`${reasonId}-${group.key}`}
-                  className="px-3 pt-2 pb-1 text-xs font-bold text-muted-foreground"
-                >
-                  {t(`admin.roles.groups.${group.key}`)}
-                </h3>
-                {group.permissions.map((key) => (
-                  <CheckboxRow
-                    key={key}
-                    label={permissionLabel(key, locale)}
-                    checked={granted.has(key)}
-                    disabled={isAdmin || saving}
-                    testId={`permission-${key}`}
-                    onCheckedChange={(on) => toggle(key, on)}
-                  />
-                ))}
-              </div>
-            ))}
-          </div>
-        </fieldset>
-        <FormAlert message={errors.form} />
-        {role && (
-          <div className="grid justify-items-start gap-1.5 pt-2">
-            <Button
-              type="button"
-              variant="ghost"
-              className="justify-self-start text-destructive hover:text-destructive"
-              disabled={saving || block !== null}
-              aria-describedby={block ? `${reasonId}-delete` : undefined}
-              onClick={() => onDelete(role)}
-              data-testid="role-delete"
-            >
-              <Trash2 aria-hidden />
-              {t('admin.roles.delete')}
-            </Button>
-            {block && (
-              <DisabledReason id={`${reasonId}-delete`} className="max-w-xs">
-                {block === 'builtIn'
-                  ? t('admin.roles.builtInReason')
-                  : t('admin.roles.inUseReason')}
+          <FormField
+            label={t('admin.roles.name')}
+            required
+            error={errors.name}
+            className="max-w-md"
+          >
+            {(field) => (
+              <Input
+                {...field}
+                value={name}
+                maxLength={ROLE_NAME_MAX_LENGTH}
+                disabled={saving}
+                placeholder={t('admin.roles.namePlaceholder')}
+                data-testid="role-name"
+                onChange={(event) => {
+                  setName(event.target.value);
+                  setErrors({});
+                }}
+              />
+            )}
+          </FormField>
+          <fieldset
+            className="grid gap-3"
+            aria-describedby={isAdmin ? reasonId : undefined}
+          >
+            <legend className="mb-2 type-label">
+              {t('admin.roles.permissions')}
+            </legend>
+            {isAdmin && (
+              <DisabledReason id={reasonId} className="mb-1">
+                {t('admin.roles.adminNote')}
               </DisabledReason>
             )}
-          </div>
-        )}
-      </DialogBody>
+            <div className="grid gap-3 md:grid-cols-2">
+              {PERMISSION_GROUPS.map((group) => (
+                <div
+                  key={group.key}
+                  role="group"
+                  aria-labelledby={`${reasonId}-${group.key}`}
+                  className="grid content-start gap-1 rounded-md bg-secondary/60 p-2"
+                >
+                  <h3
+                    id={`${reasonId}-${group.key}`}
+                    className="px-3 pt-2 pb-1 text-xs font-bold text-muted-foreground"
+                  >
+                    {t(`admin.roles.groups.${group.key}`)}
+                  </h3>
+                  {group.permissions.map((key) => (
+                    <CheckboxRow
+                      key={key}
+                      label={permissionLabel(key, locale)}
+                      checked={granted.has(key)}
+                      disabled={isAdmin || saving}
+                      testId={`permission-${key}`}
+                      onCheckedChange={(on) => toggle(key, on)}
+                    />
+                  ))}
+                </div>
+              ))}
+            </div>
+          </fieldset>
+          <FormAlert message={errors.form} />
+          {role && (
+            <div className="grid justify-items-start gap-1.5 pt-2">
+              <Button
+                type="button"
+                variant="ghost"
+                className="justify-self-start text-destructive hover:text-destructive"
+                disabled={saving || block !== null}
+                aria-describedby={block ? `${reasonId}-delete` : undefined}
+                onClick={() => onDelete(role)}
+                data-testid="role-delete"
+              >
+                <Trash2 aria-hidden />
+                {t('admin.roles.delete')}
+              </Button>
+              {block && (
+                <DisabledReason id={`${reasonId}-delete`} className="max-w-xs">
+                  {block === 'builtIn'
+                    ? t('admin.roles.builtInReason')
+                    : t('admin.roles.inUseReason')}
+                </DisabledReason>
+              )}
+            </div>
+          )}
+        </DialogBody>
+        <ScrollEdgeCues axis="y" edges={bodyEdges} />
+      </div>
       <DialogFooter>
         <Button
           type="button"

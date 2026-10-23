@@ -150,11 +150,22 @@ export function AreaCombobox({
                   aria-hidden
                   className="size-4 shrink-0 text-muted-foreground"
                 />
-                <span className="min-w-0 truncate font-semibold">
+                {/* The area keeps its full width (it only truncates when it alone is wider than the
+                    row, past the pin); the compounds take what is left and truncate first.
+                    dir="auto" on each truncating span puts the ellipsis at the end of its own
+                    script, so a Latin name inside Arabic is cut on its right, not mid-word on
+                    the left. */}
+                <span
+                  dir="auto"
+                  className="max-w-[calc(100%-1.625rem)] shrink-0 truncate font-semibold"
+                >
                   {option.area}
                 </span>
                 {option.compounds.length > 0 && (
-                  <span className="min-w-0 truncate text-xs text-muted-foreground">
+                  <span
+                    dir="auto"
+                    className="min-w-0 truncate text-xs text-muted-foreground"
+                  >
                     {option.compounds
                       .slice(0, 3)
                       .join(locale === 'ar' ? '، ' : ', ')}
