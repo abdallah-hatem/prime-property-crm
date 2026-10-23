@@ -92,7 +92,7 @@ function SelectTrigger({
         'flex h-11 w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-sm border border-input bg-card px-4 text-start text-base text-foreground shadow-soft md:text-sm',
         'transition-[border-color,box-shadow] duration-200 ease-snappy',
         'outline-none focus-visible:border-ring focus-visible:ring-4 focus-visible:ring-ring/20',
-        'disabled:cursor-not-allowed disabled:opacity-50 data-placeholder:text-muted-foreground',
+        'disabled:cursor-not-allowed disabled:opacity-50 data-placeholder:text-placeholder',
         'aria-invalid:border-destructive aria-invalid:ring-4 aria-invalid:ring-destructive/15',
         '[&>span]:truncate',
         className,

@@ -42,6 +42,7 @@ import { isUnauthorized } from '@/lib/api-result';
 import { callApi } from '@/lib/callApi';
 import { errorMessage } from '@/lib/error-message';
 import { formatDate, formatPhone } from '@/lib/format';
+import { isolate } from '@/lib/bidi';
 import { cn } from '@/lib/utils';
 import { dueText, reminderUrgency } from '@/lib/when';
 
@@ -134,7 +135,11 @@ export function OwnerDetail({
           {/* Who */}
           <section className={cn(card, 'gap-4')} aria-labelledby="owner-name">
             <div className="grid gap-2">
-              <h1 id="owner-name" className="type-h1 break-words">
+              <h1
+                id="owner-name"
+                dir="auto"
+                className="text-start type-h1 break-words"
+              >
                 {owner.name}
               </h1>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-muted-foreground">
@@ -392,8 +397,8 @@ export function OwnerDetail({
         onOpenChange={setDncOpen}
         title={
           dnc
-            ? t('owners.clearDoNotCallTitle', { name: owner.name })
-            : t('owners.doNotCallTitle', { name: owner.name })
+            ? t('owners.clearDoNotCallTitle', { name: isolate(owner.name) })
+            : t('owners.doNotCallTitle', { name: isolate(owner.name) })
         }
         description={
           dnc ? t('owners.clearDoNotCallBody') : t('owners.doNotCallBody')
@@ -526,14 +531,22 @@ function TimelineEntry({
       );
       break;
     case 'NOTE':
-      title = t('owners.timelineNote', { name: item.note.author.name });
-      body = <span className="whitespace-pre-line">{item.note.body}</span>;
+      title = t('owners.timelineNote', {
+        name: isolate(item.note.author.name),
+      });
+      body = (
+        <span dir="auto" className="whitespace-pre-line">
+          {item.note.body}
+        </span>
+      );
       break;
     case 'REMINDER':
       title = t('owners.timelineReminder', {
         date: formatDate(item.reminder.dueAt, locale, 'dateTime'),
       });
-      body = item.reminder.note;
+      body = item.reminder.note ? (
+        <span dir="auto">{item.reminder.note}</span>
+      ) : null;
       break;
     case 'ASSIGN':
       title = item.to
