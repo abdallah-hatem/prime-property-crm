@@ -43,3 +43,4 @@
 - T17 merged · verify: lint/tc 0; web unit 117 · T17 shared asks (binary apiFetch, calendar RTL/weekStartsOn, filter-chips slot, homeFor admin → /analytics) sent to T21, which is finishing them.
 - T21 merged · T17 member table moved to shared Select; DOWNLOAD_EXPORT on apiFetch binary mode (no raw fetch left); locale conflicts: T21 plurals win, T17 error wording kept · verify: lint/tc 0 (0 warnings); unit 63+745+141; next build ok.
 - BUILD COMPLETE (all plan tasks). Next: stage 7 Verify.
+- VERIFY: API e2e all 16 spec files on merged dev: 387/387 passed. Unit 63+745+141. Edge-case tick-off: 218 cases, all matched (2 T1 price titles renamed to carry the plan text; 2 T19 by workflow). Smoke in all 8 projects running (API 3191, web next start 3193, DB prime_crm_main_test seeded).
