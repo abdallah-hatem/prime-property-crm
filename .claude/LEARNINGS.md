@@ -24,3 +24,5 @@ Corrections recorded so they don't have to be repeated. Loaded at session start.
 - Keep at most 3 agents that run tests or servers at once on this machine (16 GB): with 5,
   free memory fell to ~3 GB, a `next dev` grew to 3 GB, and agents stalled. Kill a stalled agent's
   servers before resuming it. — 2026-10-23
+- On this machine Turbopack's Google Fonts fetch times out: build and run the web with
+  `next build --webpack` / `next dev --webpack` locally (Vercel builds are unaffected). — 2026-10-23

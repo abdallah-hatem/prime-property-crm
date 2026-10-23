@@ -31,3 +31,7 @@
 - T11 merged (0f1e662) · conflicts additive + lockfile regenerated · migration reminders.closed_by_delete · verify: lint/tc 0; unit 62+734+36 · contract: analytics range + member active · review running.
 - T13 hit ECONNRESET → resumed. T10b dispatched (agent 7).
 - T11 review: CONFLICTS → fixed duplicate check-in removal scope (eb6db45, test proven failing without the fix); DOC OUT OF DATE items written to the doc.
+- T10b merged (3b5f2c4) + listing-create default-member lock (b506879; listings 57, race 1, imports 32 e2e).
+- T13 merged (6ba511b), T14 merged (03dd74d): apis.ts rebuilt from both sides, locales deep-merged (489 keys, identical). Verify: lint/tc 0; unit 62+738+78; next build ok.
+- Plan gains T20 (API gaps from the screens) and T21 (web shared cleanup).
+- Wave 9: T20 api gaps (agent 2) ∥ T15 owners admin + import wizard (agent 3, web) ∥ T16 admin screens (agent 4, web) — web tasks append delimited blocks to apis.ts and own locale namespaces.

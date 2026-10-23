@@ -36,6 +36,8 @@ and emoji text, deleted id → 404. They are tested once per endpoint group, not
 | T16 | Admin: users (create, edit, reset password, deactivate with hand-over), roles editor, call outcomes, settings, trash, activity log | frontend | ui | T12, T5, T10 | `feature/web-admin` |
 | T17 | Analytics dashboard + exports | frontend | ui | T12, T11 | `feature/web-analytics` |
 | T18 | PWA: manifest, icons, theme colour, install prompt, `mobile-native` checklist | frontend | surface | T12 | `chore/pwa` |
+| T20 | API gaps found by the screens: `Listing.adTakeDownOpen`; listing `title` in the caller's language for Arabic sessions; `/me/today` real counts (overdue, dueToday, outcomeMissing) not capped list lengths; `GET /reminders?ownerId=`; error codes listed for the web | backend | logic | T13, T14 | `fix/api-gaps` |
+| T21 | Web shared cleanup: DataList `min-w-0`, `apiFetch` raw mode, listing/photo error codes in `error-message.ts`, move NumberInput/TextArea/ChoiceChips/BottomSheet to shared, sr-only file input width; use T20's fields (take-down banner, counts, owner reminders) | frontend | ui | T20 | `chore/web-shared` |
 | T19 | Backups workflow (`pg_dump` → R2, 30-day lifecycle), Vercel config (monorepo, crons, env), deploy docs | infra | logic (restore drill) | T1 | `chore/deploy-infra` |
 
 Shared building blocks are their own tasks so parallel agents don't each build one: T3 (guards,
@@ -297,6 +299,12 @@ alone in its wave against any other schema-changing task.
 ### T19 — Backups
 - [ ] Backup job produces a dump that restores into an empty database with the same row counts (data protection: nightly copy)
 - [ ] R2 lifecycle rule deletes objects older than 30 days, checked by reading the bucket config (data protection: 30 copies)
+
+### T20 — API gaps
+- [ ] `Listing.adTakeDownOpen` is true exactly while an AD_TAKE_DOWN task is open (business: take-down task)
+- [ ] An Arabic user gets listing titles in Arabic in rows, detail, reminders and trash labels (contract: title in the reader's language)
+- [ ] `/me/today` counts are true totals even when a list is capped at 50 (contract)
+- [ ] `GET /reminders?ownerId=` returns only that owner's reminders, and 404 for an owner that isn't the caller's (invariant)
 
 ## Interaction cases — `ui` tasks
 
