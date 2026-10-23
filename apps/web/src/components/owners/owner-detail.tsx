@@ -45,7 +45,8 @@ import { formatDate, formatPhone } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { dueText, reminderUrgency } from '@/lib/when';
 
-const card = 'grid gap-3 rounded-lg bg-card p-4 shadow-raised md:p-5';
+const card =
+  'grid min-w-0 grid-cols-1 gap-3 rounded-lg bg-card p-4 shadow-raised md:p-5';
 
 /**
  * One owner: who and where, phones (each one calls), status and member, Do not call, notes,
@@ -110,7 +111,9 @@ export function OwnerDetail({
   return (
     <div
       className={cn(
-        'grid gap-5',
+        // grid-cols-1 (minmax(0,1fr)): an auto track grows to its widest child and the page
+        // scrolls sideways at 320 px.
+        'grid min-w-0 grid-cols-1 gap-5',
         refreshing && 'opacity-70 transition-opacity',
       )}
     >
@@ -126,8 +129,8 @@ export function OwnerDetail({
         </Link>
       </Button>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start">
-        <div className="grid min-w-0 gap-5">
+      <div className="grid min-w-0 grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start">
+        <div className="grid min-w-0 grid-cols-1 gap-5">
           {/* Who */}
           <section className={cn(card, 'gap-4')} aria-labelledby="owner-name">
             <div className="grid gap-2">
@@ -242,6 +245,9 @@ export function OwnerDetail({
             <SectionHeading
               id="owner-reminders"
               title={t('owners.reminders')}
+              // At 320 px the title and "Add reminder" don't fit one line: the button wraps
+              // under the title instead of truncating it.
+              className="flex-wrap gap-y-2"
               count={reminders.filter((r) => !r.doneAt).length}
               action={
                 mine && owner.status !== 'LISTED' ? (
@@ -313,7 +319,7 @@ export function OwnerDetail({
           </section>
         </div>
 
-        <div className="grid min-w-0 gap-5">
+        <div className="grid min-w-0 grid-cols-1 gap-5">
           {/* Notes */}
           <section className={card} aria-labelledby="owner-notes">
             <SectionHeading

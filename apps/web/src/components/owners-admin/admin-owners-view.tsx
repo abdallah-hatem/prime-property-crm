@@ -249,21 +249,21 @@ export function AdminOwnersView({
             {t('ownersAdmin.total', { total: formatNumber(meta.total) })}
           </bdi>
         }
+        // One row of actions: Import keeps its label, Export is an icon (named for screen
+        // readers) on phones and gains its label from sm up.
         actions={
-          canImport ? (
-            <Button variant="soft" asChild>
-              <Link href="/imports/new">
-                <FileUp aria-hidden />
-                {t('ownersAdmin.importOwners')}
-              </Link>
-            </Button>
-          ) : undefined
+          <>
+            {canImport && (
+              <Button variant="soft" asChild>
+                <Link href="/imports/new">
+                  <FileUp aria-hidden />
+                  {t('ownersAdmin.importOwners')}
+                </Link>
+              </Button>
+            )}
+            <ExportButton kind="owners" />
+          </>
         }
-      />
-      <ExportButton
-        kind="owners"
-        showLabel
-        className="-mt-2 justify-self-end"
       />
       <OwnersFilters
         filters={filters}
