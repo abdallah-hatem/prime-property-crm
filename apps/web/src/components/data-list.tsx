@@ -18,8 +18,11 @@ import { cn } from '@/lib/utils';
 
 export interface DataColumn<T> {
   id: string;
-  /** Translated column title (also the label in the phone card's default layout). */
-  header: string;
+  /**
+   * Translated column title (also the label in the phone card's default layout), or a control
+   * that belongs in the header cell (a "select this page" checkbox).
+   */
+  header: React.ReactNode;
   cell: (row: T) => React.ReactNode;
   /** Width / alignment for the table cell and header, e.g. `w-40 text-end`. */
   className?: string;
@@ -99,7 +102,8 @@ export function DataList<T>({
     <section
       aria-label={label}
       aria-busy={loading || dimmed || undefined}
-      className={cn('grid gap-3', className)}
+      // One shrinkable track: a wide table scrolls inside its card instead of widening the page.
+      className={cn('grid min-w-0 grid-cols-1 gap-3', className)}
     >
       {/* Phones: cards */}
       <ul

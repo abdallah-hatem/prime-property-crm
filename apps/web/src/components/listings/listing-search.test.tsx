@@ -18,6 +18,10 @@ vi.mock('@/apis', () => ({
   ),
 }));
 vi.mock('sonner', () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
+// The export button's server action reads the session; tests never reach it.
+vi.mock('@/components/analytics/export-actions', () => ({
+  DOWNLOAD_EXPORT: vi.fn(),
+}));
 
 const row: ListingRow = {
   id: LISTING_ID,

@@ -11,7 +11,6 @@ import {
 } from '@prime-crm/shared';
 import { REACTIVATE_USER } from '@/apis';
 import { ConfirmDialog } from '@/components/confirm-dialog';
-import { Select } from '@/components/admin/admin-ui';
 import { DataList, type DataColumn } from '@/components/data-list';
 import { FilterChips } from '@/components/filter-chips';
 import { PageHeader } from '@/components/page-header';
@@ -21,6 +20,7 @@ import { UserAvatar } from '@/components/shell/user-avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
+  Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
@@ -226,8 +226,6 @@ export function UsersView({
         />
       </div>
       <DataList
-        // One shrinkable track: a wide table scrolls inside its card instead of widening the page.
-        className="grid-cols-1"
         label={t('nav.users')}
         columns={columns}
         rows={rows}

@@ -24,6 +24,7 @@ import {
   ListingListQuerySchema,
   ListingPhotoUploadRequestSchema,
   ListingStatusRequestSchema,
+  isLocale,
   LOCALE_COOKIE,
   LoginRequestSchema,
   OwnerIdsQuerySchema,
@@ -50,7 +51,7 @@ import {
   UpdateUserRequestSchema,
   UploadImportRequestSchema,
   USER_SEARCH_MAX_LENGTH,
-  type ActivityType,
+  type ActivityEntry,
   type AnalyticsRangeQuery,
   type AreaOption,
   type AssignOwnersResponse,
@@ -77,13 +78,13 @@ import {
   type Settings,
   type TeamAnalytics,
   type Today,
+  type TrashItem,
   type TrashKind,
   type User,
   type UserDetail,
   type UserSummary,
 } from '@prime-crm/shared';
 import { apiFetch } from '@/lib/api';
-import { apiBaseUrl } from '@/lib/env';
 import type { ApiResult } from '@/lib/api-result';
 import { handleResponse } from '@/lib/handleResponse';
 import { homeFor, LOGIN_PATH, safeReturnPath } from '@/lib/routes';
@@ -126,16 +127,42 @@ export async function LOGIN(
 
   const jar = await cookies();
   for (const c of sessionCookies(res.data)) jar.set(c.name, c.value, c.options);
-  // A first sign-in on this device opens in the user's own language.
-  if (!jar.has(LOCALE_COOKIE))
+  const pageLocale = jar.get(LOCALE_COOKIE)?.value;
+  if (isLocale(pageLocale)) {
+    // Signing in from a page in another language makes it the account's: the API writes titles,
+    // labels and exports in the account's language, so they follow what the person reads.
+    if (pageLocale !== res.data.user.language)
+      await saveLanguage(pageLocale, res.data.accessToken);
+  } else {
+    // A first sign-in on this device opens in the user's own language.
     jar.set(LOCALE_COOKIE, res.data.user.language, {
       path: '/',
       maxAge: ONE_YEAR_SECONDS,
       sameSite: 'lax',
     });
+  }
 
   const redirectTo = safeReturnPath(next) ?? homeFor(res.data.user.permissions);
   return { success: true, status: res.status, data: { redirectTo } };
+}
+
+/**
+ * `PATCH /auth/me { language }` with the token sign-in just returned (the cookie jar of this
+ * action may still hold the previous session's). Best effort: sign-in never fails over it.
+ */
+async function saveLanguage(
+  language: Language,
+  accessToken: string,
+): Promise<void> {
+  const res = await apiFetch<Me>('/auth/me', {
+    method: 'PATCH',
+    body: { language },
+    includeAuth: false,
+    ignore401: true,
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.success)
+    console.warn('[LOGIN] language not saved:', res.status, res.error);
 }
 
 /** Sign out: revoke the refresh token's family, clear the cookies, go to login. */
@@ -297,13 +324,15 @@ export async function GET_CALL_OUTCOMES(): Promise<ApiResult<CallOutcome[]>> {
 }
 
 const ReminderListQuerySchema = z.strictObject({
+  /** Every reminder on this owner, whoever's (the owner must be the caller's, or owners.viewAll). */
+  ownerId: IdSchema.optional(),
   state: ReminderStateSchema.optional(),
   when: ReminderWhenSchema.optional(),
   kind: ReminderKindSchema.optional(),
   page: PageSchema.optional(),
 });
 
-/** The caller's own reminders: open first by due time, then done. */
+/** The caller's own reminders (or an owner's, with `ownerId`): open first by due time, then done. */
 export async function GET_REMINDERS(
   query: z.input<typeof ReminderListQuerySchema>,
 ): Promise<ApiResult<Reminder[]>> {
@@ -544,7 +573,7 @@ export async function LOOKUP_LISTING_AREAS(
 /**
  * The Blob client-upload handshake (`POST /uploads/listing-photo`): the API answers with a
  * short-lived client token for one file in this listing's folder; the browser then `put`s the file
- * straight to Blob with it. The answer is raw (not enveloped), so this reads it itself.
+ * straight to Blob with it. The answer is raw (not enveloped): `apiFetch`'s raw mode.
  */
 export async function REQUEST_LISTING_PHOTO_TOKEN(
   listingId: string,
@@ -556,53 +585,21 @@ export async function REQUEST_LISTING_PHOTO_TOKEN(
     payload: { pathname, clientPayload: JSON.stringify({ listingId }) },
   });
   if (!body.success) return invalid();
-  const jar = await cookies();
-  const accessToken = jar.get(ACCESS_COOKIE)?.value;
-  let res: Response;
-  try {
-    // eslint-disable-next-line no-restricted-globals -- the handshake answer is not enveloped, and apiFetch only returns enveloped data
-    res = await fetch(`${apiBaseUrl()}/uploads/listing-photo`, {
-      method: 'POST',
-      cache: 'no-store',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      },
-      body: JSON.stringify(body.data),
-    });
-  } catch {
+  const res = await apiFetch<{ clientToken?: unknown }>(
+    '/uploads/listing-photo',
+    { method: 'POST', body: body.data, cache: 'no-store', response: 'raw' },
+  );
+  if (!res.success) return handleResponse(res);
+  if (typeof res.data?.clientToken !== 'string')
     return handleResponse({
       success: false,
-      status: 0,
-      message: 'Network error',
-      networkError: true,
-    });
-  }
-  const json: unknown = await res.json().catch(() => null);
-  const record =
-    typeof json === 'object' && json !== null
-      ? (json as Record<string, unknown>)
-      : {};
-  if (res.ok && typeof record.clientToken === 'string')
-    return {
-      success: true,
-      status: res.status,
-      data: { clientToken: record.clientToken },
-    };
-  if (res.status === 401)
-    return handleResponse({
-      success: false,
-      unauthorized: true,
-      status: 401,
-      message: 'Unauthorized',
+      status: 502,
+      message: 'Upload refused',
     });
   return handleResponse({
-    success: false,
+    success: true,
     status: res.status,
-    error: typeof record.error === 'string' ? record.error : undefined,
-    message:
-      typeof record.message === 'string' ? record.message : 'Upload refused',
+    data: { clientToken: res.data.clientToken },
   });
 }
 // ============================================================== listings (T14) — end
@@ -732,31 +729,12 @@ export async function GET_IMPORTS(
   );
 }
 
-/** How many `GET /imports` pages `GET_IMPORT` reads looking for one job. */
-const IMPORT_LOOKUP_PAGES = 10;
-
-/**
- * One job. The contract has no `GET /imports/:id`, so this reads the list (newest first) until it
- * finds it; an older job than the lookup reaches answers 404.
- */
+/** `GET /imports/:id`: one job, for its creator or anyone with owners.import (else 404). */
 export async function GET_IMPORT(id: string): Promise<ApiResult<ImportJob>> {
   if (!IdSchema.safeParse(id).success) return invalid();
-  for (let page = 1; page <= IMPORT_LOOKUP_PAGES; page++) {
-    const res = await apiFetch<ImportJob[]>('/imports', {
-      params: { page, limit: PAGE_LIMIT_MAX },
-      cache: 'no-store',
-    });
-    if (!res.success) return handleResponse(res);
-    const job = res.data.find((item) => item.id === id);
-    if (job) return { success: true, status: 200, data: job };
-    if (!res.meta?.hasNextPage) break;
-  }
-  return {
-    success: false,
-    status: 404,
-    error: 'NOT_FOUND',
-    message: 'Not found',
-  };
+  return handleResponse(
+    await apiFetch<ImportJob>(`/imports/${id}`, { cache: 'no-store' }),
+  );
 }
 
 /** `GET /imports/:id/issues`: the rows an import won't (or didn't) add, filtered by reason. */
@@ -781,26 +759,8 @@ export async function GET_IMPORT_ISSUES(
 
 const ADMIN_TAG = 'admin';
 
-/** `TrashItem` (spec, Shapes); the shared contract has no schema for it yet. */
-export interface TrashItem {
-  kind: TrashKind;
-  id: string;
-  label: string;
-  deletedBy: UserSummary | null;
-  deletedAt: string;
-  purgeAt: string;
-}
-
-/** `ActivityEntry` (spec, Shapes). `summary` is the API's English sentence. */
-export interface ActivityEntry {
-  id: string;
-  type: ActivityType;
-  actor: UserSummary;
-  summary: string;
-  target: { kind: string; id: string; label: string } | null;
-  details: Record<string, unknown> | null;
-  createdAt: string;
-}
+/** `TrashItem` and `ActivityEntry` (spec, Shapes): the shared contract's schemas. */
+export type { ActivityEntry, TrashItem } from '@prime-crm/shared';
 
 const AdminUserListQuerySchema = z.strictObject({
   q: z.string().max(USER_SEARCH_MAX_LENGTH).optional(),

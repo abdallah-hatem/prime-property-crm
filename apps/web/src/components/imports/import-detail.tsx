@@ -143,7 +143,6 @@ export function ImportDetail({
             ]}
           />
           <DataList
-            className="grid-cols-1"
             label={t('imports.issuesTitle')}
             columns={columns}
             rows={issues}

@@ -1,6 +1,6 @@
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ImportJob, ImportPreview } from '@prime-crm/shared';
 import {
   CONFIRM_IMPORT,
@@ -24,13 +24,6 @@ vi.mock('@/apis', () => ({
 }));
 const toast = vi.hoisted(() => ({ error: vi.fn(), success: vi.fn() }));
 vi.mock('sonner', () => ({ toast }));
-
-beforeAll(() => {
-  Element.prototype.hasPointerCapture = () => false;
-  Element.prototype.setPointerCapture = () => undefined;
-  Element.prototype.releasePointerCapture = () => undefined;
-  Element.prototype.scrollIntoView = () => undefined;
-});
 
 const JOB_ID = '44444444-4444-4444-8444-444444444444';
 const OWNER_ID = '55555555-5555-4555-8555-555555555555';

@@ -8,7 +8,7 @@ import {
   type CallOutcome,
 } from '@prime-crm/shared';
 import { CREATE_CALL_OUTCOME, UPDATE_CALL_OUTCOME } from '@/apis';
-import { FormAlert, Select } from '@/components/admin/admin-ui';
+import { FormAlert } from '@/components/admin/admin-ui';
 import { FormField } from '@/components/form-field';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import {
+  Select,
   SelectContent,
   SelectItem,
   SelectTrigger,

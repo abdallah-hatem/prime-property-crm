@@ -9,7 +9,8 @@ export interface FilterChipOption<T extends string> {
 
 /**
  * One-of-many filter as a row of pills that scrolls sideways on phones (statuses, "when").
- * The row keeps its height whatever is picked, so the list under it never jumps.
+ * The row keeps its height whatever is picked, so the list under it never jumps. `trailing` goes
+ * after the pills in the same row (a "Custom" pill that opens a picker).
  */
 export function FilterChips<T extends string>({
   label,
@@ -17,6 +18,7 @@ export function FilterChips<T extends string>({
   value,
   onChange,
   disabled,
+  trailing,
   className,
 }: {
   label: string;
@@ -24,6 +26,7 @@ export function FilterChips<T extends string>({
   value: T;
   onChange: (value: T) => void;
   disabled?: boolean;
+  trailing?: React.ReactNode;
   className?: string;
 }) {
   return (
@@ -58,6 +61,7 @@ export function FilterChips<T extends string>({
           </button>
         );
       })}
+      {trailing}
     </div>
   );
 }

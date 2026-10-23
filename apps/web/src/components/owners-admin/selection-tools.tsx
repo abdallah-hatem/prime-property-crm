@@ -3,7 +3,7 @@
 import { createPortal } from 'react-dom';
 import { LoaderCircle } from 'lucide-react';
 import { OWNER_BULK_MAX } from '@prime-crm/shared';
-import { SelectCheckbox } from '@/components/owners-admin/select-checkbox';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -60,8 +60,9 @@ export function SelectionTools({
   return (
     <div className="grid gap-2 rounded-lg bg-card p-2 shadow-raised sm:p-3">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
-        <label className="flex cursor-pointer items-center pe-2 type-label">
-          <SelectCheckbox
+        {/* From md the table's header holds this checkbox. */}
+        <label className="flex cursor-pointer items-center pe-2 type-label md:hidden">
+          <Checkbox
             checked={pageState === 'all'}
             indeterminate={pageState === 'some'}
             onCheckedChange={onTogglePage}

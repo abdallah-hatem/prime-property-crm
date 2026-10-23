@@ -1,7 +1,13 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import { acceptMobileChange } from './phone-input';
-import { adminRoutesFor, canOpen, loginUrlFor, safeReturnPath } from './routes';
+import {
+  adminRoutesFor,
+  canOpen,
+  homeFor,
+  loginUrlFor,
+  safeReturnPath,
+} from './routes';
 
 describe('safeReturnPath', () => {
   it('follows only paths on this site', () => {
@@ -28,6 +34,15 @@ describe('safeReturnPath', () => {
   });
 });
 
+describe('home by role', () => {
+  it('analytics.view lands on the dashboard, everyone else on Today', () => {
+    expect(homeFor(['analytics.view'])).toBe('/analytics');
+    expect(homeFor(['owners.assign', 'analytics.view'])).toBe('/analytics');
+    expect(homeFor([])).toBe('/today');
+    expect(homeFor(['owners.viewAll', 'users.manage'])).toBe('/today');
+  });
+});
+
 describe('route permissions', () => {
   it('opens admin pages by permission, everything else to any signed-in user', () => {
     expect(canOpen('/today', [])).toBe(true);
@@ -37,6 +52,15 @@ describe('route permissions', () => {
     expect(
       adminRoutesFor(['owners.assign', 'analytics.view']).map((r) => r.href),
     ).toEqual(['/analytics']);
+  });
+
+  it('/imports opens with owners.import or listings.create', () => {
+    expect(canOpen('/imports/new', ['owners.import'])).toBe(true);
+    expect(canOpen('/imports/new', ['listings.create'])).toBe(true);
+    expect(canOpen('/imports', ['owners.assign'])).toBe(false);
+    expect(adminRoutesFor(['listings.create']).map((r) => r.href)).toEqual([
+      '/imports',
+    ]);
   });
 });
 

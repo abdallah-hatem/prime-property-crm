@@ -101,7 +101,6 @@ export function FileDrop({
           ref={input}
           type="file"
           accept={IMPORT_FILE_EXTENSIONS.join(',')}
-          className="hidden"
           tabIndex={-1}
           aria-hidden
           data-testid="file-input"

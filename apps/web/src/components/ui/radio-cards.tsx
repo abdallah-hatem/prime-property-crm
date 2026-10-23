@@ -1,7 +1,6 @@
 'use client';
 
 import { RadioGroup } from 'radix-ui';
-import { useTranslation } from '@/i18n/i18n-provider';
 import { cn } from '@/lib/utils';
 
 export interface RadioCardOption<T extends string> {
@@ -33,11 +32,8 @@ export function RadioCards<T extends string>({
   invalid?: boolean;
   describedBy?: string;
 }) {
-  const { locale } = useTranslation();
   return (
     <RadioGroup.Root
-      // Radix sets `dir` on the group (ltr unless told), which would un-mirror it in Arabic.
-      dir={locale === 'ar' ? 'rtl' : 'ltr'}
       aria-label={label}
       aria-invalid={invalid || undefined}
       aria-describedby={describedBy}

@@ -28,7 +28,7 @@ import { isUnauthorized } from '@/lib/api-result';
 import { formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { listingErrorMessage } from './listing-error';
-import { TextArea } from './text-area';
+import { Textarea } from '@/components/ui/textarea';
 import { useMutation } from './use-mutation';
 
 type Props = {
@@ -37,9 +37,11 @@ type Props = {
   onUpdated: (listing: Listing) => void;
 };
 
-/** A live ad on a listing that left Available: someone has to take it down on Property Finder. */
-export const takeDownPending = (listing: Listing) =>
-  listing.ad.status === 'LIVE' && listing.status !== 'AVAILABLE';
+/**
+ * The listing has an open "Take down the ad" task (the API's `adTakeDownOpen`): its ad was Live
+ * when it left Available, and nobody has marked the ad Taken down yet.
+ */
+export const takeDownPending = (listing: Listing) => listing.adTakeDownOpen;
 
 /**
  * The Property Finder ad: its status, link, when it was posted and the check-in rhythm, with the
@@ -523,7 +525,8 @@ function CheckInDialog({
               </div>
               <FormField label={t('listings.ad.checkInNote')}>
                 {(field) => (
-                  <TextArea
+                  <Textarea
+                    showCount
                     {...field}
                     rows={3}
                     maxLength={NOTE_BODY_MAX_LENGTH}

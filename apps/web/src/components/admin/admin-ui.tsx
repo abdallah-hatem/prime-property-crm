@@ -2,8 +2,6 @@
 
 import { useCallback, useRef, useState } from 'react';
 import { Info } from 'lucide-react';
-import { Select as SelectRoot } from '@/components/ui/select';
-import { useTranslation } from '@/i18n/i18n-provider';
 import { cn } from '@/lib/utils';
 
 /**
@@ -109,13 +107,4 @@ export function useAction() {
     [],
   );
   return { run, pendingKey, pending: pendingKey !== null };
-}
-
-/**
- * The shared Select with the reading direction set: Radix Select sets `dir` on itself (ltr
- * unless told), which leaves the value and chevron un-mirrored in Arabic.
- */
-export function Select(props: React.ComponentProps<typeof SelectRoot>) {
-  const { locale } = useTranslation();
-  return <SelectRoot dir={locale === 'ar' ? 'rtl' : 'ltr'} {...props} />;
 }

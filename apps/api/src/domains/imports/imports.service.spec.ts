@@ -126,6 +126,29 @@ describe('ImportsService', () => {
     );
   });
 
+  it('get: the creator and owners.import read a job; anyone else (or no job) is a 404', async () => {
+    const theirs = makeService({
+      imports: {
+        findJob: jest.fn().mockResolvedValue(job({ createdById: 'other' })),
+      },
+    }).svc;
+    await expect(theirs.get('job-1', importer)).resolves.toMatchObject({
+      id: 'job-1',
+    });
+    await expect(theirs.get('job-1', nobody)).rejects.toThrow(
+      NotFoundException,
+    );
+    await expect(makeService().svc.get('job-1', nobody)).resolves.toMatchObject(
+      { id: 'job-1', fileName: 'a.csv' },
+    );
+    const missing = makeService({
+      imports: { findJob: jest.fn().mockResolvedValue(null) },
+    }).svc;
+    await expect(missing.get('job-1', admin)).rejects.toThrow(
+      NotFoundException,
+    );
+  });
+
   it("someone else's import is a 404, even for an admin", async () => {
     const { svc } = makeService({
       imports: {

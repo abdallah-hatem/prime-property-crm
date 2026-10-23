@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { LoaderCircle } from 'lucide-react';
 import type { User, UserDetail, UserSummary } from '@prime-crm/shared';
 import { DEACTIVATE_USER, GET_USER, GET_USER_OPTIONS } from '@/apis';
-import { FormAlert, Select } from '@/components/admin/admin-ui';
-import { RadioCards } from '@/components/admin/radio-cards';
+import { FormAlert } from '@/components/admin/admin-ui';
+import { RadioCards } from '@/components/ui/radio-cards';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
+  Select,
   SelectContent,
   SelectItem,
   SelectTrigger,

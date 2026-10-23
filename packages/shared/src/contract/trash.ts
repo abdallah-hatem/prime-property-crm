@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { InstantSchema } from './reminders';
+import { UserSummarySchema } from './summary';
 
 /** What can sit in the trash (spec, Shapes → TrashItem). */
 export const TrashKindSchema = z.enum(['OWNER', 'LISTING', 'PHOTO']);
@@ -20,3 +22,16 @@ export const TrashErrorCode = {
 } as const;
 export type TrashErrorCode =
   (typeof TrashErrorCode)[keyof typeof TrashErrorCode];
+
+/** `TrashItem` (spec, Shapes): one restorable record in `GET /trash`. */
+export const TrashItemSchema = z.object({
+  kind: TrashKindSchema,
+  id: z.uuid(),
+  /** A readable label in the reader's language ("Hany Ragab", "Apartment · 3 BR · Madinaty"). */
+  label: z.string(),
+  deletedBy: UserSummarySchema.nullable(),
+  deletedAt: InstantSchema,
+  /** When it is removed for good: `deletedAt` + TRASH_RETENTION_DAYS. */
+  purgeAt: InstantSchema,
+});
+export type TrashItem = z.infer<typeof TrashItemSchema>;

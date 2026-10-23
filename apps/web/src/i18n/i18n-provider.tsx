@@ -8,6 +8,7 @@ import {
   useTransition,
 } from 'react';
 import { useRouter } from 'next/navigation';
+import { Direction } from 'radix-ui';
 import { directionOf, LOCALE_COOKIE, type Locale } from '@prime-crm/shared';
 import { createTranslator, type Translate } from './translate';
 
@@ -53,7 +54,12 @@ export function I18nProvider({
     [locale, setLocale, isSwitching],
   );
 
-  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
+  // Radix primitives (Select, RadioGroup, menus) read the direction from here, not from <html dir>.
+  return (
+    <I18nContext.Provider value={value}>
+      <Direction.Provider dir={value.dir}>{children}</Direction.Provider>
+    </I18nContext.Provider>
+  );
 }
 
 export function useTranslation(): I18nContextValue {

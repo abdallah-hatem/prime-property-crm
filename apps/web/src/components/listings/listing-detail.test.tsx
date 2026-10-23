@@ -48,6 +48,7 @@ describe('Listing detail', () => {
         listing={listingFixture({
           status: 'SOLD',
           adStatus: 'LIVE',
+          adTakeDownOpen: true,
           ad: {
             link: 'https://pf.eg/a',
             status: 'LIVE',
@@ -63,5 +64,27 @@ describe('Listing detail', () => {
     expect(screen.getByTestId('take-down-banner')).toHaveTextContent(
       'احذف الإعلان من Property Finder',
     );
+  });
+
+  it('shows no take-down banner once the task is closed, even with the ad still Live', () => {
+    renderWith(
+      <ListingDetail
+        listing={listingFixture({
+          status: 'SOLD',
+          adStatus: 'LIVE',
+          adTakeDownOpen: false,
+          ad: {
+            link: 'https://pf.eg/a',
+            status: 'LIVE',
+            postedAt: '2026-10-04T09:00:00.000Z',
+            takenDownAt: null,
+            lastCheckInAt: null,
+            nextCheckInAt: null,
+          },
+        })}
+      />,
+      { me: member(OMAR_ID) },
+    );
+    expect(screen.queryByTestId('take-down-banner')).not.toBeInTheDocument();
   });
 });

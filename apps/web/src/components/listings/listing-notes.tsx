@@ -8,7 +8,7 @@ import { DateText } from '@/components/date-text';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/i18n/i18n-provider';
 import { isUnauthorized } from '@/lib/api-result';
-import { TextArea } from './text-area';
+import { Textarea } from '@/components/ui/textarea';
 import { useMutation } from './use-mutation';
 
 /** The latest notes on the listing, newest first; its member (or a manager) can add one. */
@@ -79,7 +79,8 @@ export function ListingNotes({
           <label htmlFor="listing-note" className="sr-only">
             {t('listings.notes.label')}
           </label>
-          <TextArea
+          <Textarea
+            showCount
             id="listing-note"
             rows={3}
             maxLength={NOTE_BODY_MAX_LENGTH}

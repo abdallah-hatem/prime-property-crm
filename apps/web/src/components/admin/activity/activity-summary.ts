@@ -39,8 +39,7 @@ export function activitySummary(entry: ActivityEntry, t: Translate): string {
   const name = label;
   switch (entry.type) {
     case 'IMPORT': {
-      // The API nests them under `counts`; older (seeded) entries keep them flat.
-      const counts = obj(d.counts) ?? d;
+      const counts = obj(d.counts) ?? {};
       return t('admin.activity.summary.import', {
         file: label,
         added: n(counts.added),
@@ -49,8 +48,6 @@ export function activitySummary(entry: ActivityEntry, t: Translate): string {
       });
     }
     case 'ASSIGN': {
-      // A move "from" someone names the giver as the target: only the API's sentence says so.
-      if (str(d.from)) break;
       const listings = d.kind === 'LISTINGS';
       const count = n(d.count);
       if (entry.target)
@@ -185,8 +182,7 @@ export function activityDetails(
         add('admin.activity.detail.sessionsEnded', n(d.sessionsEnded));
       break;
     case 'IMPORT': {
-      // The API nests them under `counts`; older (seeded) entries keep them flat.
-      const counts = obj(d.counts) ?? d;
+      const counts = obj(d.counts) ?? {};
       add('admin.activity.detail.added', n(counts.added));
       add('admin.activity.detail.duplicates', n(counts.duplicates));
       add('admin.activity.detail.rejected', n(counts.rejected));

@@ -80,12 +80,13 @@ export function TodayView({
     }
   }
 
-  const { outcomeMissing, overdue, dueToday, adTasks } = today;
+  const { outcomeMissing, overdue, dueToday, adTasks, counts } = today;
+  // Counters and headings show the API's totals; each list holds at most TODAY_LIST_MAX rows.
   const nothingWaiting =
-    outcomeMissing.length +
-      overdue.length +
-      dueToday.length +
-      adTasks.length ===
+    counts.outcomeMissing +
+      counts.overdue +
+      counts.dueToday +
+      counts.adTasks ===
     0;
 
   return (
@@ -107,13 +108,17 @@ export function TodayView({
           counters={[
             {
               tone: 'overdue',
-              value: overdue.length,
+              value: counts.overdue,
               label: t('today.overdue'),
             },
-            { tone: 'due', value: dueToday.length, label: t('today.dueToday') },
+            {
+              tone: 'due',
+              value: counts.dueToday,
+              label: t('today.dueToday'),
+            },
             {
               tone: 'missing',
-              value: outcomeMissing.length,
+              value: counts.outcomeMissing,
               label: t('today.noOutcome'),
             },
           ]}
@@ -133,7 +138,7 @@ export function TodayView({
           <SectionHeading
             id="today-missing"
             title={t('today.needsOutcome')}
-            count={outcomeMissing.length}
+            count={counts.outcomeMissing}
           />
           {outcomeMissing.map((call) => (
             <MissingOutcomeCard key={call.id} call={call} now={now} />
@@ -142,9 +147,24 @@ export function TodayView({
       )}
 
       {[
-        { id: 'today-overdue', title: t('today.overdue'), items: overdue },
-        { id: 'today-due', title: t('today.dueToday'), items: dueToday },
-        { id: 'today-ads', title: t('today.adTasks'), items: adTasks },
+        {
+          id: 'today-overdue',
+          title: t('today.overdue'),
+          items: overdue,
+          total: counts.overdue,
+        },
+        {
+          id: 'today-due',
+          title: t('today.dueToday'),
+          items: dueToday,
+          total: counts.dueToday,
+        },
+        {
+          id: 'today-ads',
+          title: t('today.adTasks'),
+          items: adTasks,
+          total: counts.adTasks,
+        },
       ].map(
         (section) =>
           section.items.length > 0 && (
@@ -156,7 +176,7 @@ export function TodayView({
               <SectionHeading
                 id={section.id}
                 title={section.title}
-                count={section.items.length}
+                count={section.total}
               />
               <ul className="grid gap-2.5">
                 {section.items.map((reminder) => (

@@ -47,6 +47,11 @@ export class ImportsController {
     return ResponseUtil.paginated(await this.imports.list(query, user));
   }
 
+  @Get(':id')
+  get(@Id() id: string, @GetUser() user: CurrentUser) {
+    return this.imports.get(id, user);
+  }
+
   @Post(':id/preview')
   @HttpCode(200)
   preview(

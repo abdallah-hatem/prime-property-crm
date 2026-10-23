@@ -28,9 +28,28 @@ export type ApiFetchOptions = Omit<RequestInit, 'body'> & {
   revalidateTags?: string[];
   /** Return the 401 to the caller instead of refreshing / signing out. */
   ignore401?: boolean;
+  /**
+   * How a successful answer is read (a failure is always read as the API's error envelope):
+   * - `envelope` (default): `data` and `meta` from the API's envelope;
+   * - `raw`: the answer is not enveloped (the Blob upload handshake): `data` is the whole body;
+   * - `binary`: a file (an export): `data` is a `BinaryFile`, its bytes base64-encoded so a server
+   *   action can hand it to the browser.
+   */
+  response?: ResponseMode;
   /** Internal: this is the retry after an inline refresh. */
   _retried?: boolean;
 };
+
+export type ResponseMode = 'envelope' | 'raw' | 'binary';
+
+/** A file answer (`response: 'binary'`). */
+export interface BinaryFile {
+  /** The bytes, base64-encoded. */
+  base64: string;
+  contentType: string;
+  /** From `Content-Disposition`, when the API names the file. */
+  fileName: string | null;
+}
 
 const RETRYABLE = new Set(['GET', 'HEAD', 'OPTIONS']);
 
@@ -56,6 +75,7 @@ export async function apiFetch<T>(
     params,
     revalidateTags,
     ignore401,
+    response = 'envelope',
     _retried,
     ...init
   } = options;
@@ -63,7 +83,7 @@ export async function apiFetch<T>(
   const isFormData = body instanceof FormData;
 
   const headers = new Headers(init.headers);
-  headers.set('Accept', 'application/json');
+  headers.set('Accept', response === 'binary' ? '*/*' : 'application/json');
   if (body !== undefined && !isFormData)
     headers.set('Content-Type', 'application/json');
   if (!headers.has('Accept-Language'))
@@ -110,7 +130,7 @@ export async function apiFetch<T>(
   if (res.status === 401 && includeAuth && !ignore401 && !_retried) {
     return handleUnauthorized<T>(path, options, res);
   }
-  return parseResponse<T>(res);
+  return parseResponse<T>(res, response);
 }
 
 /** A stale pooled keep-alive socket throws "fetch failed" once; reads get one more try. */
@@ -175,15 +195,41 @@ interface Envelope {
   error?: unknown;
 }
 
-async function parseResponse<T>(res: Response): Promise<ApiResult<T>> {
+/** `filename*=UTF-8''…` (preferred) or `filename="…"` from a Content-Disposition header. */
+function fileNameOf(disposition: string | null): string | null {
+  if (!disposition) return null;
+  const encoded = /filename\*=UTF-8''([^;]+)/i.exec(disposition)?.[1];
+  if (encoded) {
+    try {
+      return decodeURIComponent(encoded.trim());
+    } catch {
+      // Malformed: fall back to the plain name.
+    }
+  }
+  return /filename="?([^";]+)"?/i.exec(disposition)?.[1]?.trim() ?? null;
+}
+
+async function parseResponse<T>(
+  res: Response,
+  response: ResponseMode = 'envelope',
+): Promise<ApiResult<T>> {
+  if (res.ok && response === 'binary') {
+    const file: BinaryFile = {
+      base64: Buffer.from(await res.arrayBuffer()).toString('base64'),
+      contentType:
+        res.headers.get('content-type') ?? 'application/octet-stream',
+      fileName: fileNameOf(res.headers.get('content-disposition')),
+    };
+    return { success: true, status: res.status, data: file as T };
+  }
   const isJson = res.headers.get('content-type')?.includes('json');
-  const raw: unknown = isJson
+  const body: unknown = isJson
     ? await res.json().catch(() => null)
     : await res.text();
   const envelope: Envelope =
-    typeof raw === 'object' && raw !== null && !Array.isArray(raw)
-      ? (raw as Envelope)
-      : { data: raw };
+    typeof body === 'object' && body !== null && !Array.isArray(body)
+      ? (body as Envelope)
+      : { data: body };
   const message =
     typeof envelope.message === 'string' ? envelope.message : undefined;
 
@@ -196,6 +242,8 @@ async function parseResponse<T>(res: Response): Promise<ApiResult<T>> {
       data: envelope.data,
     };
   }
+  if (response === 'raw')
+    return { success: true, status: res.status, data: body as T };
   return {
     success: true,
     status: res.status,

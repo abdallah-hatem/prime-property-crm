@@ -203,8 +203,6 @@ export function TrashView({
         {t('admin.trash.retention')}
       </p>
       <DataList
-        // One shrinkable track: a wide table scrolls inside its card instead of widening the page.
-        className="grid-cols-1"
         label={t('nav.trash')}
         columns={columns}
         rows={rows}

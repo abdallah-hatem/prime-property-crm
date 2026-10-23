@@ -1,6 +1,6 @@
 # Prime Property CRM — Business Logic
 
-Last updated: 2026-10-23 (T5–T11, T10b, T20) · Source spec: `docs/specs/2026-10-22-property-crm.md`
+Last updated: 2026-10-23 (T5–T11, T10b, T20, T21) · Source spec: `docs/specs/2026-10-22-property-crm.md`
 
 This file is what the business is and how it behaves **now**. Every behavior change updates it in the
 same commit. Items not built yet are marked **Planned**. Nothing is built yet: everything below is the
@@ -45,6 +45,10 @@ ended (a copied key stops working); within 30 seconds it still works, so two ope
 once don't sign the user out. A deactivated user is locked out at once,
 even mid-session. Changing your own password ends your other sessions; a password reset by the admin
 ends all of them. Role and permission changes reach a signed-in user within 15 minutes.
+The language someone signs in with becomes their account's: signing in from the login page in a
+language other than the one stored on the account saves the new one (listing titles, labels and
+exports then follow it); a first sign-in on a device, with no language chosen yet, opens in the
+account's language instead (T21).
 
 **Deactivation and reactivation (built, T10).** Deactivating needs a hand-over choice: an active
 user other than the one being deactivated, or nobody. In one step, every live owner and listing of
@@ -257,7 +261,7 @@ saves nothing and can be previewed and confirmed again; a finished one can't be 
 rows can go to one active member (only for whoever may assign); otherwise imported owners are
 unassigned and imported listings go to the importer. Each import writes one activity entry with its
 counts, plus one assignment entry when it assigned anything: a listings import to a chosen member
-logs one entry for all its listings (and the owner leads that moved with them), linked or not. Owner ids in the issue list are shown
+logs one entry for all its listings (and the owner leads that moved with them), linked or not. An import and its issue list can be read by its creator or by whoever may import owners; anyone else is told it doesn't exist (T21). Owner ids in the issue list are shown
 only to whoever may see all owners (a deleted owner's only to whoever may restore). Arabic digits in
 a phone are accepted everywhere phones are typed.
 

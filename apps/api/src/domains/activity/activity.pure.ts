@@ -1,5 +1,22 @@
+import type { Prisma } from '@prisma/client';
 import type { ActivityRow } from '../../common/repositories/activity-entry.repository';
-import type { ActivityEntryView } from './interfaces/activity.interface';
+import type {
+  ActivityEntryView,
+  ActivityRecordInput,
+} from './interfaces/activity.interface';
+
+/** The columns of one entry to append (the target flattened; no details → none stored). */
+export function toActivityWrite(entry: ActivityRecordInput) {
+  return {
+    type: entry.type,
+    actorId: entry.actorId,
+    summary: entry.summary,
+    targetKind: entry.target?.kind ?? null,
+    targetId: entry.target?.id ?? null,
+    targetLabel: entry.target?.label ?? null,
+    details: (entry.details ?? undefined) as Prisma.InputJsonValue | undefined,
+  };
+}
 
 /** A stored row as the contract's ActivityEntry: the target only when it was recorded. */
 export function toActivityEntry(row: ActivityRow): ActivityEntryView {

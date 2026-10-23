@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { useTranslation } from '@/i18n/i18n-provider';
 import { formatNumber } from '@/lib/format';
 import { useUrlParams } from '@/lib/use-url-params';
-import { BottomSheet } from './bottom-sheet';
+import { BottomSheet } from '@/components/ui/bottom-sheet';
 import {
   activeFilterCount,
   EMPTY_FILTERS,
@@ -262,7 +262,6 @@ export function ListingSearch({
             columns={columns}
             rows={rows}
             rowKey={(row) => row.id}
-            className="grid-cols-1"
             renderCard={(row) => <ListingRowCard row={row} />}
             renderCardSkeleton={() => <ListingRowCardSkeleton />}
             skeletonRows={4}

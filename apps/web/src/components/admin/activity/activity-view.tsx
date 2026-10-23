@@ -9,7 +9,6 @@ import {
   type UserSummary,
 } from '@prime-crm/shared';
 import type { ActivityEntry } from '@/apis';
-import { Select } from '@/components/admin/admin-ui';
 import { DataList, type DataColumn } from '@/components/data-list';
 import { DateText } from '@/components/date-text';
 import { PageHeader } from '@/components/page-header';
@@ -23,6 +22,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
+  Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
@@ -190,8 +190,6 @@ export function ActivityView({
         />
       </div>
       <DataList
-        // One shrinkable track: a wide table scrolls inside its card instead of widening the page.
-        className="grid-cols-1"
         label={t('nav.activity')}
         columns={columns}
         rows={rows}

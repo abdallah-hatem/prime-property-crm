@@ -10,11 +10,11 @@ import {
   UsersRound,
 } from 'lucide-react';
 import type { MemberStats } from '@prime-crm/shared';
-import { Select } from '@/components/admin/admin-ui';
 import { DataList, type DataColumn } from '@/components/data-list';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
+  Select,
   SelectContent,
   SelectItem,
   SelectTrigger,

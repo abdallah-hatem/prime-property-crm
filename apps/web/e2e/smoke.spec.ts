@@ -18,7 +18,10 @@ for (const role of SHELL_ROLES) {
       const phone = info.project.name.startsWith('mobile');
 
       await page.goto('/');
-      await expect(page).toHaveURL(/\/today$/);
+      // The admin reads analytics, so their home is the dashboard; a member's is Today.
+      await expect(page).toHaveURL(
+        role === 'admin' ? /\/analytics$/ : /\/today$/,
+      );
       await expect(page.getByTestId('app-shell')).toBeVisible();
       await expect(page.locator('html')).toHaveAttribute(
         'dir',

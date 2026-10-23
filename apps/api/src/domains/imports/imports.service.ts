@@ -30,6 +30,7 @@ import { hasPermission } from '../../common/utils/permissions.util';
 import { DatabaseService } from '../../database/database.service';
 import { ActivityService } from '../activity/activity.service';
 import { assignActivity } from '../assignment/assign-activity';
+import { importActivity } from './import-activity';
 import { AssignmentService } from '../assignment/assignment.service';
 import type {
   ImportIssuesQueryDto,
@@ -452,14 +453,7 @@ export class ImportsService {
     counts: ImportCounts,
     user: CurrentUser,
   ): Promise<void> {
-    const noun = job.kind === 'OWNERS' ? 'owner' : 'listing';
-    await this.activity.record(tx, {
-      type: 'IMPORT',
-      actorId: user.id,
-      summary: `Imported ${counts.added} ${noun}${counts.added === 1 ? '' : 's'} from ${job.fileName} (${counts.duplicates} duplicate, ${counts.rejected} rejected)`,
-      target: { kind: 'IMPORT', id: job.id, label: job.fileName },
-      details: { kind: job.kind, counts, assignToId: job.assignToId },
-    });
+    await this.activity.record(tx, importActivity(user.id, job, counts));
   }
 
   // ------------------------------------------------------------------ lists
@@ -490,12 +484,14 @@ export class ImportsService {
     return toPage(rows.map(toImportJob), total, window);
   }
 
-  /** The rows an import won't add: for its creator, or anyone with owners.import. */
-  async issues(
+  /**
+   * A job its caller may read: their own, or any with owners.import. Anyone else gets the same
+   * 404 as an unknown id, so ids can't be probed.
+   */
+  private async visibleJob(
     id: string,
-    query: ImportIssuesQueryDto,
     user: CurrentUser,
-  ): Promise<Paginated<ImportIssue>> {
+  ): Promise<ImportJobData> {
     const job = await this.imports.findJob(id);
     if (
       !job ||
@@ -503,6 +499,21 @@ export class ImportsService {
     ) {
       throw notFound('Import');
     }
+    return job;
+  }
+
+  /** One import job: for its creator, or anyone with owners.import. */
+  async get(id: string, user: CurrentUser): Promise<ImportJob> {
+    return toImportJob(await this.visibleJob(id, user));
+  }
+
+  /** The rows an import won't add: for its creator, or anyone with owners.import. */
+  async issues(
+    id: string,
+    query: ImportIssuesQueryDto,
+    user: CurrentUser,
+  ): Promise<Paginated<ImportIssue>> {
+    await this.visibleJob(id, user);
     const window = pageWindow(query.page, query.limit);
     const { rows, total } = await this.imports.issuesPage(
       id,

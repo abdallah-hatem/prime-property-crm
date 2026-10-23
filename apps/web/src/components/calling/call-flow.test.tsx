@@ -367,11 +367,40 @@ describe('Today', () => {
     expect(screen.queryByTestId('call-button')).not.toBeInTheDocument();
   });
 
+  it('counters show the API totals, not the length of the capped lists', () => {
+    renderWith(
+      <TodayView
+        today={{
+          ...EMPTY_TODAY,
+          outcomeMissing: [CALL],
+          counts: {
+            ...EMPTY_TODAY.counts,
+            overdue: 1284,
+            dueToday: 55,
+            outcomeMissing: 51,
+          },
+        }}
+        callingList={EMPTY_PAGE}
+        now={new Date().toISOString()}
+      />,
+    );
+    expect(screen.getByText('1,284')).toBeInTheDocument();
+    expect(screen.getByText('55')).toBeInTheDocument();
+    // The counter and the Needs-an-outcome heading both say 51 while one call is listed.
+    expect(screen.getAllByText('51')).toHaveLength(2);
+    expect(screen.getAllByTestId('missing-outcome')).toHaveLength(1);
+    expect(screen.queryByText("You're all caught up")).not.toBeInTheDocument();
+  });
+
   it('opens the outcome sheet from an Outcome missing item', async () => {
     const user = userEvent.setup();
     renderWith(
       <TodayView
-        today={{ ...EMPTY_TODAY, outcomeMissing: [CALL] }}
+        today={{
+          ...EMPTY_TODAY,
+          outcomeMissing: [CALL],
+          counts: { ...EMPTY_TODAY.counts, outcomeMissing: 1 },
+        }}
         callingList={EMPTY_PAGE}
         now={new Date().toISOString()}
       />,

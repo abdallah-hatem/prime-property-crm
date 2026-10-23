@@ -1,27 +1,22 @@
 'use server';
 
-import { cookies } from 'next/headers';
 import { z } from 'zod';
 import {
-  DEFAULT_LOCALE,
-  EXPORT_CONTENT_TYPE,
   exportFileName,
   ListingListQuerySchema,
-  LOCALE_COOKIE,
   OwnerListQuerySchema,
   type ExportKind,
 } from '@prime-crm/shared';
+import { apiFetch, type BinaryFile } from '@/lib/api';
 import type { ApiResult } from '@/lib/api-result';
 import { toCairo } from '@/lib/cairo-time';
-import { apiBaseUrl } from '@/lib/env';
 import { handleResponse } from '@/lib/handleResponse';
-import { ACCESS_COOKIE } from '@/lib/session-tokens';
 
 /**
  * Excel exports (`GET /exports/owners`, `GET /exports/listings`, data.export). The API answers
- * the file itself, not the envelope, and `apiFetch` reads a non-JSON body as text (which would
- * corrupt the workbook), so this action reads the bytes itself and hands the browser the file as
- * base64. Errors are the usual envelope: EXPORT_TOO_LARGE, VALIDATION_FAILED, FORBIDDEN.
+ * the file itself, so `apiFetch` reads it in binary mode (an expired session is refreshed and the
+ * download retried, like any call) and the browser gets it as base64. Errors are the usual
+ * envelope: EXPORT_TOO_LARGE, VALIDATION_FAILED, FORBIDDEN.
  */
 
 export interface ExportFile {
@@ -52,38 +47,21 @@ function exportQuery(
   return filters;
 }
 
-function toSearch(params: Record<string, unknown>): string {
-  const search = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
+type ExportParams = Record<
+  string,
+  string | number | boolean | string[] | undefined
+>;
+
+/** The filters as query params; empty values are left out. */
+function toParams(filters: Record<string, unknown>): ExportParams {
+  const params: ExportParams = {};
+  for (const [key, value] of Object.entries(filters)) {
     if (value === undefined || value === null || value === '') continue;
-    search.set(key, Array.isArray(value) ? value.join(',') : String(value));
+    params[key] = Array.isArray(value)
+      ? value.map(String)
+      : (value as string | number | boolean);
   }
-  const qs = search.toString();
-  return qs ? `?${qs}` : '';
-}
-
-const fileNameOf = (disposition: string | null, kind: ExportKind): string =>
-  /filename="?([^";]+)"?/.exec(disposition ?? '')?.[1] ??
-  exportFileName(kind, toCairo(new Date()).day);
-
-async function failureOf(res: Response): Promise<ApiResult<never>> {
-  const body: unknown = await res.json().catch(() => null);
-  const envelope =
-    typeof body === 'object' && body !== null
-      ? (body as { error?: unknown; message?: unknown })
-      : {};
-  const message =
-    typeof envelope.message === 'string'
-      ? envelope.message
-      : 'An error occurred';
-  if (res.status === 401)
-    return { success: false, unauthorized: true, status: 401, message };
-  return {
-    success: false,
-    status: res.status,
-    error: typeof envelope.error === 'string' ? envelope.error : undefined,
-    message,
-  };
+  return params;
 }
 
 /** Download the owners or listings matching `query` (the list's current filters). */
@@ -103,41 +81,20 @@ export async function DOWNLOAD_EXPORT(
       message: 'Invalid input',
     };
 
-  const jar = await cookies();
-  const headers = new Headers({
-    Accept: `${EXPORT_CONTENT_TYPE}, application/json`,
-    'Accept-Language': jar.get(LOCALE_COOKIE)?.value ?? DEFAULT_LOCALE,
+  const res = await apiFetch<BinaryFile>(`/exports/${parsedKind.data}`, {
+    params: toParams(params),
+    response: 'binary',
+    cache: 'no-store',
   });
-  const token = jar.get(ACCESS_COOKIE)?.value;
-  if (token) headers.set('Authorization', `Bearer ${token}`);
-
-  let res: Response;
-  try {
-    // eslint-disable-next-line no-restricted-globals -- binary body: apiFetch can only read JSON or text
-    res = await fetch(
-      `${apiBaseUrl()}/exports/${parsedKind.data}${toSearch(params)}`,
-      { headers, cache: 'no-store' },
-    );
-  } catch {
-    return {
-      success: false,
-      status: 0,
-      message: 'Network error',
-      networkError: true,
-    };
-  }
-
-  if (!res.ok) return handleResponse(await failureOf(res));
-  const bytes = Buffer.from(await res.arrayBuffer());
+  if (!res.success) return handleResponse(res);
   return {
     success: true,
     status: res.status,
     data: {
-      fileName: fileNameOf(
-        res.headers.get('content-disposition'),
-        parsedKind.data,
-      ),
-      base64: bytes.toString('base64'),
+      fileName:
+        res.data.fileName ??
+        exportFileName(parsedKind.data, toCairo(new Date()).day),
+      base64: res.data.base64,
     },
   };
 }

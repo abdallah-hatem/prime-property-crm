@@ -1,6 +1,6 @@
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Meta, OwnerRow } from '@prime-crm/shared';
 import { ASSIGN_OWNERS, GET_ASSIGNEE_OPTIONS, GET_OWNER_IDS } from '@/apis';
 import { member, renderWith } from '@/components/listings/test-fixtures';
@@ -23,14 +23,10 @@ vi.mock('@/apis', () => ({
 }));
 const toast = vi.hoisted(() => ({ error: vi.fn(), success: vi.fn() }));
 vi.mock('sonner', () => ({ toast }));
-
-// Radix Select needs these in jsdom.
-beforeAll(() => {
-  Element.prototype.hasPointerCapture = () => false;
-  Element.prototype.setPointerCapture = () => undefined;
-  Element.prototype.releasePointerCapture = () => undefined;
-  Element.prototype.scrollIntoView = () => undefined;
-});
+// The export button's server action reads the session; tests never reach it.
+vi.mock('@/components/analytics/export-actions', () => ({
+  DOWNLOAD_EXPORT: vi.fn(),
+}));
 
 const uuid = (n: number) =>
   `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -263,7 +259,7 @@ describe('Assign dialog', () => {
     await act(async () =>
       resolve({ success: true, status: 200, data: { moved: 1 } }),
     );
-    expect(toast.success).toHaveBeenCalledWith('Unassigned 1 owners');
+    expect(toast.success).toHaveBeenCalledWith('Unassigned 1 owner');
   });
 
   it('asks who gets them before sending anything', async () => {

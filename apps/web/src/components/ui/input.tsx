@@ -1,8 +1,21 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-/** 16px on phones so iOS Safari never zooms; 14px from md up. */
+/**
+ * 16px on phones so iOS Safari never zooms; 14px from md up. A file input is never drawn (the
+ * browser's picker looks native): it is visually hidden with none of the field's sizing, so its
+ * `w-full` can't widen the page, and a styled button or drop zone opens it.
+ */
 function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
+  if (type === 'file')
+    return (
+      <input
+        type="file"
+        data-slot="input"
+        className={cn('sr-only', className)}
+        {...props}
+      />
+    );
   return (
     <input
       type={type}

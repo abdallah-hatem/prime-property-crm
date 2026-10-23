@@ -39,10 +39,10 @@ import type { Translate } from '@/i18n/translate';
 import { isUnauthorized } from '@/lib/api-result';
 import { EG_MOBILE, normalizeEgyptianMobileInput } from '@/lib/phone-input';
 import { AreaCombobox } from './area-combobox';
-import { ChoiceChips } from './choice-chips';
+import { ChoiceChips } from '@/components/choice-chips';
 import { listingErrorMessage } from './listing-error';
-import { NumberInput } from './number-input';
-import { TextArea } from './text-area';
+import { NumberInput } from '@/components/ui/number-input';
+import { Textarea } from '@/components/ui/textarea';
 import { useMutation } from './use-mutation';
 
 /** False on the server and until hydration: a submit before then would be a native GET. */
@@ -578,7 +578,8 @@ export function ListingForm({ mode }: { mode: ListingFormMode }) {
               control={control}
               name="description"
               render={({ field: f }) => (
-                <TextArea
+                <Textarea
+                  showCount
                   {...field}
                   name={f.name}
                   ref={f.ref}
