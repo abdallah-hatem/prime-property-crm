@@ -6,6 +6,7 @@ import { z } from 'zod';
 import {
   ActivityTypeSchema,
   AdCheckInRequestSchema,
+  AnalyticsRangeQuerySchema,
   AreaLookupQuerySchema,
   AssignOwnersRequestSchema,
   CreateCallOutcomeRequestSchema,
@@ -50,6 +51,7 @@ import {
   UploadImportRequestSchema,
   USER_SEARCH_MAX_LENGTH,
   type ActivityType,
+  type AnalyticsRangeQuery,
   type AreaOption,
   type AssignOwnersResponse,
   type Call,
@@ -62,6 +64,7 @@ import {
   type ListingRow,
   type LoginResponse,
   type Me,
+  type MemberAnalytics,
   type Note,
   type Owner,
   type OwnerIdsResponse,
@@ -72,6 +75,7 @@ import {
   type Reminder,
   type Role,
   type Settings,
+  type TeamAnalytics,
   type Today,
   type TrashKind,
   type User,
@@ -1104,3 +1108,38 @@ export async function GET_ACTIVITY(
   );
 }
 // ====== admin (T16) — end
+
+// ====== analytics + exports (T17) — begin
+// Team and member analytics over a range of Cairo days (spec, "Trash, activity, settings,
+// analytics, export"). The Excel downloads are not here: `apiFetch` reads a non-JSON body as text,
+// which would corrupt the file, so they live in `components/analytics/export-actions.ts`.
+
+/** `GET /analytics/team`: totals and one row per member for `from`–`to` (Cairo days). */
+export async function GET_TEAM_ANALYTICS(
+  range: AnalyticsRangeQuery,
+): Promise<ApiResult<TeamAnalytics>> {
+  const parsed = AnalyticsRangeQuerySchema.safeParse(range);
+  if (!parsed.success) return invalid();
+  return handleResponse(
+    await apiFetch<TeamAnalytics>('/analytics/team', {
+      params: parsed.data,
+      cache: 'no-store',
+    }),
+  );
+}
+
+/** `GET /analytics/members/:id`: one member's stats and calls per day for `from`–`to`. */
+export async function GET_MEMBER_ANALYTICS(
+  id: string,
+  range: AnalyticsRangeQuery,
+): Promise<ApiResult<MemberAnalytics>> {
+  const parsed = AnalyticsRangeQuerySchema.safeParse(range);
+  if (!IdSchema.safeParse(id).success || !parsed.success) return invalid();
+  return handleResponse(
+    await apiFetch<MemberAnalytics>(`/analytics/members/${id}`, {
+      params: parsed.data,
+      cache: 'no-store',
+    }),
+  );
+}
+// ====== analytics + exports (T17) — end

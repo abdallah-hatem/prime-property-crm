@@ -138,7 +138,9 @@
     "PURGED": "It was removed for good after 30 days, so it can't be restored.",
     "OWNER_ALREADY_LISTED": "Its owner has another listing now, so this one can't come back.",
     "PARENT_DELETED": "Its listing is in the trash. Restore the listing first.",
-    "TOO_MANY_PHOTOS": "Its listing already has 30 photos. Delete one first."
+    "TOO_MANY_PHOTOS": "Its listing already has 30 photos. Delete one first.",
+    "EXPORT_TOO_LARGE": "Too many rows to export (over 50,000). Narrow the filters and try again.",
+    "INVALID_RANGE": "That date range isn’t valid: up to 366 days, the start before the end."
   },
   "auth": {
     "title": "Sign in",
@@ -1022,6 +1024,87 @@
           "order": "order"
         }
       }
+    }
+  },
+  "analytics": {
+    "title": "Analytics",
+    "range": {
+      "label": "Date range",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "thisWeek": "This week",
+      "last7": "Last 7 days",
+      "thisMonth": "This month",
+      "last30": "Last 30 days",
+      "custom": "Custom",
+      "customTitle": "Pick a range",
+      "customHint": "Tap the first day, then the last. Up to {max} days.",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month"
+    },
+    "stats": {
+      "calls": "Calls",
+      "remindersDone": "Reminders done",
+      "remindersOverdue": "Reminders overdue",
+      "assignedOwners": "Assigned owners",
+      "interestedOwners": "Interested owners",
+      "listingsCreated": "Listings created",
+      "adsLive": "Ads live",
+      "adsTakenDown": "Ads taken down"
+    },
+    "hints": {
+      "atEnd": "At the end of the range"
+    },
+    "team": {
+      "totals": "Team totals",
+      "totalsNote": "The sum of the members below; work on unassigned records isn’t counted.",
+      "members": "Members"
+    },
+    "outcomes": {
+      "title": "Outcomes",
+      "subtitle": "Calls in this range, by outcome",
+      "empty": "No call got an outcome in this range.",
+      "share": "{percent}% of calls with an outcome"
+    },
+    "byDay": {
+      "title": "Calls by day",
+      "titleWeeks": "Calls by week",
+      "subtitle": "Calls started each day in this range",
+      "subtitleWeeks": "Calls started each week (from Saturday) in this range",
+      "tableCaption": "Calls per day",
+      "day": "Day",
+      "weekOf": "Week of {date}",
+      "calls": "{count} calls",
+      "oneCall": "1 call"
+    },
+    "table": {
+      "member": "Member",
+      "sortBy": "Sort by",
+      "name": "Name",
+      "ascending": "Ascending",
+      "descending": "Descending",
+      "toggleDirection": "Change sort direction",
+      "deactivated": "Deactivated",
+      "open": "Open {name}’s analytics",
+      "short": {
+        "calls": "Calls",
+        "interestedOwners": "Interested",
+        "remindersOverdue": "Overdue"
+      }
+    },
+    "empty": {
+      "title": "Nothing happened in this range",
+      "body": "No calls, reminders done, listings or ads changes between these dates. Counts at the end of the range are above.",
+      "action": "Show the last 30 days",
+      "noMembers": "No team members yet"
+    },
+    "member": {
+      "back": "Back to the team",
+      "deactivatedNote": "This member is deactivated; their history stays."
+    },
+    "export": {
+      "label": "Export to Excel",
+      "preparing": "Preparing file…"
     }
   }
 }
