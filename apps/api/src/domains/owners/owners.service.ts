@@ -29,6 +29,7 @@ import { hasPermission } from '../../common/utils/permissions.util';
 import { isUniqueViolation } from '../../common/utils/prisma-error.util';
 import { DatabaseService } from '../../database/database.service';
 import { ActivityService } from '../activity/activity.service';
+import { assignActivity } from '../assignment/assign-activity';
 import { AssignmentService } from '../assignment/assignment.service';
 import { toCall } from '../calls/call.shape';
 import { NotesService } from '../notes/notes.service';
@@ -319,7 +320,10 @@ export class OwnersService {
             assignee.id,
             user.id,
           );
-          await this.recordAssign(tx, user.id, 1, assignee.id, assignee.name);
+          await this.activity.record(
+            tx,
+            assignActivity(user.id, { kind: 'OWNERS', count: 1, assignee }),
+          );
         }
         return this.detail(id, user, tx);
       }),
@@ -394,26 +398,6 @@ export class OwnersService {
 
   // ------------------------------------------------------------------ assign
 
-  private async recordAssign(
-    tx: Tx,
-    actorId: string,
-    count: number,
-    assigneeId: string | null,
-    assigneeName: string | null,
-  ): Promise<void> {
-    await this.activity.record(tx, {
-      type: 'ASSIGN',
-      actorId,
-      summary: assigneeId
-        ? `Assigned ${count} owner${count === 1 ? '' : 's'} to ${assigneeName}`
-        : `Unassigned ${count} owner${count === 1 ? '' : 's'}`,
-      target: assigneeId
-        ? { kind: 'USER', id: assigneeId, label: assigneeName ?? '' }
-        : null,
-      details: { kind: 'OWNERS', count, assigneeId },
-    });
-  }
-
   /**
    * Assigns the owners (deleted or unknown ids skipped) to an active member or to nobody; their
    * listings and open reminders follow. One activity entry for the whole batch.
@@ -432,12 +416,9 @@ export class OwnersService {
       );
       const moved = result.ownerIds.length;
       if (moved > 0) {
-        await this.recordAssign(
+        await this.activity.record(
           tx,
-          user.id,
-          moved,
-          assignee?.id ?? null,
-          assignee?.name ?? null,
+          assignActivity(user.id, { kind: 'OWNERS', count: moved, assignee }),
         );
       }
       return { moved };

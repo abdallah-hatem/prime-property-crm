@@ -1,6 +1,6 @@
 # Prime Property CRM — Business Logic
 
-Last updated: 2026-10-23 (T5–T11) · Source spec: `docs/specs/2026-10-22-property-crm.md`
+Last updated: 2026-10-23 (T5–T11, T10b) · Source spec: `docs/specs/2026-10-22-property-crm.md`
 
 This file is what the business is and how it behaves **now**. Every behavior change updates it in the
 same commit. Items not built yet are marked **Planned**. Nothing is built yet: everything below is the
@@ -252,7 +252,8 @@ duplicate. The preview shows the counts and the first issues; confirming checks 
 saves nothing and can be previewed and confirmed again; a finished one can't be changed. Imported
 rows can go to one active member (only for whoever may assign); otherwise imported owners are
 unassigned and imported listings go to the importer. Each import writes one activity entry with its
-counts, plus one assignment entry when it assigned anything. Owner ids in the issue list are shown
+counts, plus one assignment entry when it assigned anything: a listings import to a chosen member
+logs one entry for all its listings (and the owner leads that moved with them), linked or not. Owner ids in the issue list are shown
 only to whoever may see all owners (a deleted owner's only to whoever may restore). Arabic digits in
 a phone are accepted everywhere phones are typed.
 
@@ -269,6 +270,8 @@ a phone are accepted everywhere phones are typed.
 - An ad goes Live only on an Available listing.
 - A "Take down the ad" task closes only when the ad is marked Taken down.
 - Assigning work is done only by users with the assign permission, and only to active members.
+  An assignment racing that member's deactivation is either refused or its work is handed over
+  with the rest; it never lands on the deactivated member.
 
 ## Analytics
 

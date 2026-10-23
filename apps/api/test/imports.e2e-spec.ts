@@ -131,6 +131,15 @@ describe('Imports (e2e)', () => {
     return LISTING_HEADERS.map((h) => row[h]);
   };
 
+  /** Ids of the ASSIGN entries already logged, to find the ones a step adds. */
+  const assignEntryIds = async () =>
+    (
+      await db.activityEntry.findMany({
+        where: { type: 'ASSIGN' },
+        select: { id: true },
+      })
+    ).map((e) => e.id);
+
   /** Upload + preview; returns the job id and the preview. */
   async function staged(
     actor: Actor,
@@ -746,6 +755,7 @@ describe('Imports (e2e)', () => {
         { assignTo: memberB.id },
       );
       expect(preview.issues).toEqual([]);
+      const before = await assignEntryIds();
       const done = await as(admin).post(`/imports/${id}/confirm`).expect(200);
       expect(done.body.data.counts).toEqual({
         total: 2,
@@ -778,12 +788,55 @@ describe('Imports (e2e)', () => {
           where: { ownerId: lead.id, toMemberId: memberB.id },
         }),
       ).toBe(1);
+      // One entry for the batch: both listings, with the lead that moved along (T10b).
       const assign = await db.activityEntry.findMany({
-        where: { actorId: admin.id, type: 'ASSIGN', targetId: memberB.id },
+        where: {
+          actorId: admin.id,
+          type: 'ASSIGN',
+          targetId: memberB.id,
+          id: { notIn: before },
+        },
       });
-      expect(
-        assign.some((e) => (e.details as { count: number }).count === 1),
-      ).toBe(true);
+      expect(assign).toHaveLength(1);
+      expect(assign[0].details).toEqual({
+        kind: 'LISTINGS',
+        count: 2,
+        assigneeId: memberB.id,
+        linkedOwners: 1,
+      });
+    });
+
+    it('Listings import with `assignTo` writes one ASSIGN activity entry for the listings it assigned, even when no owner lead was linked (business: "one assignment entry when it assigned anything"; T9 review CONFLICT)', async () => {
+      const { id } = await staged(
+        admin,
+        'LISTINGS',
+        listingsFile([
+          listingRow(randomLocalMobile()),
+          listingRow(randomLocalMobile()),
+        ]),
+        LISTING_MAPPING,
+        { assignTo: memberB.id },
+      );
+      const before = await assignEntryIds();
+      await as(admin).post(`/imports/${id}/confirm`).expect(200);
+
+      const listings = await db.listing.findMany({
+        where: { sourceImportId: id },
+      });
+      expect(listings).toHaveLength(2);
+      expect(listings.every((l) => l.ownerId === null)).toBe(true);
+      expect(listings.every((l) => l.assignedToId === memberB.id)).toBe(true);
+
+      const assign = await db.activityEntry.findMany({
+        where: { actorId: admin.id, type: 'ASSIGN', id: { notIn: before } },
+      });
+      expect(assign).toHaveLength(1);
+      expect(assign[0]).toMatchObject({
+        targetKind: 'USER',
+        targetId: memberB.id,
+        summary: `Assigned 2 listings to ${memberB.name}`,
+        details: { kind: 'LISTINGS', count: 2, assigneeId: memberB.id },
+      });
     });
 
     it("Listings import row whose phone is another listing's owner phone → DUPLICATE with listingId (decision: duplicate detection)", async () => {

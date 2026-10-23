@@ -32,6 +32,7 @@ import { parseSearch } from '../../common/utils/phone-search.util';
 import { isUniqueViolation } from '../../common/utils/prisma-error.util';
 import { DatabaseService } from '../../database/database.service';
 import { ActivityService } from '../activity/activity.service';
+import { assignActivity } from '../assignment/assign-activity';
 import { AssignmentService } from '../assignment/assignment.service';
 import { NotesService } from '../notes/notes.service';
 import { RemindersService } from '../reminders/reminders.service';
@@ -421,7 +422,14 @@ export class ListingsService {
               );
               const to =
                 assignee ?? (await this.users.findActive(memberId, tx));
-              await this.recordAssign(tx, user.id, 'OWNERS', 1, to);
+              await this.activity.record(
+                tx,
+                assignActivity(user.id, {
+                  kind: 'OWNERS',
+                  count: 1,
+                  assignee: to,
+                }),
+              );
             }
           }
           return this.detail(id, user, tx);
@@ -618,27 +626,6 @@ export class ListingsService {
 
   // ------------------------------------------------------------------ assign
 
-  private async recordAssign(
-    tx: Tx,
-    actorId: string,
-    kind: 'OWNERS' | 'LISTINGS',
-    count: number,
-    assignee: { id: string; name: string } | null,
-  ): Promise<void> {
-    const noun = `${kind === 'OWNERS' ? 'owner' : 'listing'}${count === 1 ? '' : 's'}`;
-    await this.activity.record(tx, {
-      type: 'ASSIGN',
-      actorId,
-      summary: assignee
-        ? `Assigned ${count} ${noun} to ${assignee.name}`
-        : `Unassigned ${count} ${noun}`,
-      target: assignee
-        ? { kind: 'USER', id: assignee.id, label: assignee.name }
-        : null,
-      details: { kind, count, assigneeId: assignee?.id ?? null },
-    });
-  }
-
   /**
    * Assigns listings (deleted or unknown ids skipped) to an active member or to nobody; their
    * linked owners and open reminders follow. One activity entry per batch that moved something.
@@ -657,7 +644,10 @@ export class ListingsService {
       );
       const moved = result.listingIds.length;
       if (moved > 0) {
-        await this.recordAssign(tx, user.id, 'LISTINGS', moved, assignee);
+        await this.activity.record(
+          tx,
+          assignActivity(user.id, { kind: 'LISTINGS', count: moved, assignee }),
+        );
       }
       return { moved };
     });

@@ -40,7 +40,7 @@ export class UserStatusService {
   ) {}
 
   /**
-   * One transaction: the last-admin check (it takes the Admin role lock first, so concurrent
+   * One transaction: the user's row lock (see `UserStatusRepository.lockUser`), the last-admin check (it takes the Admin role lock first, so concurrent
    * deactivations run one after the other), the recipient check, every live owner and listing
    * of the user with their open reminders to `handOverTo` (null = unassigned), all sessions
    * ended, the user inactive, one USER_DEACTIVATE entry with the counts. Calls and done
@@ -60,6 +60,10 @@ export class UserStatusService {
     if (handOverTo === id) throw this.invalidHandOver();
 
     return this.db.transaction(async (tx) => {
+      // First: an assignment to this user holds the row FOR SHARE until it commits, so after
+      // this lock no assignment to them is in flight and none can start (it would see them
+      // inactive once this commits).
+      await this.status.lockUser(tx, id);
       const user = assertFound(await this.users.findShape(id, tx), 'User');
       await this.lastAdmin.assertNotLastActiveAdmin(tx, id);
       if (!user.active) return toUser(user);
