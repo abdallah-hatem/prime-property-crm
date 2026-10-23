@@ -17,6 +17,33 @@ export const dialogSizes = {
   xl: 'sm:max-w-5xl',
 } as const;
 export type DialogSize = keyof typeof dialogSizes;
+/** A sheet is full width on phones and takes its size from md up. */
+const sheetSizes: Record<DialogSize, string> = {
+  sm: 'md:max-w-md',
+  md: 'md:max-w-lg',
+  lg: 'md:max-w-3xl',
+  xl: 'md:max-w-5xl',
+};
+
+/**
+ * `dialog`: centred card. `sheet`: a bottom sheet on phones (slides up 250ms, closes 150ms, a grab
+ * handle, the home-indicator inset below its footer) and the same centred card from md up.
+ */
+const variants = {
+  dialog: cn(
+    'inset-x-0 top-1/2 mx-auto -translate-y-1/2 rounded-lg',
+    'max-h-[calc(100dvh-2rem)] max-w-[calc(100vw-2rem)]',
+    'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
+  ),
+  sheet: cn(
+    'inset-x-0 bottom-0 rounded-t-xl pb-[env(safe-area-inset-bottom)]',
+    'max-h-[calc(100dvh-1rem)]',
+    'data-[state=closed]:slide-out-to-bottom data-[state=open]:duration-250 data-[state=open]:slide-in-from-bottom',
+    'md:top-1/2 md:bottom-auto md:mx-auto md:max-h-[calc(100dvh-2rem)] md:max-w-[calc(100vw-2rem)] md:-translate-y-1/2 md:rounded-lg md:pb-0',
+    'md:data-[state=closed]:slide-out-to-bottom-0 md:data-[state=closed]:zoom-out-95 md:data-[state=open]:slide-in-from-bottom-0 md:data-[state=open]:zoom-in-95',
+  ),
+} as const;
+export type DialogVariant = keyof typeof variants;
 
 const Dialog = DialogPrimitive.Root;
 const DialogTrigger = DialogPrimitive.Trigger;
@@ -26,10 +53,12 @@ function DialogContent({
   className,
   children,
   size = 'md',
+  variant = 'dialog',
   closeLabel,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   size?: DialogSize;
+  variant?: DialogVariant;
   /** Accessible name of the corner close button; omit to hide the button. */
   closeLabel?: string;
 }) {
@@ -44,16 +73,22 @@ function DialogContent({
       />
       <DialogPrimitive.Content
         className={cn(
-          'fixed inset-x-0 top-1/2 z-50 mx-auto flex w-full -translate-y-1/2 flex-col',
-          'max-h-[calc(100dvh-2rem)] max-w-[calc(100vw-2rem)] rounded-lg bg-card text-card-foreground shadow-float',
+          'fixed z-50 flex w-full flex-col bg-card text-card-foreground shadow-float',
           'ease-snappy outline-none',
-          'data-[state=open]:animate-in data-[state=open]:duration-200 data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
-          'data-[state=closed]:animate-out data-[state=closed]:duration-150 data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
-          dialogSizes[size],
+          'data-[state=open]:animate-in data-[state=open]:duration-200 data-[state=open]:fade-in-0',
+          'data-[state=closed]:animate-out data-[state=closed]:duration-150 data-[state=closed]:fade-out-0',
+          variants[variant],
+          variant === 'sheet' ? sheetSizes[size] : dialogSizes[size],
           className,
         )}
         {...props}
       >
+        {variant === 'sheet' && (
+          <span
+            aria-hidden
+            className="mx-auto mt-2 h-1.25 w-10 shrink-0 rounded-pill bg-border md:hidden"
+          />
+        )}
         {children}
         {closeLabel && (
           <DialogPrimitive.Close

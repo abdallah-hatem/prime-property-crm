@@ -312,8 +312,10 @@ export default async function DesignPage() {
             <OwnerRow
               urgency="overdue"
               name={s.row.name}
-              area={s.row.area}
-              status={{ label: t('leadStatus.CALL_BACK'), variant: 'warning' }}
+              detail={s.row.area}
+              status={
+                <Badge variant="warning">{t('leadStatus.CALL_BACK')}</Badge>
+              }
               when={s.row.when}
               callLabel={t('action.call')}
             />
