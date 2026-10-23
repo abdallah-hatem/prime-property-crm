@@ -35,3 +35,4 @@
 - T13 merged (6ba511b), T14 merged (03dd74d): apis.ts rebuilt from both sides, locales deep-merged (489 keys, identical). Verify: lint/tc 0; unit 62+738+78; next build ok.
 - Plan gains T20 (API gaps from the screens) and T21 (web shared cleanup).
 - Wave 9: T20 api gaps (agent 2) ∥ T15 owners admin + import wizard (agent 3, web) ∥ T16 admin screens (agent 4, web) — web tasks append delimited blocks to apis.ts and own locale namespaces.
+- T20 merged · api unit 744, e2e api-gaps 11 (+VERCEL=1) and related specs green per agent · T21 gains: save locale on sign-in.
