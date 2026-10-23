@@ -66,7 +66,7 @@ alone in its wave against any other schema-changing task.
 - [ ] Activity entries have no update/delete path (invariant: activity log immutable)
 - [ ] Seed is idempotent: running it twice leaves one Admin role, one Team member role, the 10 default outcomes, one settings row (checklist: duplicates)
 - [ ] Default outcomes map exactly as the business doc table (business doc: default outcomes)
-- [ ] Price stored as integer EGP; a fractional price is rejected by the DTO layer later, schema has `Int` (money: whole EGP)
+- [ ] Price stored as integer EGP; a fractional price is rejected by the DTO layer later, schema has `Int` (money: whole EGP) — tested in listings.e2e-spec.ts "Price as a fraction or negative…" (DB part in data-model.e2e-spec.ts)
 - [ ] Price over 1,000,000,000 EGP → 400 at the DTO, never a DB overflow 500 (money: whole EGP; review)
 - [ ] Foreign keys from Call (owner, member, outcome) and ActivityEntry (actor) don't cascade: deleting the parent row at DB level fails (invariant: calls/activity never deleted)
 - [ ] A trashed owner still holds its phones: inserting a new owner with that phone violates the unique index (decision: trashed owners keep their phone)

@@ -560,7 +560,8 @@ describe('Listings, ads and photos (e2e)', () => {
       expect(plain.body.data).toBeUndefined();
     });
 
-    it('Price as a fraction or negative, size 0 → 400 (money: whole EGP)', async () => {
+    // Also T1: "Price stored as integer EGP; a fractional price is rejected by the DTO layer later, schema has `Int` (money: whole EGP)".
+    it('Price as a fraction or negative, size 0 → 400 (money: whole EGP) — a fractional price is rejected by the DTO layer, schema has `Int`', async () => {
       for (const extra of [
         { price: 1500.5 },
         { price: -1 },
@@ -574,7 +575,7 @@ describe('Listings, ads and photos (e2e)', () => {
       }
     });
 
-    it('Price 1,000,000,001 → 400 (money)', async () => {
+    it('Price 1,000,000,001 → 400 (money) — Price over 1,000,000,000 EGP → 400 at the DTO, never a DB overflow 500 (money: whole EGP; review)', async () => {
       await as(admin)
         .post('/listings', directBody({ price: 1_000_000_001 }))
         .expect(400);
