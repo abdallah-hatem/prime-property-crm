@@ -6,6 +6,7 @@ Property Finder follow-up, admin analytics and backups · spec `docs/specs/2026-
 Current stage: 7 — Verify done locally (unit, e2e, smoke 8 projects, UI audit + fixes) · dev pushed to GitHub · next: re-run smoke on the merged audit fixes, release alignment review, Vercel (needs access).
 
 ## Waiting on the user
+- Nightly backup + weekly restore-drill workflows now live on GitHub (dev is the default branch) but have no Neon/R2 secrets yet: they will fail nightly and open issues. Asked the user whether to disable them until Vercel/Neon/R2 exist.
 - GitHub: switched to abdallah-hatem at the user's request (2026-10-23); `git push --dry-run origin dev` succeeds. Push dev after T22/T23 merge (user request).
 - Vercel account access (user will provide) — needed for Neon, Blob and deploys; local dev runs on Docker Postgres until then.
 
