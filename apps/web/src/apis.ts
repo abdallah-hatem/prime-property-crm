@@ -4,11 +4,16 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import {
+  ActivityTypeSchema,
   AdCheckInRequestSchema,
   AreaLookupQuerySchema,
+  CreateCallOutcomeRequestSchema,
   CreateListingRequestSchema,
   CreateNoteRequestSchema,
   CreateReminderRequestSchema,
+  CreateRoleRequestSchema,
+  CreateUserRequestSchema,
+  DeactivateUserRequestSchema,
   LanguageSchema,
   ListingListQuerySchema,
   ListingPhotoUploadRequestSchema,
@@ -17,17 +22,26 @@ import {
   LoginRequestSchema,
   OwnerListQuerySchema,
   PAGE_LIMIT_MAX,
+  PICKER_LIMIT_MAX,
   RegisterPhotoRequestSchema,
   ReminderKindSchema,
   ReminderStateSchema,
   ReminderWhenSchema,
   ReorderPhotosRequestSchema,
+  ResetPasswordRequestSchema,
   SetCallOutcomeRequestSchema,
   StartCallRequestSchema,
+  TrashKindSchema,
   UpdateAdRequestSchema,
+  UpdateCallOutcomeRequestSchema,
   UpdateListingRequestSchema,
   UpdateOwnerRequestSchema,
   UpdateReminderRequestSchema,
+  UpdateRoleRequestSchema,
+  UpdateSettingsRequestSchema,
+  UpdateUserRequestSchema,
+  USER_SEARCH_MAX_LENGTH,
+  type ActivityType,
   type AreaOption,
   type Call,
   type CallOutcome,
@@ -43,7 +57,13 @@ import {
   type OwnerTimelineItem,
   type Photo,
   type Reminder,
+  type Role,
+  type Settings,
   type Today,
+  type TrashKind,
+  type User,
+  type UserDetail,
+  type UserSummary,
 } from '@prime-crm/shared';
 import { apiFetch } from '@/lib/api';
 import { apiBaseUrl } from '@/lib/env';
@@ -570,3 +590,337 @@ export async function REQUEST_LISTING_PHOTO_TOKEN(
   });
 }
 // ============================================================== listings (T14) — end
+
+// ====== admin (T16) — begin
+// Users, roles, call outcomes, settings, trash and the activity log (spec, "Users — /users",
+// "Roles — /roles", "Calls and outcomes", "Trash, activity, settings").
+
+const ADMIN_TAG = 'admin';
+
+/** `TrashItem` (spec, Shapes); the shared contract has no schema for it yet. */
+export interface TrashItem {
+  kind: TrashKind;
+  id: string;
+  label: string;
+  deletedBy: UserSummary | null;
+  deletedAt: string;
+  purgeAt: string;
+}
+
+/** `ActivityEntry` (spec, Shapes). `summary` is the API's English sentence. */
+export interface ActivityEntry {
+  id: string;
+  type: ActivityType;
+  actor: UserSummary;
+  summary: string;
+  target: { kind: string; id: string; label: string } | null;
+  details: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+const AdminUserListQuerySchema = z.strictObject({
+  q: z.string().max(USER_SEARCH_MAX_LENGTH).optional(),
+  roleId: z.uuid().optional(),
+  active: z.boolean().optional(),
+  page: PageSchema.optional(),
+});
+
+/** `GET /users`: search by name, email or phone; role and active filters. */
+export async function GET_USERS(
+  query: z.input<typeof AdminUserListQuerySchema>,
+): Promise<ApiResult<User[]>> {
+  const parsed = AdminUserListQuerySchema.safeParse(query);
+  if (!parsed.success) return invalid();
+  return handleResponse(
+    await apiFetch<User[]>('/users', {
+      params: { ...parsed.data, limit: PAGE_LIMIT_MAX },
+      cache: 'no-store',
+      next: { tags: [ADMIN_TAG] },
+    }),
+  );
+}
+
+/** How many users hold a role and are active (one is enough to tell "the last admin"). */
+export async function COUNT_ACTIVE_USERS_IN_ROLE(
+  roleId: string,
+): Promise<ApiResult<number>> {
+  if (!IdSchema.safeParse(roleId).success) return invalid();
+  const res = await apiFetch<User[]>('/users', {
+    params: { roleId, active: true, limit: 1 },
+    cache: 'no-store',
+  });
+  if (!res.success) return handleResponse(res);
+  return { success: true, status: res.status, data: res.meta?.total ?? 0 };
+}
+
+/** `GET /users/:id`: the user and what they hold now (what a deactivation would move). */
+export async function GET_USER(id: string): Promise<ApiResult<UserDetail>> {
+  if (!IdSchema.safeParse(id).success) return invalid();
+  return handleResponse(
+    await apiFetch<UserDetail>(`/users/${id}`, { cache: 'no-store' }),
+  );
+}
+
+/** `GET /users/options` (picker): active users, or deactivated ones with `active: false`. */
+export async function GET_USER_OPTIONS(
+  active: boolean = true,
+): Promise<ApiResult<UserSummary[]>> {
+  if (typeof active !== 'boolean') return invalid();
+  return handleResponse(
+    await apiFetch<UserSummary[]>('/users/options', {
+      params: { active, limit: PICKER_LIMIT_MAX },
+      cache: 'no-store',
+    }),
+  );
+}
+
+export async function CREATE_USER(input: unknown): Promise<ApiResult<User>> {
+  const parsed = CreateUserRequestSchema.safeParse(input);
+  if (!parsed.success) return invalid();
+  return handleResponse(
+    await apiFetch<User>('/users', {
+      method: 'POST',
+      body: parsed.data,
+      revalidateTags: [ADMIN_TAG],
+    }),
+  );
+}
+
+export async function UPDATE_USER(
+  id: string,
+  input: unknown,
+): Promise<ApiResult<User>> {
+  const parsed = UpdateUserRequestSchema.safeParse(input);
+  if (!IdSchema.safeParse(id).success || !parsed.success) return invalid();
+  return handleResponse(
+    await apiFetch<User>(`/users/${id}`, {
+      method: 'PATCH',
+      body: parsed.data,
+      revalidateTags: [ADMIN_TAG],
+    }),
+  );
+}
+
+/** Sets a new password and ends every session of that user. */
+export async function RESET_USER_PASSWORD(
+  id: string,
+  input: unknown,
+): Promise<ApiResult<null>> {
+  const parsed = ResetPasswordRequestSchema.safeParse(input);
+  if (!IdSchema.safeParse(id).success || !parsed.success) return invalid();
+  return handleResponse(
+    await apiFetch<null>(`/users/${id}/reset-password`, {
+      method: 'POST',
+      body: parsed.data,
+    }),
+  );
+}
+
+/** Hands their owners, listings and open reminders to `handOverTo` (null = unassigned). */
+export async function DEACTIVATE_USER(
+  id: string,
+  input: unknown,
+): Promise<ApiResult<User>> {
+  const parsed = DeactivateUserRequestSchema.safeParse(input);
+  if (!IdSchema.safeParse(id).success || !parsed.success) return invalid();
+  return handleResponse(
+    await apiFetch<User>(`/users/${id}/deactivate`, {
+      method: 'POST',
+      body: parsed.data,
+      revalidateTags: [ADMIN_TAG],
+    }),
+  );
+}
+
+export async function REACTIVATE_USER(id: string): Promise<ApiResult<User>> {
+  if (!IdSchema.safeParse(id).success) return invalid();
+  return handleResponse(
+    await apiFetch<User>(`/users/${id}/reactivate`, {
+      method: 'POST',
+      revalidateTags: [ADMIN_TAG],
+    }),
+  );
+}
+
+/** `GET /roles` (picker): built-in roles first, then by name, with user counts. */
+export async function GET_ROLES(): Promise<ApiResult<Role[]>> {
+  return handleResponse(
+    await apiFetch<Role[]>('/roles', {
+      params: { limit: PICKER_LIMIT_MAX },
+      cache: 'no-store',
+      next: { tags: [ADMIN_TAG] },
+    }),
+  );
+}
+
+export async function CREATE_ROLE(input: unknown): Promise<ApiResult<Role>> {
+  const parsed = CreateRoleRequestSchema.safeParse(input);
+  if (!parsed.success) return invalid();
+  return handleResponse(
+    await apiFetch<Role>('/roles', {
+      method: 'POST',
+      body: parsed.data,
+      revalidateTags: [ADMIN_TAG],
+    }),
+  );
+}
+
+export async function UPDATE_ROLE(
+  id: string,
+  input: unknown,
+): Promise<ApiResult<Role>> {
+  const parsed = UpdateRoleRequestSchema.safeParse(input);
+  if (!IdSchema.safeParse(id).success || !parsed.success) return invalid();
+  return handleResponse(
+    await apiFetch<Role>(`/roles/${id}`, {
+      method: 'PATCH',
+      body: parsed.data,
+      revalidateTags: [ADMIN_TAG],
+    }),
+  );
+}
+
+export async function DELETE_ROLE(id: string): Promise<ApiResult<null>> {
+  if (!IdSchema.safeParse(id).success) return invalid();
+  return handleResponse(
+    await apiFetch<null>(`/roles/${id}`, {
+      method: 'DELETE',
+      revalidateTags: [ADMIN_TAG],
+    }),
+  );
+}
+
+/** Every outcome, hidden ones included, in order (settings.manage). */
+export async function GET_ALL_CALL_OUTCOMES(): Promise<
+  ApiResult<CallOutcome[]>
+> {
+  return handleResponse(
+    await apiFetch<CallOutcome[]>('/call-outcomes', {
+      params: { includeHidden: true, limit: PICKER_LIMIT_MAX },
+      cache: 'no-store',
+    }),
+  );
+}
+
+export async function CREATE_CALL_OUTCOME(
+  input: unknown,
+): Promise<ApiResult<CallOutcome>> {
+  const parsed = CreateCallOutcomeRequestSchema.safeParse(input);
+  if (!parsed.success) return invalid();
+  return handleResponse(
+    await apiFetch<CallOutcome>('/call-outcomes', {
+      method: 'POST',
+      body: parsed.data,
+      revalidateTags: [ADMIN_TAG],
+    }),
+  );
+}
+
+/** Rename, remap, hide / show or move (`order`). */
+export async function UPDATE_CALL_OUTCOME(
+  id: string,
+  input: unknown,
+): Promise<ApiResult<CallOutcome>> {
+  const parsed = UpdateCallOutcomeRequestSchema.safeParse(input);
+  if (!IdSchema.safeParse(id).success || !parsed.success) return invalid();
+  return handleResponse(
+    await apiFetch<CallOutcome>(`/call-outcomes/${id}`, {
+      method: 'PATCH',
+      body: parsed.data,
+      revalidateTags: [ADMIN_TAG],
+    }),
+  );
+}
+
+/** Only an outcome no call has used; 409 OUTCOME_IN_USE otherwise (hide it instead). */
+export async function DELETE_CALL_OUTCOME(
+  id: string,
+): Promise<ApiResult<null>> {
+  if (!IdSchema.safeParse(id).success) return invalid();
+  return handleResponse(
+    await apiFetch<null>(`/call-outcomes/${id}`, {
+      method: 'DELETE',
+      revalidateTags: [ADMIN_TAG],
+    }),
+  );
+}
+
+export async function GET_SETTINGS(): Promise<ApiResult<Settings>> {
+  return handleResponse(
+    await apiFetch<Settings>('/settings', { cache: 'no-store' }),
+  );
+}
+
+export async function UPDATE_SETTINGS(
+  input: unknown,
+): Promise<ApiResult<Settings>> {
+  const parsed = UpdateSettingsRequestSchema.safeParse(input);
+  if (!parsed.success) return invalid();
+  return handleResponse(
+    await apiFetch<Settings>('/settings', {
+      method: 'PATCH',
+      body: parsed.data,
+      revalidateTags: [ADMIN_TAG],
+    }),
+  );
+}
+
+const TrashQuerySchema = z.strictObject({
+  kind: TrashKindSchema.optional(),
+  page: PageSchema.optional(),
+});
+
+/** `GET /trash`: what can still be restored (deleted under 30 days ago). */
+export async function GET_TRASH(
+  query: z.input<typeof TrashQuerySchema>,
+): Promise<ApiResult<TrashItem[]>> {
+  const parsed = TrashQuerySchema.safeParse(query);
+  if (!parsed.success) return invalid();
+  return handleResponse(
+    await apiFetch<TrashItem[]>('/trash', {
+      params: { ...parsed.data, limit: PAGE_LIMIT_MAX },
+      cache: 'no-store',
+    }),
+  );
+}
+
+export async function RESTORE_TRASH_ITEM(
+  kind: TrashKind,
+  id: string,
+): Promise<ApiResult<null>> {
+  if (
+    !TrashKindSchema.safeParse(kind).success ||
+    !IdSchema.safeParse(id).success
+  )
+    return invalid();
+  return handleResponse(
+    await apiFetch<null>(`/trash/${kind}/${id}/restore`, {
+      method: 'POST',
+      revalidateTags: [ADMIN_TAG, LISTINGS_TAG],
+    }),
+  );
+}
+
+const ActivityQuerySchema = z.strictObject({
+  type: ActivityTypeSchema.optional(),
+  actorId: z.uuid().optional(),
+  /** Cairo days, `YYYY-MM-DD`. */
+  from: z.iso.date().optional(),
+  to: z.iso.date().optional(),
+  page: PageSchema.optional(),
+});
+
+/** `GET /activity`, newest first. */
+export async function GET_ACTIVITY(
+  query: z.input<typeof ActivityQuerySchema>,
+): Promise<ApiResult<ActivityEntry[]>> {
+  const parsed = ActivityQuerySchema.safeParse(query);
+  if (!parsed.success) return invalid();
+  return handleResponse(
+    await apiFetch<ActivityEntry[]>('/activity', {
+      params: { ...parsed.data, limit: PAGE_LIMIT_MAX },
+      cache: 'no-store',
+    }),
+  );
+}
+// ====== admin (T16) — end
