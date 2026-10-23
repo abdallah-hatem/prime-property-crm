@@ -1299,7 +1299,14 @@ describe('Calls, outcomes, reminders and today (e2e)', () => {
       expect(data.overdue).toEqual([]);
       expect(data.dueToday).toEqual([]);
       expect(data.outcomeMissing).toHaveLength(2);
-      expect(data.counts).toEqual({ callsToday: 2, remindersOpen: 4 });
+      expect(data.counts).toEqual({
+        overdue: 0,
+        dueToday: 0,
+        outcomeMissing: 2,
+        adTasks: 2,
+        callsToday: 2,
+        remindersOpen: 4,
+      });
     });
   });
 

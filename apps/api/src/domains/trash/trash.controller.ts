@@ -12,8 +12,8 @@ export class TrashController {
   constructor(private readonly trash: TrashService) {}
 
   @Get()
-  async list(@Query() query: TrashQueryDto) {
-    return ResponseUtil.paginated(await this.trash.list(query));
+  async list(@Query() query: TrashQueryDto, @GetUser('id') userId: string) {
+    return ResponseUtil.paginated(await this.trash.list(query, userId));
   }
 
   @Post(':kind/:id/restore')

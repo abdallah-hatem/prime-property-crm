@@ -67,6 +67,7 @@ export function toListing(
       lastCheckInAt: iso(row.lastCheckInAt),
       nextCheckInAt: iso(row.reminders[0]?.dueAt ?? null),
     },
+    adTakeDownOpen: row._count.reminders > 0,
     notes,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),

@@ -249,13 +249,20 @@ export class CallsService {
     );
   }
 
-  /** For the today screen: the caller's calls still missing an outcome, and today's count. */
+  /**
+   * For the today screen: the caller's calls still missing an outcome (up to `take`), how many
+   * there are in all, and today's count.
+   */
   async today(
     userId: string,
     take: number,
-  ): Promise<{ outcomeMissing: Call[]; callsToday: number }> {
+  ): Promise<{
+    outcomeMissing: Call[];
+    outcomeMissingTotal: number;
+    callsToday: number;
+  }> {
     const today = cairoToday(this.clock.now());
-    const [{ rows }, callsToday, language] = await Promise.all([
+    const [{ rows, total }, callsToday, language] = await Promise.all([
       this.calls.findPage({ memberId: userId, outcomeId: null }, 0, take),
       this.calls.count({
         memberId: userId,
@@ -265,6 +272,7 @@ export class CallsService {
     ]);
     return {
       outcomeMissing: rows.map((row) => toCall(row, language)),
+      outcomeMissingTotal: total,
       callsToday,
     };
   }

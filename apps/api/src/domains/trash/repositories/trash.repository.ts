@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PAGE_LIMIT_MAX, type TrashKind } from '@prime-crm/shared';
+import {
+  PAGE_LIMIT_MAX,
+  type Language,
+  type TrashKind,
+} from '@prime-crm/shared';
 import { DatabaseService } from '../../../database/database.service';
 import type { Paginated } from '../../../common/interfaces/api-response.interface';
 import type { Tx } from '../../../common/interfaces/transaction.interface';
@@ -155,12 +159,14 @@ export class TrashRepository {
   /**
    * Trash rows deleted at or after `cutoff`, newest deletion first. With no `kind`, the three
    * tables are paged together: a UNION picks the page's ids, then each kind is hydrated.
+   * Listing and photo labels are in `language` (the reader's).
    */
   async list(
     kind: TrashKind | undefined,
     cutoff: Date,
     page = 1,
     limit = PAGE_LIMIT_MAX,
+    language: Language = 'en',
   ): Promise<Paginated<TrashedRecord>> {
     const safePage = Math.max(1, Math.floor(page));
     const safeLimit = Math.min(Math.max(1, Math.floor(limit)), PAGE_LIMIT_MAX);
@@ -197,7 +203,9 @@ export class TrashRepository {
           }),
           this.db.listing.count({ where: inTrash }),
         ]);
-        data = rows.map((r) => toRecord('LISTING', r, listingLabel(r)));
+        data = rows.map((r) =>
+          toRecord('LISTING', r, listingLabel(r, language)),
+        );
         total = count;
         break;
       }
@@ -212,12 +220,17 @@ export class TrashRepository {
           }),
           this.db.photo.count({ where: inTrash }),
         ]);
-        data = rows.map((r) => toRecord('PHOTO', r, photoLabel(r)));
+        data = rows.map((r) => toRecord('PHOTO', r, photoLabel(r, language)));
         total = count;
         break;
       }
       case undefined:
-        ({ data, total } = await this.listAllKinds(cutoff, skip, safeLimit));
+        ({ data, total } = await this.listAllKinds(
+          cutoff,
+          skip,
+          safeLimit,
+          language,
+        ));
         break;
     }
 
@@ -235,6 +248,7 @@ export class TrashRepository {
     cutoff: Date,
     skip: number,
     take: number,
+    language: Language,
   ): Promise<{ data: TrashedRecord[]; total: number }> {
     const inTrash = { deletedAt: { gte: cutoff } };
     const [keys, owners, listings, photos] = await Promise.all([
@@ -274,9 +288,12 @@ export class TrashRepository {
     for (const r of ownerRows)
       byKey.set(`OWNER:${r.id}`, toRecord('OWNER', r, r.name));
     for (const r of listingRows)
-      byKey.set(`LISTING:${r.id}`, toRecord('LISTING', r, listingLabel(r)));
+      byKey.set(
+        `LISTING:${r.id}`,
+        toRecord('LISTING', r, listingLabel(r, language)),
+      );
     for (const r of photoRows)
-      byKey.set(`PHOTO:${r.id}`, toRecord('PHOTO', r, photoLabel(r)));
+      byKey.set(`PHOTO:${r.id}`, toRecord('PHOTO', r, photoLabel(r, language)));
 
     const data = keys
       .map((key) => byKey.get(`${key.kind}:${key.id}`))

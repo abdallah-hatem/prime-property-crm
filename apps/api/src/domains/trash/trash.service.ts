@@ -4,6 +4,7 @@ import type { CurrentUser } from '../../common/interfaces/current-user.interface
 import type { Paginated } from '../../common/interfaces/api-response.interface';
 import type { Tx } from '../../common/interfaces/transaction.interface';
 import { Clock } from '../../common/providers/clock';
+import { UserDirectoryRepository } from '../../common/repositories/user-directory.repository';
 import { notFound } from '../../common/utils/ownership.util';
 import {
   isRestorable,
@@ -50,6 +51,7 @@ export class TrashService {
     private readonly trash: TrashRepository,
     private readonly registry: TrashRestoreRegistry,
     private readonly activity: ActivityService,
+    private readonly users: UserDirectoryRepository,
     private readonly clock: Clock,
   ) {}
 
@@ -82,13 +84,20 @@ export class TrashService {
     return { label: record.label, deletedAt, purgeAt };
   }
 
-  /** What is in the trash now: deleted less than 30 days ago, newest first. */
-  async list(query: TrashQueryDto): Promise<Paginated<TrashItemView>> {
+  /**
+   * What is in the trash now: deleted less than 30 days ago, newest first, labels in the
+   * reader's language.
+   */
+  async list(
+    query: TrashQueryDto,
+    userId: string,
+  ): Promise<Paginated<TrashItemView>> {
     const page = await this.trash.list(
       query.kind,
       trashCutoff(this.clock.now()),
       query.page,
       query.limit,
+      await this.users.languageOf(userId),
     );
     return { ...page, data: page.data.map(toView) };
   }

@@ -22,8 +22,12 @@ export class MeService {
       dueToday: reminders.dueToday,
       adTasks: reminders.adTasks,
       counts: {
+        overdue: reminders.counts.overdue,
+        dueToday: reminders.counts.dueToday,
+        outcomeMissing: calls.outcomeMissingTotal,
+        adTasks: reminders.counts.adTasks,
         callsToday: calls.callsToday,
-        remindersOpen: reminders.remindersOpen,
+        remindersOpen: reminders.counts.remindersOpen,
       },
     };
   }

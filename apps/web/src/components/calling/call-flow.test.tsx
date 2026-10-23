@@ -334,7 +334,14 @@ const EMPTY_TODAY: Today = {
   overdue: [],
   dueToday: [],
   adTasks: [],
-  counts: { callsToday: 0, remindersOpen: 0 },
+  counts: {
+    overdue: 0,
+    dueToday: 0,
+    outcomeMissing: 0,
+    adTasks: 0,
+    callsToday: 0,
+    remindersOpen: 0,
+  },
 };
 const EMPTY_PAGE = {
   rows: [],

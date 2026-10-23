@@ -85,6 +85,7 @@ export type ReminderWhen = z.infer<typeof ReminderWhenSchema>;
 /**
  * `GET /me/today`, each list ≤ TODAY_LIST_MAX. `overdue` and `dueToday` hold manual
  * reminders; `adTasks` the open take-down tasks and the check-ins due by the end of today.
+ * `counts` are true totals, never capped: `counts.overdue` can exceed `overdue.length`.
  */
 export const TodaySchema = z.object({
   outcomeMissing: z.array(CallSchema),
@@ -92,6 +93,10 @@ export const TodaySchema = z.object({
   dueToday: z.array(ReminderSchema),
   adTasks: z.array(ReminderSchema),
   counts: z.object({
+    overdue: z.number().int(),
+    dueToday: z.number().int(),
+    outcomeMissing: z.number().int(),
+    adTasks: z.number().int(),
     callsToday: z.number().int(),
     remindersOpen: z.number().int(),
   }),

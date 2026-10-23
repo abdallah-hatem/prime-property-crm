@@ -69,6 +69,7 @@ const DETAIL = {
   lastCheckInAt: null,
   createdAt: NOW,
   updatedAt: NOW,
+  _count: { reminders: 0 },
 };
 
 const BODY = {
@@ -118,13 +119,11 @@ function makeService(overrides: Partial<Mocks> = {}) {
       assertAssignee: jest.fn((_tx: unknown, id: string | null) =>
         Promise.resolve(id ? { id, name: 'Omar' } : null),
       ),
-      reassignOwnerAndListing: jest
-        .fn()
-        .mockResolvedValue({
-          ownerIds: [],
-          listingIds: ['l1'],
-          remindersMoved: 0,
-        }),
+      reassignOwnerAndListing: jest.fn().mockResolvedValue({
+        ownerIds: [],
+        listingIds: ['l1'],
+        remindersMoved: 0,
+      }),
     },
     trash: { softDelete: jest.fn().mockResolvedValue({}) },
     activity: { record: jest.fn().mockResolvedValue(undefined) },
@@ -514,14 +513,12 @@ describe('ListingsService', () => {
     it('Ad → TAKEN_DOWN closes the take-down task and any open check-in (business)', async () => {
       const { svc, m } = makeService({
         listings: {
-          lockCore: jest
-            .fn()
-            .mockResolvedValue({
-              ...CORE,
-              status: 'SOLD',
-              adStatus: 'LIVE',
-              adLink: 'x',
-            }),
+          lockCore: jest.fn().mockResolvedValue({
+            ...CORE,
+            status: 'SOLD',
+            adStatus: 'LIVE',
+            adLink: 'x',
+          }),
         },
       });
       await svc.updateAd('l1', { status: 'TAKEN_DOWN' }, member);
@@ -537,13 +534,11 @@ describe('ListingsService', () => {
     it('`/listings/assign` writes one activity entry per batch (business: activity log)', async () => {
       const { svc, m } = makeService({
         assignment: {
-          reassignOwnerAndListing: jest
-            .fn()
-            .mockResolvedValue({
-              ownerIds: ['o1'],
-              listingIds: ['l1', 'l2'],
-              remindersMoved: 3,
-            }),
+          reassignOwnerAndListing: jest.fn().mockResolvedValue({
+            ownerIds: ['o1'],
+            listingIds: ['l1', 'l2'],
+            remindersMoved: 3,
+          }),
         },
       });
       expect(
@@ -562,13 +557,11 @@ describe('ListingsService', () => {
     it('a batch that moves nothing writes no activity entry', async () => {
       const { svc, m } = makeService({
         assignment: {
-          reassignOwnerAndListing: jest
-            .fn()
-            .mockResolvedValue({
-              ownerIds: [],
-              listingIds: [],
-              remindersMoved: 0,
-            }),
+          reassignOwnerAndListing: jest.fn().mockResolvedValue({
+            ownerIds: [],
+            listingIds: [],
+            remindersMoved: 0,
+          }),
         },
       });
       expect(

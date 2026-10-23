@@ -1,6 +1,5 @@
 import type { Prisma } from '@prisma/client';
-import type { Reminder } from '@prime-crm/shared';
-import { listingLabel } from '../trash/trash.pure';
+import { listingTitle, type Language, type Reminder } from '@prime-crm/shared';
 
 /** The columns behind the contract's `Reminder`; pass as `select`, map with `toReminder`. */
 export const REMINDER_SELECT = {
@@ -26,11 +25,12 @@ export function isOverdue(
   return row.doneAt === null && row.dueAt < now;
 }
 
-/**
- * `now` decides `overdue`. The listing title is the English label until the listings task
- * ships the localised title.
- */
-export function toReminder(row: ReminderRow, now: Date): Reminder {
+/** `now` decides `overdue`; the listing's title is in the reader's `language`. */
+export function toReminder(
+  row: ReminderRow,
+  now: Date,
+  language: Language,
+): Reminder {
   return {
     id: row.id,
     kind: row.kind,
@@ -40,7 +40,7 @@ export function toReminder(row: ReminderRow, now: Date): Reminder {
     overdue: isOverdue(row, now),
     owner: row.owner,
     listing: row.listing
-      ? { id: row.listing.id, title: listingLabel(row.listing) }
+      ? { id: row.listing.id, title: listingTitle(row.listing, language) }
       : null,
     member: row.member,
   };

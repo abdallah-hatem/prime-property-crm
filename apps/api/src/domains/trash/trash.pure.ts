@@ -1,27 +1,35 @@
 import {
   listingTitle,
+  type Language,
   type PropertyType,
   type TrashKind,
 } from '@prime-crm/shared';
 
-/**
- * The trash and activity label of a listing: its title in English (type · bedrooms · area), a
- * snapshot that doesn't change with the reader's language.
- */
-export function listingLabel(listing: {
+type LabelledListing = {
   type: PropertyType;
   bedrooms: number | null;
   area: string;
-}): string {
-  return listingTitle(listing, 'en');
+};
+
+/**
+ * A listing's label: its title (type · bedrooms · area) in `language`. The activity log keeps the
+ * English one as a snapshot (the default); the trash list shows it in the reader's language.
+ */
+export function listingLabel(
+  listing: LabelledListing,
+  language: Language = 'en',
+): string {
+  return listingTitle(listing, language);
 }
 
-/** A photo's label: its position and its listing's label. */
-export function photoLabel(photo: {
-  order: number;
-  listing: { type: PropertyType; bedrooms: number | null; area: string };
-}): string {
-  return `Photo ${photo.order + 1} · ${listingLabel(photo.listing)}`;
+const PHOTO_WORD: Record<Language, string> = { en: 'Photo', ar: 'صورة' };
+
+/** A photo's label: its position and its listing's label, in `language`. */
+export function photoLabel(
+  photo: { order: number; listing: LabelledListing },
+  language: Language = 'en',
+): string {
+  return `${PHOTO_WORD[language]} ${photo.order + 1} · ${listingLabel(photo.listing, language)}`;
 }
 
 const KIND_WORD: Record<TrashKind, string> = {

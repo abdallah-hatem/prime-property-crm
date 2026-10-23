@@ -13,7 +13,7 @@ import { toBoolean } from '../../../common/utils/query-list.util';
 
 /**
  * `GET /reminders`: `state`, `when`, `kind`, `memberId` (another member's needs
- * analytics.view), `unassigned` (needs owners.assign).
+ * analytics.view), `unassigned` (needs owners.assign), `ownerId`, `listingId`.
  */
 export class ReminderQueryDto extends PaginationQueryDto {
   @IsOptional()
@@ -31,6 +31,16 @@ export class ReminderQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsUUID()
   memberId?: string;
+
+  /** Every reminder of this owner (theirs, or owners.viewAll); 404 when not visible. */
+  @IsOptional()
+  @IsUUID()
+  ownerId?: string;
+
+  /** Every reminder of this listing (theirs, or listings.manageAll); 404 when not visible. */
+  @IsOptional()
+  @IsUUID()
+  listingId?: string;
 
   @IsOptional()
   @Transform(({ value }: { value: unknown }) => toBoolean(value))

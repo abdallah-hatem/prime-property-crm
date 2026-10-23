@@ -51,6 +51,7 @@ export function listingFixture(overrides: Partial<Listing> = {}): Listing {
       lastCheckInAt: null,
       nextCheckInAt: null,
     },
+    adTakeDownOpen: false,
     notes: [],
     createdAt: '2026-10-01T10:00:00.000Z',
     updatedAt: '2026-10-01T10:00:00.000Z',

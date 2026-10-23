@@ -1,6 +1,6 @@
 # Prime Property CRM — Business Logic
 
-Last updated: 2026-10-23 (T5–T11, T10b) · Source spec: `docs/specs/2026-10-22-property-crm.md`
+Last updated: 2026-10-23 (T5–T11, T10b, T20) · Source spec: `docs/specs/2026-10-22-property-crm.md`
 
 This file is what the business is and how it behaves **now**. Every behavior change updates it in the
 same commit. Items not built yet are marked **Planned**. Nothing is built yet: everything below is the
@@ -126,14 +126,18 @@ writes none. Only an outcome no call has ever used can be deleted.
 
 A reminder is due in the future when it is created or moved. A member sees only their own
 reminders; whoever may assign also sees the unassigned ones, and whoever may see analytics can look
-at any member's. Only its member edits it or marks it
+at any member's. Whoever may see an owner (its member, or everyone's owners) sees all of that
+owner's reminders, whoever they belong to; the same for a listing's reminders (its member, or
+whoever manages all listings). Only its member edits it or marks it
 done. A done reminder can't be edited; marking it done again changes nothing. "Take down the ad"
 tasks and ad check-ins can't be marked done by hand. A take-down task's due time can't be moved;
 a check-in's can. Reminder lists put open reminders first, earliest due first, so overdue ones
 lead; done ones follow. Reminders of an owner or listing in the trash are hidden. The today screen
 shows calls still missing an outcome, manual reminders overdue and due later today (Cairo), the
 ad tasks (every open take-down task, and check-ins due by the end of today), the number of calls
-made today and the number of open reminders.
+made today and the number of open reminders. Each list shows at most 50 items, but its count is the
+real total. A listing's title (type · bedrooms · area) is always shown in the reader's language,
+wherever the listing appears; the activity log keeps the English label.
 
 ### Listing
 

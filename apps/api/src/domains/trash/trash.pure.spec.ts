@@ -19,6 +19,18 @@ describe('trash labels', () => {
     ).toBe('Photo 1 · Apartment · 0 BR · Zamalek');
   });
 
+  it('labels in the reader language when asked', () => {
+    expect(
+      listingLabel({ type: 'VILLA', bedrooms: 4, area: 'Zayed' }, 'ar'),
+    ).toBe('فيلا · 4 غرف · Zayed');
+    expect(
+      photoLabel(
+        { order: 1, listing: { type: 'LAND', bedrooms: null, area: 'Obour' } },
+        'ar',
+      ),
+    ).toBe('صورة 2 · أرض · Obour');
+  });
+
   it('writes the activity summary', () => {
     expect(trashSummary('Restored', 'LISTING', 'Villa · Maadi')).toBe(
       'Restored listing Villa · Maadi',
