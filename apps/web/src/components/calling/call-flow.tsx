@@ -22,6 +22,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useTranslation } from '@/i18n/i18n-provider';
+import { isolate } from '@/lib/bidi';
 import { isUnauthorized } from '@/lib/api-result';
 import { callApi } from '@/lib/callApi';
 import { formatPhone } from '@/lib/format';
@@ -199,7 +200,7 @@ export function CallFlowProvider({ children }: { children: React.ReactNode }) {
             <DialogTitle>{t('calling.choosePhoneTitle')}</DialogTitle>
             <DialogDescription>
               {t('calling.choosePhoneBody', {
-                name: choosing?.target.name ?? '',
+                name: isolate(choosing?.target.name ?? ''),
               })}
             </DialogDescription>
           </DialogHeader>

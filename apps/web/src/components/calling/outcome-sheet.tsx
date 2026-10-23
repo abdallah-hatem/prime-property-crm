@@ -30,6 +30,7 @@ import { callApi } from '@/lib/callApi';
 import { errorMessage } from '@/lib/error-message';
 import { formatDate, formatPhone } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import { UserText } from '@/components/user-text';
 
 /** What the sheet needs to know about the call it records. */
 export interface CallSummary {
@@ -203,7 +204,7 @@ function OutcomeForm({
         <DialogTitle>{t('calling.outcomeTitle')}</DialogTitle>
         <DialogDescription className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
           <span className="min-w-0 truncate font-semibold text-foreground">
-            {call.ownerName}
+            <UserText>{call.ownerName}</UserText>
           </span>
           <bdi dir="ltr" className="font-numeric tabular-nums">
             {formatPhone(call.phone)}

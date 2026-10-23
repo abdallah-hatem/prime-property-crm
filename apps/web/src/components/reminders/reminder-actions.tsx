@@ -65,19 +65,17 @@ export function ReminderActions({
       className={
         layout === 'row'
           ? 'flex shrink-0 items-center gap-1'
-          : 'flex flex-wrap items-center gap-2'
+          : 'flex min-w-0 items-center justify-end gap-1'
       }
     >
       {reason ? (
-        <p
-          className={
-            layout === 'row'
-              ? 'max-w-28 text-end text-xs leading-snug text-muted-foreground'
-              : 'text-xs text-muted-foreground'
-          }
-        >
-          {reason}
-        </p>
+        // On a phone card the reason is the row's second line (ReminderRow), so the title keeps
+        // its width; in a table it fills the actions cell and wraps inside it.
+        layout === 'inline' && (
+          <p className="min-w-0 flex-1 text-end text-xs leading-snug text-muted-foreground">
+            {reason}
+          </p>
+        )
       ) : (
         <Button
           variant="soft"
@@ -97,7 +95,7 @@ export function ReminderActions({
       <Button
         variant="ghost"
         size={layout === 'row' ? 'icon' : 'sm'}
-        className={layout === 'row' ? undefined : 'h-11'}
+        className={layout === 'row' ? undefined : 'h-11 shrink-0'}
         aria-label={layout === 'row' ? t('reminders.edit') : undefined}
         disabled={working}
         onClick={() => setEditing(true)}

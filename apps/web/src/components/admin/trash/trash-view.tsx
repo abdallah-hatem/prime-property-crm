@@ -21,6 +21,7 @@ import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/i18n/i18n-provider';
+import { UserText } from '@/components/user-text';
 import { isUnauthorized } from '@/lib/api-result';
 import { callApi } from '@/lib/callApi';
 import { errorMessage } from '@/lib/error-message';
@@ -133,7 +134,7 @@ export function TrashView({
         </span>
         <span className="grid min-w-0 gap-0.5">
           <span className="truncate font-bold" title={item.label}>
-            <bdi>{item.label}</bdi>
+            <UserText>{item.label}</UserText>
           </span>
           <span className="text-xs text-muted-foreground">
             {t(`admin.trash.kind${item.kind}`)}

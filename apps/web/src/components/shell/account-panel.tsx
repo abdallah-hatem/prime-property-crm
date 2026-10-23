@@ -13,6 +13,7 @@ import { useTranslation } from '@/i18n/i18n-provider';
 import { callApi } from '@/lib/callApi';
 import { InstallCard } from './install-card';
 import { UserAvatar } from './user-avatar';
+import { UserText } from '@/components/user-text';
 
 /**
  * Who is signed in, their language and theme, and sign out. The same panel opens from the account
@@ -33,7 +34,7 @@ export function AccountPanel() {
         <UserAvatar name={me.name} />
         <div className="grid min-w-0">
           <p className="truncate font-bold" data-testid="account-name">
-            {me.name}
+            <UserText>{me.name}</UserText>
           </p>
           <p className="truncate text-xs text-muted-foreground">
             <bdi>{me.email}</bdi>

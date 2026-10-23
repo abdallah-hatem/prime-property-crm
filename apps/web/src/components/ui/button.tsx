@@ -15,6 +15,9 @@ const buttonVariants = cva(
     'outline-none focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
     'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100',
     "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[18px]",
+    // Phones: every button is at least a 44 px target. The compact sizes keep their look and
+    // reach 44 px through an invisible hit area around them.
+    "relative max-md:after:absolute max-md:after:-inset-1 max-md:after:content-['']",
   ],
   {
     variants: {
@@ -28,9 +31,13 @@ const buttonVariants = cva(
           'border border-border bg-card text-foreground shadow-soft hover:bg-accent hover:text-accent-foreground',
         ghost: 'text-foreground hover:bg-accent hover:text-accent-foreground',
         inverse: 'bg-foreground text-background hover:bg-foreground/90',
+        // Filled: the confirming button inside a destructive dialog. Outline: the entry point that
+        // opens that dialog (Delete listing, Deactivate). Nothing else is red.
         destructive:
           'bg-destructive text-destructive-foreground hover:bg-destructive/90',
-        link: 'h-auto rounded-sm px-0 text-primary underline-offset-4 hover:underline active:scale-100',
+        'destructive-outline':
+          'border border-destructive/40 bg-card text-destructive shadow-soft hover:bg-destructive-soft',
+        link: 'h-auto min-h-11 rounded-sm px-0 text-link underline-offset-4 hover:underline active:scale-100 md:min-h-0',
       },
       size: {
         default: 'h-11 px-5 text-sm',

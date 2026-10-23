@@ -12,6 +12,10 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* A short viewport: a phone in landscape, or the page at 200% zoom. Floating chrome (the bottom
+   tab bar) slims down here so it doesn't cover the content. */
+@custom-variant short (@media (max-height: 30rem));
+
 /* Hover styles only where a real pointer can hover. On touch, a tapped element would keep its
    hover look until the next tap ("sticky hover"); touch gets :active feedback instead. */
 @custom-variant hover {
@@ -40,6 +44,8 @@
   --muted-foreground: #5b6180;
   --border: #e1e5f0;
   --input: #d5dbea;
+  /* Placeholder text: lighter than a typed value (still AA on a card), so an example never reads as filled */
+  --placeholder: #6d7397;
 
   /* Act: indigo-cobalt, shifting to violet across its gradient */
   --primary: #3446f0;
@@ -47,6 +53,8 @@
   --primary-foreground: #ffffff;
   --primary-soft: #e8ebff;
   --primary-soft-foreground: #3446f0;
+  /* Primary used as text on the page or a card (links, a checkmark): AA in both themes */
+  --link: #3446f0;
   /* shadcn's subtle hover / highlight surface: a whisper of the primary hue */
   --accent: #e8ebff;
   --accent-foreground: #222c9e;
@@ -101,12 +109,17 @@
   --muted-foreground: #9aa1c2;
   --border: #2a3050;
   --input: #353c60;
+  --placeholder: #8087aa;
 
-  --primary: #7484ff;
-  --primary-end: #8f7bff;
-  --primary-foreground: #0b0e24;
+  /* A saturated indigo with white text, so primary actions read as live, not as a pastel
+     disabled chip (white on --primary 4.6:1, on --primary-end 5.1:1). Text that needs the
+     primary hue on the dark page uses --link; the focus ring stays the lighter indigo. */
+  --primary: #5465f8;
+  --primary-end: #7350f0;
+  --primary-foreground: #ffffff;
   --primary-soft: #232a5a;
   --primary-soft-foreground: #a3adff;
+  --link: #a3adff;
   --accent: #232a5a;
   --accent-foreground: #dfe3ff;
   --ring: #7484ff;
@@ -133,7 +146,7 @@
   --shadow-soft-2:
     inset 0 1px 0 rgb(255 255 255 / 0.04), 0 10px 30px -10px rgb(0 0 0 / 0.6);
   --shadow-soft-3: 0 40px 80px -30px rgb(0 0 0 / 0.7);
-  --shadow-primary-glow: 0 8px 22px -6px rgb(116 132 255 / 0.55);
+  --shadow-primary-glow: 0 8px 22px -6px rgb(84 101 248 / 0.6);
 
   --scrollbar-thumb: rgb(154 161 194 / 0.3);
   --scrollbar-thumb-hover: rgb(154 161 194 / 0.5);
@@ -178,6 +191,8 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
+  --color-placeholder: var(--placeholder);
+  --color-link: var(--link);
   --color-ring: var(--ring);
 
   --color-primary: var(--primary);
@@ -389,11 +404,19 @@
   }
   html {
     @apply scrollbar-clean;
+    /* The reserved gutter only matters where a scrollbar takes space (a mouse); on phones the
+       bar overlays and a stable gutter would leave an empty strip down the side. */
+    scrollbar-gutter: auto;
     /* No grey flash on tap; every control has its own :active and :focus-visible state. */
     -webkit-tap-highlight-color: transparent;
     /* Keep the phone's text size; don't let iOS inflate it in landscape. */
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    html {
+      scrollbar-gutter: stable;
+    }
   }
   /* Inner scrollers (lists, menus, sheets) keep their scroll to themselves: reaching the end
      doesn't drag the page, start the browser's pull-to-refresh, or swipe back a page. The page

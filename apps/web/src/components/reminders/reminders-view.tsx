@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { dueText, reminderUrgency } from '@/lib/when';
 import { ReminderActions } from './reminder-actions';
 import { reminderHref, ReminderRow } from './reminder-row';
+import { UserText } from '@/components/user-text';
 
 /** The member's own reminders, filtered by when they're due, with Done and Edit. */
 export function RemindersView({
@@ -51,20 +52,26 @@ export function RemindersView({
           <Link
             href={href}
             title={nameOf(r)}
-            className="block truncate font-bold hover:text-primary"
+            className="block truncate font-bold hover:text-link"
           >
-            {nameOf(r)}
+            <UserText>{nameOf(r)}</UserText>
           </Link>
         ) : (
-          nameOf(r)
+          <UserText>{nameOf(r)}</UserText>
         );
       },
     },
     {
       id: 'note',
       header: t('reminders.note'),
+      // A long note wraps to two lines so the actions column keeps its room.
+      className: 'whitespace-normal',
       cell: (r) =>
-        r.note ?? (
+        r.note ? (
+          <span className="line-clamp-2 break-words" title={r.note}>
+            <UserText>{r.note}</UserText>
+          </span>
+        ) : (
           <span className="text-muted-foreground">{t('reminders.noNote')}</span>
         ),
     },
@@ -89,12 +96,9 @@ export function RemindersView({
     {
       id: 'actions',
       header: '',
-      className: 'w-56 text-end',
-      cell: (r) => (
-        <div className="flex justify-end">
-          <ReminderActions reminder={r} layout="inline" />
-        </div>
-      ),
+      // The table cells don't wrap; this one must, so the system reason stays inside it.
+      className: 'w-64 min-w-64 text-end whitespace-normal',
+      cell: (r) => <ReminderActions reminder={r} layout="inline" />,
     },
   ];
 
@@ -123,6 +127,7 @@ export function RemindersView({
           <ReminderRow
             reminder={r}
             now={now}
+            showSystemReason
             action={<ReminderActions reminder={r} />}
           />
         )}

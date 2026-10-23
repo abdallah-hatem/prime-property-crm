@@ -28,7 +28,9 @@ import {
   UNASSIGNED,
   useAssigneeOptions,
 } from '@/components/owners-admin/assignee-select';
+import { BackLink } from '@/components/back-link';
 import { PageHeader } from '@/components/page-header';
+import { UserText } from '@/components/user-text';
 import { SegmentedControl } from '@/components/segmented-control';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/i18n/i18n-provider';
@@ -242,14 +244,10 @@ export function ImportWizard({
 
   return (
     <div className="grid grid-cols-1 gap-6">
+      <BackLink href="/imports">{t('imports.allImports')}</BackLink>
       <PageHeader
         title={t('imports.newTitle')}
-        description={job ? <bdi>{job.fileName}</bdi> : undefined}
-        actions={
-          <Button variant="ghost" asChild>
-            <Link href="/imports">{t('imports.allImports')}</Link>
-          </Button>
-        }
+        description={job ? <UserText>{job.fileName}</UserText> : undefined}
       />
       <Stepper step={step} />
 

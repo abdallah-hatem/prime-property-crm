@@ -143,7 +143,7 @@ export function IssueDetail({ issue }: { issue: ImportIssue }) {
       match = (
         <Link
           href={`/owners/${issue.matches.ownerId}`}
-          className="font-semibold text-primary underline-offset-4 hover:underline"
+          className="font-semibold text-link underline-offset-4 hover:underline"
         >
           {t('imports.matchOwner')}
         </Link>
@@ -152,7 +152,7 @@ export function IssueDetail({ issue }: { issue: ImportIssue }) {
       match = (
         <Link
           href={`/listings/${issue.matches.listingId}`}
-          className="font-semibold text-primary underline-offset-4 hover:underline"
+          className="font-semibold text-link underline-offset-4 hover:underline"
         >
           {t('imports.matchListing')}
         </Link>

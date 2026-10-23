@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useTranslation } from '@/i18n/i18n-provider';
+import { UserText } from '@/components/user-text';
 import type { CairoDay } from '@/lib/cairo-time';
 import { formatDate } from '@/lib/format';
 import { useUrlParams } from '@/lib/use-url-params';
@@ -102,7 +103,7 @@ export function ActivityView({
       className: 'w-36',
       cell: (entry) => (
         <span className="font-semibold">
-          <bdi>{actorName(entry.actor)}</bdi>
+          <UserText>{actorName(entry.actor)}</UserText>
         </span>
       ),
     },
@@ -114,7 +115,7 @@ export function ActivityView({
           {/* The sentence already names the type; the chip only fits on wide screens. */}
           {typeChip(entry, 'hidden xl:inline-flex')}
           <span className="min-w-0 truncate" title={activitySummary(entry, t)}>
-            <bdi>{activitySummary(entry, t)}</bdi>
+            <UserText>{activitySummary(entry, t)}</UserText>
           </span>
         </span>
       ),
@@ -214,10 +215,10 @@ export function ActivityView({
                 />
               </span>
               <span className="text-sm font-semibold break-words">
-                <bdi>{activitySummary(entry, t)}</bdi>
+                <UserText>{activitySummary(entry, t)}</UserText>
               </span>
               <span className="truncate text-xs text-muted-foreground">
-                <bdi>{actorName(entry.actor)}</bdi>
+                <UserText>{actorName(entry.actor)}</UserText>
               </span>
             </span>
             <ChevronRight
@@ -267,7 +268,7 @@ function ActivityDetails({
                 {t(`admin.activity.types.${entry.type}`)}
               </DialogTitle>
               <DialogDescription>
-                <bdi>{actorName}</bdi>
+                <UserText>{actorName}</UserText>
                 {', '}
                 <bdi className="font-numeric">
                   {formatDate(entry.createdAt, locale, 'dateTime')}
@@ -276,7 +277,7 @@ function ActivityDetails({
             </DialogHeader>
             <DialogBody className="grid content-start gap-4 pb-6">
               <p className="text-base font-semibold break-words">
-                <bdi>{activitySummary(entry, t)}</bdi>
+                <UserText>{activitySummary(entry, t)}</UserText>
               </p>
               {lines.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
@@ -293,7 +294,7 @@ function ActivityDetails({
                         {line.label}
                       </dt>
                       <dd className="min-w-0 break-words">
-                        <bdi>{line.value}</bdi>
+                        <UserText>{line.value}</UserText>
                       </dd>
                     </div>
                   ))}

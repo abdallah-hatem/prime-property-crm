@@ -5,6 +5,7 @@ import type { Call } from '@prime-crm/shared';
 import { toSummary, useCallFlow } from '@/components/calling/call-flow';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/i18n/i18n-provider';
+import { isolate } from '@/lib/bidi';
 import { sameCairoDay } from '@/lib/cairo-time';
 import { formatDate } from '@/lib/format';
 
@@ -15,11 +16,11 @@ export function MissingOutcomeCard({ call, now }: { call: Call; now: Date }) {
   const started = new Date(call.startedAt);
   const body = sameCairoDay(started, now)
     ? t('today.missingBody', {
-        name: call.owner.name,
+        name: isolate(call.owner.name),
         time: formatDate(started, locale, 'time'),
       })
     : t('today.missingBodyEarlier', {
-        name: call.owner.name,
+        name: isolate(call.owner.name),
         date: formatDate(started, locale, 'dateTime'),
       });
 

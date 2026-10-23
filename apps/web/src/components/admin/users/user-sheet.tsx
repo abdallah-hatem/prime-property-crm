@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTranslation } from '@/i18n/i18n-provider';
+import { UserText } from '@/components/user-text';
 import { callApi } from '@/lib/callApi';
 import { formatDate, formatNumber, formatPhone } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -93,10 +94,10 @@ export function UserSheet({
             )}
           />
           <DialogTitle className="truncate">
-            <bdi>{user.name}</bdi>
+            <UserText>{user.name}</UserText>
           </DialogTitle>
           <DialogDescription className="truncate" dir="ltr">
-            <bdi>{user.email}</bdi>
+            <UserText>{user.email}</UserText>
           </DialogDescription>
         </DialogHeader>
         <DialogBody className="grid content-start gap-5 pb-6">
@@ -195,8 +196,7 @@ export function UserSheet({
           {user.active ? (
             <div className="grid gap-2">
               <Button
-                variant="outline"
-                className="text-destructive hover:text-destructive"
+                variant="destructive-outline"
                 disabled={!!blocked}
                 aria-describedby={blocked ? reasonId : undefined}
                 onClick={() => onAction('deactivate')}

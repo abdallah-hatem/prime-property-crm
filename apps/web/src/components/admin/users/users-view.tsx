@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useTranslation } from '@/i18n/i18n-provider';
+import { UserText } from '@/components/user-text';
 import { callApi } from '@/lib/callApi';
 import { formatPhone } from '@/lib/format';
 import { useUrlParams } from '@/lib/use-url-params';
@@ -95,7 +96,7 @@ export function UsersView({
           />
           <span className="grid min-w-0">
             <span className="truncate font-bold" title={user.name}>
-              <bdi>{user.name}</bdi>
+              <UserText>{user.name}</UserText>
               {user.id === me?.id && (
                 <span className="ms-2 text-xs font-semibold text-muted-foreground">
                   {t('admin.you')}
@@ -247,7 +248,7 @@ export function UsersView({
             />
             <span className="grid min-w-0 flex-1 gap-1">
               <span className="truncate font-bold">
-                <bdi>{user.name}</bdi>
+                <UserText>{user.name}</UserText>
               </span>
               <bdi
                 dir="ltr"

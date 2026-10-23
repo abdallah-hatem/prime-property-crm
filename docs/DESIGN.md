@@ -28,12 +28,17 @@ cards on a cool page, lifted by soft shadows instead of outlined by boxes.
 | `primary-soft` / `primary-soft-foreground` | Secondary actions that still belong to the main flow ("Log check-in"), the New chip. |
 | `accent` | shadcn's quiet hover and highlight surface; a whisper of the primary hue. Not amber. |
 | `urgency` (+ `urgency-soft`) | Amber, **only** when something is waiting on the user: an outcome missing, a check-in due, the check-in marker. Never decoration. |
-| `destructive` (+ `destructive-soft`) | Overdue counter, overdue marker and "late" text, delete actions. Nothing else is red. |
+| `destructive` (+ `destructive-soft`) | Overdue counter, overdue marker and "late" text, delete actions. Nothing else is red. A destructive entry point (Delete listing, Deactivate) is the outline `destructive-outline` button; the confirming button inside its dialog is the filled `destructive` one. |
+| `link` | The primary hue as text on the page or a card (links, a checkmark); lighter than `primary` in dark mode so it stays AA. |
+| `placeholder` | Placeholder text: lighter than a typed value. Sample placeholders start with "e.g." / "مثال:"; a password field shows its rule, never a sample password. |
 | `success` / `warning` (+ soft) | Status chips: interested, ad live; call back, take-down pending. |
 | `background`, `card`, `secondary`, `muted` | Cool page, white (or deep navy) surfaces, a tinted second surface for chips and soft buttons. |
 | `foreground`, `muted-foreground` | Text and secondary text. |
 | `border`, `input`, `ring` | Hairlines (rare; shadows do the separating), field borders, focus ring. |
 | `chart-1`…`chart-5` | Analytics series: primary, violet, success, amber, slate. |
+
+In dark mode `primary` is a saturated indigo carrying white text, so a primary action never reads
+as a pastel, disabled chip.
 
 Every text-and-background pair passes WCAG AA in both themes. Two mockup values were deepened in
 light mode to get there (success and warning chip text, the danger red). Destructive text on

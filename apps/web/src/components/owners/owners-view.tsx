@@ -23,6 +23,7 @@ import { useTranslation } from '@/i18n/i18n-provider';
 import { formatPhone } from '@/lib/format';
 import { useUrlParams } from '@/lib/use-url-params';
 import { ownerUrgency, ownerWhen } from '@/lib/when';
+import { UserText } from '@/components/user-text';
 
 type StatusFilter = LeadStatus | 'ALL';
 
@@ -70,9 +71,9 @@ export function OwnersView({
         <Link
           href={`/owners/${owner.id}`}
           title={owner.name}
-          className="block truncate font-bold hover:text-primary"
+          className="block truncate font-bold hover:text-link"
         >
-          {owner.name}
+          <UserText>{owner.name}</UserText>
         </Link>
       ),
     },

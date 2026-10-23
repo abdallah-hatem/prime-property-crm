@@ -6,6 +6,7 @@ import { initialsOf } from '@/components/shell/user-avatar';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/i18n/i18n-provider';
 import { formatPhone } from './use-mutation';
+import { UserText } from '@/components/user-text';
 
 /**
  * Who owns the home. The phone and the Call button show only when the API sent the number (the
@@ -34,13 +35,13 @@ export function OwnerCard({ listing }: { listing: Listing }) {
             {t('listings.detail.owner')}
           </span>
           <span className="truncate text-[15px] font-bold">
-            {listing.ownerName}
+            <UserText>{listing.ownerName}</UserText>
           </span>
           {phone && (
             <a
               href={`tel:${phone}`}
               dir="ltr"
-              className="w-fit font-numeric text-[13px] text-muted-foreground tabular-nums hover:text-foreground"
+              className="-my-2.5 flex min-h-11 w-fit items-center font-numeric text-[13px] text-muted-foreground tabular-nums hover:text-foreground md:my-0 md:min-h-0"
               data-testid="owner-phone"
             >
               {formatPhone(phone)}

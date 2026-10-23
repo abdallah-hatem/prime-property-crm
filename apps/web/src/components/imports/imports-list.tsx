@@ -14,6 +14,7 @@ import {
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/i18n/i18n-provider';
+import { UserText } from '@/components/user-text';
 import { useUrlParams } from '@/lib/use-url-params';
 
 /** Past imports, newest first: file, kind, status, what each added, who and when. */
@@ -32,10 +33,10 @@ export function ImportsList({ jobs, meta }: { jobs: ImportJob[]; meta: Meta }) {
         <Link
           href={href(job)}
           title={job.fileName}
-          className="block truncate font-bold hover:text-primary"
+          className="block truncate font-bold hover:text-link"
           onClick={(event) => event.stopPropagation()}
         >
-          <bdi>{job.fileName}</bdi>
+          <UserText>{job.fileName}</UserText>
         </Link>
       ),
     },
@@ -64,7 +65,7 @@ export function ImportsList({ jobs, meta }: { jobs: ImportJob[]; meta: Meta }) {
     {
       id: 'by',
       header: t('imports.by'),
-      cell: (job) => <bdi>{job.createdBy.name}</bdi>,
+      cell: (job) => <UserText>{job.createdBy.name}</UserText>,
     },
     {
       id: 'date',
@@ -102,13 +103,13 @@ export function ImportsList({ jobs, meta }: { jobs: ImportJob[]; meta: Meta }) {
           >
             <span className="flex min-w-0 items-center justify-between gap-3">
               <span className="truncate font-bold">
-                <bdi>{job.fileName}</bdi>
+                <UserText>{job.fileName}</UserText>
               </span>
               <ImportStatusChip status={job.status} />
             </span>
             <span className="flex flex-wrap gap-x-3 text-[13px] text-muted-foreground">
               <span>{kindLabel(t, job.kind)}</span>
-              <bdi>{job.createdBy.name}</bdi>
+              <UserText>{job.createdBy.name}</UserText>
               <DateText value={job.createdAt} />
             </span>
             {job.counts && (

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useTranslation } from '@/i18n/i18n-provider';
 import { formatDate } from '@/lib/format';
 import { dueText, reminderUrgency } from '@/lib/when';
+import { systemReason } from './reminder-actions';
 
 /** Where a reminder's row leads: its owner, or its listing. */
 export const reminderHref = (reminder: Reminder): string | undefined =>
@@ -24,10 +25,13 @@ export function ReminderRow({
   reminder,
   now,
   action,
+  showSystemReason = false,
 }: {
   reminder: Reminder;
   now: Date;
   action?: React.ReactNode;
+  /** A system reminder's "closes when…" line as the row's detail (the reminders page). */
+  showSystemReason?: boolean;
 }) {
   const { t, locale } = useTranslation();
   const listingTitle = reminder.listing?.title ?? '';
@@ -48,7 +52,12 @@ export function ReminderRow({
       urgency={reminderUrgency(reminder, now)}
       name={name}
       href={reminderHref(reminder)}
-      detail={reminder.note}
+      detail={
+        reminder.note ??
+        (showSystemReason && !reminder.doneAt
+          ? systemReason(reminder, t)
+          : null)
+      }
       detailIcon="note"
       status={
         reminder.doneAt ? (

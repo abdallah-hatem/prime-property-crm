@@ -10,6 +10,7 @@ import { useTranslation } from '@/i18n/i18n-provider';
 import { isUnauthorized } from '@/lib/api-result';
 import { Textarea } from '@/components/ui/textarea';
 import { useMutation } from './use-mutation';
+import { UserText } from '@/components/user-text';
 
 /** The latest notes on the listing, newest first; its member (or a manager) can add one. */
 export function ListingNotes({
@@ -59,11 +60,16 @@ export function ListingNotes({
               key={note.id}
               className="grid gap-1 rounded-md bg-secondary px-3.5 py-3"
             >
-              <p className="text-sm break-words whitespace-pre-line">
+              <UserText
+                as="p"
+                className="text-sm break-words whitespace-pre-line"
+              >
                 {note.body}
-              </p>
+              </UserText>
               <p className="flex flex-wrap gap-x-2 text-xs text-muted-foreground">
-                <span className="font-semibold">{note.author.name}</span>
+                <UserText className="font-semibold">
+                  {note.author.name}
+                </UserText>
                 <DateText value={note.createdAt} style="dateTime" />
               </p>
             </li>
