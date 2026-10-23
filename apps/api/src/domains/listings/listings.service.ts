@@ -400,6 +400,10 @@ export class ListingsService {
           const memberId =
             assignee?.id ??
             (dto.ownerId ? (owner?.assignedToId ?? user.id) : user.id);
+          // Lock the default member too, so a deactivation running now either waits for this
+          // listing (and hands it over) or has already made them inactive (refused here).
+          const member =
+            assignee ?? (await this.assignment.assertAssignee(tx, memberId));
           const { id } = await this.listings.createListing(tx, {
             ...fieldsOf(dto),
             ownerName:
@@ -420,8 +424,7 @@ export class ListingsService {
                 memberId,
                 user.id,
               );
-              const to =
-                assignee ?? (await this.users.findActive(memberId, tx));
+              const to = member;
               await this.activity.record(
                 tx,
                 assignActivity(user.id, {
