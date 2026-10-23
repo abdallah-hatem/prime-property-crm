@@ -11,6 +11,7 @@ import {
   type UserSummary,
 } from '@prime-crm/shared';
 import { GET_OWNER_IDS } from '@/apis';
+import { ExportButton } from '@/components/analytics/export-button';
 import { DataList, type DataColumn } from '@/components/data-list';
 import { DateText } from '@/components/date-text';
 import { PageHeader } from '@/components/page-header';
@@ -250,6 +251,11 @@ export function AdminOwnersView({
             </Button>
           ) : undefined
         }
+      />
+      <ExportButton
+        kind="owners"
+        showLabel
+        className="-mt-2 justify-self-end"
       />
       <OwnersFilters
         filters={filters}

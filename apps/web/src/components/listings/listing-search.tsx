@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Plus, SearchX, SlidersHorizontal, Search } from 'lucide-react';
 import type { ListingRow, Meta } from '@prime-crm/shared';
+import { ExportButton } from '@/components/analytics/export-button';
 import { DataList, type DataColumn } from '@/components/data-list';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
@@ -228,6 +229,7 @@ export function ListingSearch({
             </span>
           )}
         </Button>
+        <ExportButton kind="listings" />
       </div>
 
       <div className="xl:grid xl:grid-cols-[19rem_minmax(0,1fr)] xl:items-start xl:gap-6">
