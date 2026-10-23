@@ -6,7 +6,7 @@ Property Finder follow-up, admin analytics and backups · spec `docs/specs/2026-
 Current stage: 6 — Build · backend T1–T11 + T10b done; web T12–T14, T18 done (local dev) · Wave 9: T20 ∥ T15 ∥ T16 running.
 
 ## Waiting on the user
-- GitHub write access: the active gh account (Abdallah-Kortam10) can't push to abdallah-hatem/prime-property-crm. The user runs `gh auth switch -u abdallah-hatem` (Claude Code's safety check refuses to use the other account's token itself). Everything stays on local branches until then.
+- GitHub write access: the user will run `gh auth switch -u abdallah-hatem` later (said 2026-10-23: keep working locally). Everything stays on local branches until then.
 - Vercel account access (user will provide) — needed for Neon, Blob and deploys; local dev runs on Docker Postgres until then.
 
 ## Blocked
