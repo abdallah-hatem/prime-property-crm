@@ -8,6 +8,7 @@ import {
   ErrorCode,
   ReminderErrorCode,
   TODAY_LIST_MAX,
+  type Language,
   type Reminder,
   type ReminderKind,
 } from '@prime-crm/shared';
@@ -16,16 +17,21 @@ import type { Paginated } from '../../common/interfaces/api-response.interface';
 import type { CurrentUser } from '../../common/interfaces/current-user.interface';
 import type { Tx } from '../../common/interfaces/transaction.interface';
 import { Clock } from '../../common/providers/clock';
+import { UserDirectoryRepository } from '../../common/repositories/user-directory.repository';
 import { LIVE } from '../../common/repositories/soft-delete.repository';
 import { cairoToday } from '../../common/utils/cairo-date.util';
-import { assertFound } from '../../common/utils/ownership.util';
+import {
+  assertFound,
+  notFound,
+  ownerScope,
+} from '../../common/utils/ownership.util';
 import { pageWindow, toPage } from '../../common/utils/pagination.util';
 import { hasPermission } from '../../common/utils/permissions.util';
 import { DatabaseService } from '../../database/database.service';
 import type { CreateReminderDto } from './dto/create-reminder.dto';
 import type { ReminderQueryDto } from './dto/reminder-query.dto';
 import type { UpdateReminderDto } from './dto/update-reminder.dto';
-import { toReminder } from './reminder.shape';
+import { toReminder, type ReminderRow } from './reminder.shape';
 import {
   editRefusal,
   isInPast,
@@ -64,12 +70,17 @@ function reminderDone(): ConflictException {
   });
 }
 
-/** What `GET /me/today` shows of the caller's reminders. */
+/** What `GET /me/today` shows of the caller's reminders: capped lists and true totals. */
 export interface TodayReminders {
   overdue: Reminder[];
   dueToday: Reminder[];
   adTasks: Reminder[];
-  remindersOpen: number;
+  counts: {
+    overdue: number;
+    dueToday: number;
+    adTasks: number;
+    remindersOpen: number;
+  };
 }
 
 /** A manual reminder on an owner, added inside the caller's transaction (a call outcome). */
@@ -93,14 +104,56 @@ export class RemindersService {
   constructor(
     private readonly db: DatabaseService,
     private readonly reminders: ReminderRepository,
+    private readonly users: UserDirectoryRepository,
     private readonly clock: Clock,
   ) {}
+
+  /** Shapes rows for `userId`: listing titles in their language. */
+  private async shapeFor(
+    userId: string,
+    rows: ReminderRow[],
+    tx?: Tx,
+  ): Promise<Reminder[]> {
+    const language = await this.users.languageOf(userId, tx);
+    const now = this.clock.now();
+    return rows.map((row) => toReminder(row, now, language));
+  }
+
+  /**
+   * The filters for `ownerId` / `listingId`: every reminder on that record, whoever's it is,
+   * when the caller may see the record's reminders (owner: theirs or owners.viewAll; listing:
+   * theirs or listings.manageAll); 404 otherwise, as for a missing or trashed record.
+   */
+  private async targetWhere(
+    query: ReminderQueryDto,
+    user: CurrentUser,
+  ): Promise<Prisma.ReminderWhereInput[]> {
+    const and: Prisma.ReminderWhereInput[] = [];
+    if (query.ownerId) {
+      const owner = await this.reminders.findLiveOwner(
+        query.ownerId,
+        ownerScope(user, 'assignedToId', { bypass: 'owners.viewAll' }),
+      );
+      if (!owner) throw notFound('Owner');
+      and.push({ ownerId: query.ownerId });
+    }
+    if (query.listingId) {
+      const listing = await this.reminders.findLiveListing(
+        query.listingId,
+        ownerScope(user, 'assignedToId', { bypass: 'listings.manageAll' }),
+      );
+      if (!listing) throw notFound('Listing');
+      and.push({ listingId: query.listingId });
+    }
+    return and;
+  }
 
   // ------------------------------------------------------------------ lists
 
   /**
    * The caller's reminders, or another member's (`memberId`, analytics.view), or the
-   * unassigned ones (`unassigned`, owners.assign). Open first, overdue on top.
+   * unassigned ones (`unassigned`, owners.assign), or every reminder of one owner (`ownerId`)
+   * or listing (`listingId`) the caller may see. Open first, overdue on top.
    */
   async list(
     query: ReminderQueryDto,
@@ -130,10 +183,11 @@ export class RemindersService {
     }
 
     const now = this.clock.now();
-    const and: Prisma.ReminderWhereInput[] = [ON_LIVE_RECORD];
+    const target = await this.targetWhere(query, user);
+    const and: Prisma.ReminderWhereInput[] = [ON_LIVE_RECORD, ...target];
     if (query.unassigned) {
       and.push({ memberId: null, doneAt: null });
-    } else {
+    } else if (query.memberId || !target.length) {
       and.push({ memberId: query.memberId ?? user.id });
     }
     if (query.state) and.push(stateWhere(query.state));
@@ -146,17 +200,13 @@ export class RemindersService {
       window.skip,
       window.take,
     );
-    return toPage(
-      rows.map((row) => toReminder(row, now)),
-      total,
-      window,
-    );
+    return toPage(await this.shapeFor(user.id, rows), total, window);
   }
 
   /**
    * The caller's open reminders for the today screen: manual ones overdue and due later today
-   * (Cairo), the ad tasks (every take-down task, check-ins due by the end of today), and how
-   * many reminders are open in all.
+   * (Cairo), the ad tasks (every take-down task, check-ins due by the end of today), each list
+   * capped at TODAY_LIST_MAX, and the true total of each list and of every open reminder.
    */
   async today(userId: string): Promise<TodayReminders> {
     const now = this.clock.now();
@@ -166,46 +216,59 @@ export class RemindersService {
       doneAt: null,
       ...ON_LIVE_RECORD,
     };
-    const [overdue, dueToday, adTasks, remindersOpen] = await Promise.all([
-      this.reminders.findFirst(
-        { ...open, kind: 'MANUAL', dueAt: { lt: now } },
-        TODAY_LIST_MAX,
-      ),
-      this.reminders.findFirst(
-        { ...open, kind: 'MANUAL', dueAt: { gte: now, lt: endOfToday } },
-        TODAY_LIST_MAX,
-      ),
-      this.reminders.findFirst(
+    const overdueWhere: Prisma.ReminderWhereInput = {
+      ...open,
+      kind: 'MANUAL',
+      dueAt: { lt: now },
+    };
+    const dueTodayWhere: Prisma.ReminderWhereInput = {
+      ...open,
+      kind: 'MANUAL',
+      dueAt: { gte: now, lt: endOfToday },
+    };
+    const adTasksWhere: Prisma.ReminderWhereInput = {
+      AND: [
+        open,
         {
-          AND: [
-            open,
-            {
-              OR: [
-                { kind: 'AD_TAKE_DOWN' },
-                { kind: 'AD_CHECK_IN', dueAt: { lt: endOfToday } },
-              ],
-            },
+          OR: [
+            { kind: 'AD_TAKE_DOWN' },
+            { kind: 'AD_CHECK_IN', dueAt: { lt: endOfToday } },
           ],
         },
-        TODAY_LIST_MAX,
-      ),
-      this.reminders.count(open),
+      ],
+    };
+    const [overdue, dueToday, adTasks, counts, language] = await Promise.all([
+      this.reminders.findFirst(overdueWhere, TODAY_LIST_MAX),
+      this.reminders.findFirst(dueTodayWhere, TODAY_LIST_MAX),
+      this.reminders.findFirst(adTasksWhere, TODAY_LIST_MAX),
+      Promise.all([
+        this.reminders.count(overdueWhere),
+        this.reminders.count(dueTodayWhere),
+        this.reminders.count(adTasksWhere),
+        this.reminders.count(open),
+      ]),
+      this.users.languageOf(userId),
     ]);
-    const shape = (rows: typeof overdue) =>
-      rows.map((row) => toReminder(row, now));
+    const shape = (rows: ReminderRow[]) =>
+      rows.map((row) => toReminder(row, now, language));
     return {
       overdue: shape(overdue),
       dueToday: shape(dueToday),
       adTasks: shape(adTasks),
-      remindersOpen,
+      counts: {
+        overdue: counts[0],
+        dueToday: counts[1],
+        adTasks: counts[2],
+        remindersOpen: counts[3],
+      },
     };
   }
 
-  /** Reminders by id, shaped (for timelines). */
-  async byIds(ids: string[], tx?: Tx): Promise<Reminder[]> {
+  /** Reminders by id, shaped for `language` (for timelines). */
+  async byIds(ids: string[], language: Language, tx?: Tx): Promise<Reminder[]> {
     const now = this.clock.now();
     return (await this.reminders.findByIds(ids, tx)).map((row) =>
-      toReminder(row, now),
+      toReminder(row, now, language),
     );
   }
 
@@ -235,7 +298,7 @@ export class RemindersService {
         note: dto.note ?? null,
         createdById: user.id,
       });
-      return toReminder(row, this.clock.now());
+      return (await this.shapeFor(user.id, [row], tx))[0];
     });
   }
 
@@ -243,9 +306,9 @@ export class RemindersService {
    * A MANUAL reminder on an owner inside the caller's transaction, for its member (a call
    * outcome's reminder). 400 REMINDER_IN_PAST rolls the whole transaction back.
    */
-  async addToOwner(tx: Tx, input: OwnerReminderInput): Promise<Reminder> {
+  async addToOwner(tx: Tx, input: OwnerReminderInput): Promise<void> {
     const dueAt = this.assertFuture(input.dueAt);
-    const row = await this.reminders.create(tx, {
+    await this.reminders.create(tx, {
       kind: 'MANUAL',
       ownerId: input.ownerId,
       memberId: input.memberId,
@@ -253,7 +316,6 @@ export class RemindersService {
       note: input.note ?? null,
       createdById: input.createdById,
     });
-    return toReminder(row, this.clock.now());
   }
 
   /** The caller's own reminder on a live record, read inside `tx`; 404 otherwise. */
@@ -291,7 +353,9 @@ export class RemindersService {
           throw reminderDone();
         }
       }
-      return toReminder(await this.own(tx, id, user), this.clock.now());
+      return (
+        await this.shapeFor(user.id, [await this.own(tx, id, user)], tx)
+      )[0];
     });
   }
 
@@ -312,7 +376,9 @@ export class RemindersService {
       if (!current.doneAt) {
         await this.reminders.updateOpen(tx, id, { doneAt: this.clock.now() });
       }
-      return toReminder(await this.own(tx, id, user), this.clock.now());
+      return (
+        await this.shapeFor(user.id, [await this.own(tx, id, user)], tx)
+      )[0];
     });
   }
 
@@ -366,14 +432,13 @@ export class RemindersService {
       dueAt: Date;
       createdById?: string;
     },
-  ): Promise<Reminder> {
-    const row = await this.reminders.create(tx, {
+  ): Promise<void> {
+    await this.reminders.create(tx, {
       kind: input.kind,
       listingId: input.listingId,
       memberId: input.memberId,
       dueAt: input.dueAt,
       createdById: input.createdById ?? null,
     });
-    return toReminder(row, this.clock.now());
   }
 }

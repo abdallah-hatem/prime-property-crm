@@ -139,7 +139,29 @@ export class ReminderRepository {
     });
   }
 
+  /** A live owner within `scope` (an ownerScope fragment); null when missing, trashed or not visible. */
+  findLiveOwner(
+    id: string,
+    scope: Prisma.OwnerWhereInput,
+  ): Promise<{ id: string } | null> {
+    return this.db.owner.findFirst({
+      where: { id, deletedAt: null, ...scope },
+      select: { id: true },
+    });
+  }
+
   /** The same for a live listing. */
+  findLiveListing(
+    id: string,
+    scope: Prisma.ListingWhereInput,
+  ): Promise<{ id: string } | null> {
+    return this.db.listing.findFirst({
+      where: { id, deletedAt: null, ...scope },
+      select: { id: true },
+    });
+  }
+
+  /** The member of a live listing, when `memberId` holds it; null when not theirs or gone. */
   listingOf(
     tx: Tx,
     listingId: string,

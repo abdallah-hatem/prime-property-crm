@@ -34,6 +34,8 @@ function makeService(overrides: Record<string, jest.Mock> = {}) {
     findOne: jest.fn().mockResolvedValue(row()),
     ownerOf: jest.fn().mockResolvedValue({ id: 'o1' }),
     listingOf: jest.fn().mockResolvedValue({ id: 'l1' }),
+    findLiveOwner: jest.fn().mockResolvedValue({ id: 'o1' }),
+    findLiveListing: jest.fn().mockResolvedValue({ id: 'l1' }),
     create: jest.fn().mockResolvedValue(row()),
     updateOpen: jest.fn().mockResolvedValue(1),
     moveOpen: jest.fn().mockResolvedValue(2),
@@ -43,10 +45,14 @@ function makeService(overrides: Record<string, jest.Mock> = {}) {
   const db = {
     transaction: jest.fn((work: (tx: object) => unknown) => work({})),
   };
-  const svc = new RemindersService(db as never, reminders as never, {
-    now: () => NOW,
-  });
-  return { svc, reminders };
+  const users = { languageOf: jest.fn().mockResolvedValue('en') };
+  const svc = new RemindersService(
+    db as never,
+    reminders as never,
+    users as never,
+    { now: () => NOW },
+  );
+  return { svc, reminders, users };
 }
 
 describe('RemindersService', () => {
@@ -93,6 +99,78 @@ describe('RemindersService', () => {
       expect(JSON.stringify(reminders.findPage.mock.calls[0][0])).toContain(
         '"memberId":"me"',
       );
+    });
+  });
+
+  describe('list by owner or listing', () => {
+    it("ownerId: every reminder of a visible owner, not only the caller's", async () => {
+      const { svc, reminders } = makeService();
+      await svc.list({ page: 1, limit: 20, ownerId: 'o1' }, user());
+      expect(reminders.findLiveOwner).toHaveBeenCalledWith('o1', {
+        assignedToId: 'me',
+      });
+      const where = JSON.stringify(reminders.findPage.mock.calls[0][0]);
+      expect(where).toContain('"ownerId":"o1"');
+      expect(where).not.toContain('"memberId"');
+    });
+
+    it('ownerId of an owner the caller may not see → 404; owners.viewAll drops the scope', async () => {
+      const { svc, reminders } = makeService({
+        findLiveOwner: jest.fn().mockResolvedValue(null),
+      });
+      await expect(
+        svc.list({ page: 1, limit: 20, ownerId: 'o2' }, user()),
+      ).rejects.toThrow(NotFoundException);
+      expect(reminders.findPage).not.toHaveBeenCalled();
+      await svc
+        .list({ page: 1, limit: 20, ownerId: 'o2' }, user(['owners.viewAll']))
+        .catch(() => undefined);
+      expect(reminders.findLiveOwner).toHaveBeenLastCalledWith('o2', {});
+    });
+
+    it('listingId is scoped by listings.manageAll', async () => {
+      const { svc, reminders } = makeService();
+      await svc.list({ page: 1, limit: 20, listingId: 'l1' }, user());
+      expect(reminders.findLiveListing).toHaveBeenCalledWith('l1', {
+        assignedToId: 'me',
+      });
+      await svc.list(
+        { page: 1, limit: 20, listingId: 'l1' },
+        user(['listings.manageAll']),
+      );
+      expect(reminders.findLiveListing).toHaveBeenLastCalledWith('l1', {});
+    });
+  });
+
+  describe('today', () => {
+    it('counts are COUNT totals, not list lengths', async () => {
+      const { svc } = makeService({
+        findFirst: jest.fn().mockResolvedValue([row()]),
+        count: jest
+          .fn()
+          .mockResolvedValueOnce(70)
+          .mockResolvedValueOnce(3)
+          .mockResolvedValueOnce(60)
+          .mockResolvedValueOnce(140),
+      });
+      const today = await svc.today('me');
+      expect(today.overdue).toHaveLength(1);
+      expect(today.counts).toEqual({
+        overdue: 70,
+        dueToday: 3,
+        adTasks: 60,
+        remindersOpen: 140,
+      });
+    });
+
+    it('listing titles follow the reader language', async () => {
+      const listing = { id: 'l1', type: 'VILLA', bedrooms: 4, area: 'Zayed' };
+      const { svc, users } = makeService({
+        findFirst: jest.fn().mockResolvedValue([row({ listing, owner: null })]),
+      });
+      users.languageOf.mockResolvedValue('ar');
+      const today = await svc.today('me');
+      expect(today.overdue[0].listing?.title).toBe('فيلا · 4 غرف · Zayed');
     });
   });
 

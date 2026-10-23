@@ -388,6 +388,8 @@ export const ListingSchema = ListingRowSchema.extend({
   ownerPhoneHidden: z.boolean(),
   ownerId: z.uuid().nullable(),
   ad: ListingAdSchema,
+  /** True exactly while the listing has an open AD_TAKE_DOWN task (the take-down banner). */
+  adTakeDownOpen: z.boolean(),
   /** The latest 3 notes, newest first. */
   notes: z.array(NoteSchema),
   createdAt: z.string(),

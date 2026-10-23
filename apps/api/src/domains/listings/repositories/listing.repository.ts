@@ -65,6 +65,10 @@ export const LISTING_DETAIL_SELECT = {
     orderBy: PHOTO_ORDER,
     select: { id: true, url: true, order: true },
   },
+  /** Open take-down tasks (0 or 1): `adTakeDownOpen`. */
+  _count: {
+    select: { reminders: { where: { kind: 'AD_TAKE_DOWN', doneAt: null } } },
+  },
 } as const satisfies Prisma.ListingSelect;
 
 /** The columns behind a listings-export row (T11). */

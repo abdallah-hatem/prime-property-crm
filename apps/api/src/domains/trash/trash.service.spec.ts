@@ -63,6 +63,7 @@ function makeService(overrides: Overrides = {}) {
     trash as never,
     registry,
     activity as never,
+    { languageOf: jest.fn().mockResolvedValue('en') } as never,
     clock,
   );
   return { svc, trash, activity, registry, calls };

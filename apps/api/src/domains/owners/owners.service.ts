@@ -457,12 +457,12 @@ export class OwnersService {
     const idsOf = (kind: string) =>
       refs.filter((r) => r.kind === kind).map((r) => r.id);
 
-    const [calls, notes, reminders, assignments, language] = await Promise.all([
+    const language = await this.users.languageOf(user.id);
+    const [calls, notes, reminders, assignments] = await Promise.all([
       this.owners.findCallsByIds(idsOf('CALL')),
       this.notes.byIds(idsOf('NOTE')),
-      this.reminders.byIds(idsOf('REMINDER')),
+      this.reminders.byIds(idsOf('REMINDER'), language),
       this.owners.findAssignmentsByIds(idsOf('ASSIGN')),
-      this.users.languageOf(user.id),
     ]);
     const call = new Map(calls.map((c) => [c.id, c]));
     const note = new Map(notes.map((n) => [n.id, n]));

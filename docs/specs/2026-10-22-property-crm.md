@@ -220,7 +220,8 @@ ListingRow    { id, title, purpose, type, area, compound|null, price, sizeSqm, b
 Listing       ListingRow & { address|null, furnishing|null, description|null, photos: Photo[],
                 ownerName, ownerPhone: string|null, ownerPhoneHidden: boolean, ownerId|null,
                 ad: { link|null, status: AdStatus, postedAt|null, lastCheckInAt|null,
-                      nextCheckInAt|null }, notes: Note[] (latest 3), createdAt, updatedAt }
+                      nextCheckInAt|null }, adTakeDownOpen: boolean, notes: Note[] (latest 3),
+                createdAt, updatedAt }
 ImportJob     { id, kind: 'OWNERS'|'LISTINGS', fileName,
                 status: 'MAPPING'|'PREVIEWED'|'DONE'|'FAILED', headers: string[],
                 mapping: Record<field, header>|null,
@@ -237,7 +238,10 @@ Stats         { calls, outcomes: { outcomeId, label, count }[], remindersDone,
                 adsLive, adsTakenDown }
 ```
 
-- A listing's `title` is derived, never typed: type · bedrooms · area, in the reader's language.
+- A listing's `title` is derived, never typed: type · bedrooms · area, in the reader's language
+  (the caller's stored `language`) — in listing rows and detail, reminders, today's ad tasks and
+  trash labels. The activity log keeps the English label as a snapshot.
+- `adTakeDownOpen` is true exactly while the listing has an open `AD_TAKE_DOWN` task.
 - `ownerPhone` is `null` with `ownerPhoneHidden: true` unless the listing is assigned to the caller
   or the caller holds `listings.manageAll`.
 - In `Stats`, "the end of the range" is the earlier of the range end and now. `assignedOwners` and `adsLive` are counts at the end of the range; the rest count
@@ -337,8 +341,8 @@ Calls are never edited or deleted; the outcome is set once.
 
 | Endpoint | Who | Body / query | Returns | Errors |
 |---|---|---|---|---|
-| `GET /me/today` | any | — | `{ outcomeMissing: Call[], overdue: Reminder[], dueToday: Reminder[], adTasks: Reminder[], counts: { callsToday, remindersOpen } }`, each list ≤ 50 | — |
-| `GET /reminders` | any (own; `memberId` needs `analytics.view`) | `state` (`open` \| `done`), `when` (`overdue` \| `today` \| `upcoming`), `kind`, `memberId`, `unassigned` (needs `owners.assign`), `page, limit` | `Reminder[]` by `dueAt` | — |
+| `GET /me/today` | any | — | `{ outcomeMissing: Call[], overdue: Reminder[], dueToday: Reminder[], adTasks: Reminder[], counts: { overdue, dueToday, outcomeMissing, adTasks, callsToday, remindersOpen } }`, each list ≤ 50; `counts` are true totals (not capped) | — |
+| `GET /reminders` | any (own; `memberId` needs `analytics.view`) | `state` (`open` \| `done`), `when` (`overdue` \| `today` \| `upcoming`), `kind`, `memberId`, `unassigned` (needs `owners.assign`), `ownerId` (every reminder of that owner: own or `owners.viewAll`), `listingId` (every reminder of that listing: own or `listings.manageAll`), `page, limit` | `Reminder[]` by `dueAt` | `404` owner / listing not visible, missing or in the trash |
 | `POST /reminders` | own owner or listing | `{ ownerId \| listingId, dueAt, note? }` | `Reminder` (`MANUAL`) | `400 REMINDER_IN_PAST` · `400` both or neither target |
 | `PATCH /reminders/:id` | its member | `{ dueAt?, note? }` | `Reminder` | `409 REMINDER_DONE` · `400 SYSTEM_REMINDER` (`AD_TAKE_DOWN` can't be moved) |
 | `POST /reminders/:id/done` | its member | — | `Reminder` | `400 SYSTEM_REMINDER`: `AD_TAKE_DOWN` closes only when the ad is taken down, `AD_CHECK_IN` only through a check-in |
