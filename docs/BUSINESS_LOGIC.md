@@ -280,10 +280,12 @@ taken down.
 with one date it is that day. Calls count by when they started; the outcomes breakdown covers those
 calls that have an outcome. Interested owners are the different owners whose call in the range got
 an outcome that sets Interested. Listings created count by who created them. Reminders done count by
-when they were marked done; reminders closed because their owner or listing was deleted are not
-"done". Ads taken down count by when the ad was taken down. Assigned owners, ads live and reminders
+when they were marked done, including ad check-ins and take-down tasks closed by the ad's own
+steps; reminders closed because their owner or listing was deleted are not "done". Ads taken down count by when the ad was taken down. Assigned owners, ads live and reminders
 overdue are counted at the end of the range, or now when the range ends later: assigned owners
-follow the assignment history (who held the owner at that moment, not who holds it today), and a
+follow the assignment history (who held the owner at that moment, not who holds it today); ads
+live and ads taken down are credited to the listing's member today, since listings keep no
+assignment history; and a
 reminder is overdue when it was still open then and due before then. Every active user is listed;
 a deactivated member is listed only for a range in which they did something, and their history
 never disappears. Team totals are the sum of the members, so work on unassigned records isn't in
@@ -300,6 +302,8 @@ them.
 - Every morning a safety check makes sure each Live ad on an Available listing that isn't in the
   trash has exactly one open check-in: a missing one is added (due one interval after the last
   check-in or after going Live, or at once if that time has passed) and extra ones are removed.
+- Both nightly jobs run only when called with the scheduler's secret key; without it set, they
+  refuse to run. They write no activity-log entry.
 - Point-in-time restore as the database plan allows.
 
 ## Money
