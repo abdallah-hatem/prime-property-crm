@@ -25,7 +25,7 @@ import {
   OwnersFilters,
   type FilterOption,
 } from '@/components/owners-admin/owners-filters';
-import { SelectCheckbox } from '@/components/owners-admin/select-checkbox';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   SelectionDock,
   SelectionTools,
@@ -143,10 +143,18 @@ export function AdminOwnersView({
       ? [
           {
             id: 'select',
-            header: '',
+            header: (
+              <Checkbox
+                checked={rows.length > 0 && pageState === 'all'}
+                indeterminate={pageState === 'some'}
+                onCheckedChange={togglePage}
+                label={t('ownersAdmin.selectPage')}
+                disabled={rows.length === 0}
+              />
+            ),
             className: 'w-12 px-1',
             cell: (owner: OwnerRowData) => (
-              <SelectCheckbox
+              <Checkbox
                 checked={selected.has(owner.id)}
                 onCheckedChange={(on) => toggle(owner.id, on)}
                 label={t('ownersAdmin.selectRow', { name: owner.name })}
@@ -285,7 +293,6 @@ export function AdminOwnersView({
         />
       )}
       <DataList
-        className="grid-cols-1"
         label={t('owners.title')}
         columns={columns}
         rows={rows}
@@ -302,7 +309,7 @@ export function AdminOwnersView({
             when={ownerWhen(t, locale, owner, now)}
             action={
               canAssign ? (
-                <SelectCheckbox
+                <Checkbox
                   checked={selected.has(owner.id)}
                   onCheckedChange={(on) => toggle(owner.id, on)}
                   label={t('ownersAdmin.selectRow', { name: owner.name })}

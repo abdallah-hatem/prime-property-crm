@@ -18,16 +18,6 @@ import { UserFormDialog } from './users/user-form-dialog';
 import { isLastActiveAdmin } from './users/user-rules';
 import { UserSheet } from './users/user-sheet';
 
-// jsdom lacks what Radix Checkbox / RadioGroup / Select measure with (candidates for vitest.setup).
-globalThis.ResizeObserver ??= class {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-};
-Element.prototype.hasPointerCapture ??= () => false;
-Element.prototype.releasePointerCapture ??= () => {};
-Element.prototype.scrollIntoView ??= () => {};
-
 const refresh = vi.fn();
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), refresh }),

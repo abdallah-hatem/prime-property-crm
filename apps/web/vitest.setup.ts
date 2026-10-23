@@ -27,3 +27,16 @@ if (hasDom)
       dispatchEvent: vi.fn(),
     })),
   });
+
+// jsdom lacks what Radix Select / Checkbox / RadioGroup / Popover measure and scroll with.
+if (hasDom) {
+  globalThis.ResizeObserver ??= class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+  Element.prototype.hasPointerCapture ??= () => false;
+  Element.prototype.setPointerCapture ??= () => undefined;
+  Element.prototype.releasePointerCapture ??= () => undefined;
+  Element.prototype.scrollIntoView ??= () => undefined;
+}

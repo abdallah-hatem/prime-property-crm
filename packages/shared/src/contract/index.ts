@@ -20,3 +20,4 @@ export * from './settings';
 export * from './imports';
 export * from './analytics';
 export * from './exports';
+export * from './activity';

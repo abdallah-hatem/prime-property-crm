@@ -6,8 +6,8 @@ import { cn } from '@/lib/utils';
 
 /**
  * A sheet that rises from the bottom on phones (28px top corners, dvh-capped). Header and footer
- * stay put; only the body scrolls. Built on the Radix dialog like `ui/dialog`; a shared `ui/sheet`
- * should replace it once one exists.
+ * stay put; only the body scrolls. Built on the Radix dialog like `ui/dialog`, whose `variant="sheet"`
+ * is the other shape (a sheet on phones that becomes a dialog from md).
  */
 export function BottomSheet({
   open,

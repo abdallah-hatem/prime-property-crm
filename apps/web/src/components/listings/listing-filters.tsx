@@ -15,9 +15,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { useTranslation } from '@/i18n/i18n-provider';
 import { AreaCombobox } from './area-combobox';
-import { ChoiceChips } from './choice-chips';
+import { ChoiceChips } from '@/components/choice-chips';
 import type { ListingFilters, RangeKey } from './filters-url';
-import { NumberInput } from './number-input';
+import { NumberInput } from '@/components/ui/number-input';
 
 const ROOM_STEPS = ['1', '2', '3', '4', '5'] as const;
 type RoomChoice = 'any' | (typeof ROOM_STEPS)[number];

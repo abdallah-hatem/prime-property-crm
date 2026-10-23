@@ -87,7 +87,6 @@ export function ImportsList({ jobs, meta }: { jobs: ImportJob[]; meta: Meta }) {
         }
       />
       <DataList
-        className="grid-cols-1"
         label={t('imports.title')}
         columns={columns}
         rows={jobs}

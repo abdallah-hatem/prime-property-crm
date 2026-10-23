@@ -45,20 +45,6 @@ import { formatDate, formatPhone } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { dueText, reminderUrgency } from '@/lib/when';
 
-/** Open first by due time, then done ones, newest done first (the API's reminder order). */
-function remindersOf(timeline: OwnerTimelineItem[]): Reminder[] {
-  const reminders = timeline.flatMap((item) =>
-    item.kind === 'REMINDER' ? [item.reminder] : [],
-  );
-  const open = reminders
-    .filter((r) => !r.doneAt)
-    .sort((a, b) => a.dueAt.localeCompare(b.dueAt));
-  const done = reminders
-    .filter((r) => r.doneAt)
-    .sort((a, b) => (b.doneAt ?? '').localeCompare(a.doneAt ?? ''));
-  return [...open, ...done];
-}
-
 const card = 'grid gap-3 rounded-lg bg-card p-4 shadow-raised md:p-5';
 
 /**
@@ -69,10 +55,13 @@ const card = 'grid gap-3 rounded-lg bg-card p-4 shadow-raised md:p-5';
 export function OwnerDetail({
   owner,
   timeline,
+  reminders,
   now: nowIso,
 }: {
   owner: Owner;
   timeline: OwnerTimelineItem[];
+  /** Every reminder on the owner, whoever's (`GET /reminders?ownerId=`): open by due time, then done. */
+  reminders: Reminder[];
   now: string;
 }) {
   const { t, locale } = useTranslation();
@@ -91,7 +80,6 @@ export function OwnerDetail({
   const dnc = owner.status === 'DO_NOT_CALL';
   const canSetDnc = !dnc && owner.status !== 'LISTED' && (mine || viewAll);
   const canClearDnc = dnc && viewAll;
-  const reminders = remindersOf(timeline);
   const notes = timeline.flatMap((item) =>
     item.kind === 'NOTE' ? [item.note] : [],
   );

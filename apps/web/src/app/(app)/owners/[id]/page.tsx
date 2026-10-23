@@ -1,17 +1,21 @@
 import { notFound } from 'next/navigation';
-import type { OwnerTimelineItem } from '@prime-crm/shared';
-import { GET_OWNER, GET_OWNER_TIMELINE } from '@/apis';
+import type { OwnerTimelineItem, Reminder } from '@prime-crm/shared';
+import { GET_OWNER, GET_OWNER_TIMELINE, GET_REMINDERS } from '@/apis';
 import { LoadError } from '@/components/load-error';
+import type { ApiResult } from '@/lib/api-result';
 import { OwnerDetail } from '@/components/owners/owner-detail';
 import { getTranslator } from '@/i18n/server';
 
-/** One owner's history is short; the page reads up to this many timeline pages (20 each). */
-const TIMELINE_PAGES = 5;
+/** One owner's history is short; the page reads up to this many pages (20 each) of a list. */
+const MAX_PAGES = 5;
 
-async function fullTimeline(id: string): Promise<OwnerTimelineItem[] | null> {
-  const items: OwnerTimelineItem[] = [];
-  for (let page = 1; page <= TIMELINE_PAGES; page++) {
-    const res = await GET_OWNER_TIMELINE(id, page);
+/** Every page of a short list (up to MAX_PAGES), or null when one fails. */
+async function allPages<T>(
+  read: (page: number) => Promise<ApiResult<T[]>>,
+): Promise<T[] | null> {
+  const items: T[] = [];
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    const res = await read(page);
     if (!res.success) return null;
     items.push(...res.data);
     if (!res.meta?.hasNextPage) break;
@@ -32,8 +36,11 @@ export default async function OwnerPage({
     const t = await getTranslator();
     return <LoadError title={t('owners.title')} message={t('error.generic')} />;
   }
-  const timeline = await fullTimeline(id);
-  if (!timeline) {
+  const [timeline, reminders] = await Promise.all([
+    allPages<OwnerTimelineItem>((page) => GET_OWNER_TIMELINE(id, page)),
+    allPages<Reminder>((page) => GET_REMINDERS({ ownerId: id, page })),
+  ]);
+  if (!timeline || !reminders) {
     const t = await getTranslator();
     return <LoadError title={owner.data.name} message={t('error.generic')} />;
   }
@@ -41,6 +48,7 @@ export default async function OwnerPage({
     <OwnerDetail
       owner={owner.data}
       timeline={timeline}
+      reminders={reminders}
       now={new Date().toISOString()}
     />
   );

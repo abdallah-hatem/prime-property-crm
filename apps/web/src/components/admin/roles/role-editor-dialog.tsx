@@ -11,7 +11,7 @@ import {
 } from '@prime-crm/shared';
 import { CREATE_ROLE, UPDATE_ROLE } from '@/apis';
 import { DisabledReason, FormAlert } from '@/components/admin/admin-ui';
-import { CheckboxRow } from '@/components/admin/checkbox';
+import { CheckboxRow } from '@/components/ui/checkbox';
 import { FormField } from '@/components/form-field';
 import { Button } from '@/components/ui/button';
 import {

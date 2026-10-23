@@ -452,6 +452,28 @@ describe('Users and roles (e2e)', () => {
       await db.user.update({ where: { id: one }, data: { active: true } });
     });
 
+    it('active admins are counted without listing them: roleId=<Admin>&active=true&limit=1 → meta.total', async () => {
+      const count = async () => {
+        const res = await http()
+          .get('/api/users')
+          .query({ roleId: adminRoleId, active: 'true', limit: '1' })
+          .set(bearer(admin.token))
+          .expect(200);
+        expect(res.body.data.length).toBeLessThanOrEqual(1);
+        return res.body.meta.total as number;
+      };
+      await onlyAdmins([admin.id], async () => {
+        expect(await count()).toBe(1);
+        const second = await apiCreateUser({ roleId: adminRoleId });
+        expect(await count()).toBe(2);
+        await db.user.update({
+          where: { id: second.id },
+          data: { active: false },
+        });
+        expect(await count()).toBe(1);
+      });
+    });
+
     it('pagination: limit 1 pages, past the end is empty, out-of-range → 400', async () => {
       const first = await search({ limit: '1' });
       expect(first.data).toHaveLength(1);

@@ -6,20 +6,27 @@ import { DayPicker } from 'react-day-picker';
 import { arEG, enGB } from 'react-day-picker/locale';
 import { cn } from '@/lib/utils';
 
+/** Egypt's week starts on Saturday. */
+const SATURDAY = 6;
+
 /**
  * shadcn Calendar on react-day-picker: pill days, Latin numerals in both languages, the week
- * mirrored under Arabic (`dir`), and chevrons that point the reading way.
+ * mirrored under Arabic (`dir`), and month arrows that point the reading way (the previous-month
+ * arrow sits at the start edge and points to it). Weeks start on Saturday unless `weekStartsOn`
+ * says otherwise.
  */
 function Calendar({
   className,
   classNames,
   lang = 'en',
+  weekStartsOn = SATURDAY,
   ...props
 }: React.ComponentProps<typeof DayPicker> & { lang?: 'en' | 'ar' }) {
   return (
     <DayPicker
       locale={lang === 'ar' ? arEG : enGB}
       dir={lang === 'ar' ? 'rtl' : 'ltr'}
+      weekStartsOn={weekStartsOn}
       numerals="latn"
       showOutsideDays
       className={cn('w-fit', className)}
@@ -53,11 +60,19 @@ function Calendar({
         ...classNames,
       }}
       components={{
+        // react-day-picker always asks for "left" (previous) and "right" (next); under RTL the
+        // buttons swap sides, so the icons flip with them.
         Chevron: ({ orientation, className: chevronClass }) =>
           orientation === 'left' ? (
-            <ChevronLeft aria-hidden className={cn('size-5', chevronClass)} />
+            <ChevronLeft
+              aria-hidden
+              className={cn('size-5 flip-rtl', chevronClass)}
+            />
           ) : (
-            <ChevronRight aria-hidden className={cn('size-5', chevronClass)} />
+            <ChevronRight
+              aria-hidden
+              className={cn('size-5 flip-rtl', chevronClass)}
+            />
           ),
       }}
       {...props}

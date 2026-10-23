@@ -11,12 +11,11 @@ export const SIGN_OUT_PATH = '/api/auth/signout';
 
 /**
  * The one place that decides where a signed-in person lands: after sign-in, on `/`, on `/login`,
- * and when they open a page their role can't use. Everyone starts on Today for now; the admin
- * dashboard (T17) changes only this function.
+ * and when they open a page their role can't use. Whoever may read analytics starts on the
+ * dashboard; everyone else on Today.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- the signature every caller uses; T17 branches on it
 export function homeFor(permissions: readonly string[]): string {
-  return '/today';
+  return permissions.includes('analytics.view') ? '/analytics' : '/today';
 }
 
 export type NavIcon =
@@ -37,8 +36,8 @@ export interface NavRoute {
   /** Key under `nav.` in the locale files. */
   labelKey: NavIcon;
   icon: NavIcon;
-  /** Needed to open the page; `undefined` = every signed-in user. */
-  permission?: Permission;
+  /** Needed to open the page (any one of a list); `undefined` = every signed-in user. */
+  permission?: Permission | readonly Permission[];
 }
 
 /** The main tabs every signed-in user has (bottom bar on phones, top of the sidebar). */
@@ -48,7 +47,7 @@ export const MAIN_ROUTES: readonly NavRoute[] = [
   { href: '/listings', labelKey: 'listings', icon: 'listings' },
 ];
 
-/** Admin pages, each behind one permission. */
+/** Admin pages, each behind a permission (or one of a few). */
 export const ADMIN_ROUTES: readonly NavRoute[] = [
   {
     href: '/users',
@@ -63,10 +62,11 @@ export const ADMIN_ROUTES: readonly NavRoute[] = [
     permission: 'roles.manage',
   },
   {
+    // Owners are imported with owners.import, listings with listings.create.
     href: '/imports',
     labelKey: 'imports',
     icon: 'imports',
-    permission: 'owners.import',
+    permission: ['owners.import', 'listings.create'],
   },
   {
     href: '/analytics',
@@ -115,25 +115,27 @@ export const isGuestOnly = (pathname: string): boolean =>
 export const isPublic = (pathname: string): boolean =>
   PUBLIC_PREFIXES.some((base) => matches(pathname, base));
 
-/** The permission a path needs, or `undefined` when any signed-in user may open it. */
-export function permissionFor(pathname: string): Permission | undefined {
-  return ADMIN_ROUTES.find((route) => matches(pathname, route.href))
-    ?.permission;
+/** Whether someone holding `permissions` may open the route. */
+function allows(route: NavRoute, permissions: readonly string[]): boolean {
+  if (!route.permission) return true;
+  const anyOf: readonly string[] =
+    typeof route.permission === 'string'
+      ? [route.permission]
+      : route.permission;
+  return anyOf.some((p) => permissions.includes(p));
 }
 
 export function canOpen(
   pathname: string,
   permissions: readonly string[],
 ): boolean {
-  const needed = permissionFor(pathname);
-  return !needed || permissions.includes(needed);
+  const route = ADMIN_ROUTES.find((r) => matches(pathname, r.href));
+  return !route || allows(route, permissions);
 }
 
 /** The admin routes this person may open, in menu order. */
 export const adminRoutesFor = (permissions: readonly string[]): NavRoute[] =>
-  ADMIN_ROUTES.filter(
-    (route) => !route.permission || permissions.includes(route.permission),
-  );
+  ADMIN_ROUTES.filter((route) => allows(route, permissions));
 
 /** Whether a nav item is the current page (a section stays active on its sub-pages). */
 export const isActiveRoute = (pathname: string, href: string): boolean =>

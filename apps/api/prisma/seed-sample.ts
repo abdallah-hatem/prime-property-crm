@@ -14,6 +14,10 @@ import {
   hashPassword,
   verifyPassword,
 } from '../src/common/utils/password.util';
+import { toActivityWrite } from '../src/domains/activity/activity.pure';
+import type { ActivityRecordInput } from '../src/domains/activity/interfaces/activity.interface';
+import { assignActivity } from '../src/domains/assignment/assign-activity';
+import { importActivity } from '../src/domains/imports/import-activity';
 
 /**
  * Sample data for local and preview databases: an account per role and records in every state
@@ -1313,6 +1317,15 @@ export async function seedSample(
         key: string,
         entry: Omit<WithId<Prisma.ActivityEntryCreateManyInput>, 'id'>,
       ) => rows.activity.push({ id: sampleId('activity', key), ...entry });
+      /** An entry built by the API's own helper, so its details have the API's shape. */
+      const actAs = (
+        key: string,
+        entry: ActivityRecordInput,
+        createdAt: Date,
+      ) => act(key, { ...toActivityWrite(entry), createdAt });
+      const sara = { id: userIds.sara, name: 'Sara Mahmoud' };
+      const omar = { id: userIds.omar, name: 'عمر الشريف' };
+      const karimOwners = owners.filter((o) => o.karimHistory).length;
       for (const a of accounts.filter((x) => x.key !== 'admin'))
         act(`user-create-${a.key}`, {
           type: 'USER_CREATE',
@@ -1334,49 +1347,50 @@ export async function seedSample(
         details: { permissions: [...TEAM_LEAD_ROLE.permissions] },
         createdAt: at(-44 * DAY),
       });
-      act('import-owners-batch-1', {
-        type: 'IMPORT',
-        actorId: admin,
-        summary: `Imported ${importJob.fileName}`,
-        targetKind: 'IMPORT',
-        targetId: importId,
-        targetLabel: importJob.fileName,
-        details: { added: 12, duplicates: 2, rejected: 1 },
-        createdAt: importAt,
-      });
-      act('assign-import', {
-        type: 'ASSIGN',
-        actorId: admin,
-        summary: `Assigned ${IMPORTED_COUNT} owners to Sara Mahmoud`,
-        targetKind: 'USER',
-        targetId: userIds.sara,
-        targetLabel: 'Sara Mahmoud',
-        details: { count: IMPORTED_COUNT, to: userIds.sara },
-        createdAt: importAt,
-      });
+      actAs(
+        'import-owners-batch-1',
+        importActivity(admin, importJob, {
+          total: importJob.totalRows,
+          added: importJob.addedCount,
+          duplicates: importJob.duplicateCount,
+          rejected: importJob.rejectedCount,
+        }),
+        importAt,
+      );
+      actAs(
+        'assign-import',
+        assignActivity(admin, {
+          kind: 'OWNERS',
+          count: IMPORTED_COUNT,
+          assignee: sara,
+        }),
+        importAt,
+      );
       act('user-deactivate-karim', {
         type: 'USER_DEACTIVATE',
         actorId: admin,
-        summary: 'Deactivated Karim Fawzy',
-        targetKind: 'USER',
-        targetId: userIds.karim,
-        targetLabel: 'Karim Fawzy',
-        details: { handedTo: userIds.omar },
-        createdAt: deactivatedAt,
-      });
-      act('assign-handover-karim', {
-        type: 'ASSIGN',
-        actorId: admin,
-        summary: "Moved Karim Fawzy's owners",
+        summary: `Deactivated Karim Fawzy; work handed to ${omar.name}`,
         targetKind: 'USER',
         targetId: userIds.karim,
         targetLabel: 'Karim Fawzy',
         details: {
-          count: owners.filter((o) => o.karimHistory).length,
-          from: userIds.karim,
+          handOverTo: omar,
+          owners: karimOwners,
+          listings: 0,
+          reminders: 0,
+          sessionsEnded: 0,
         },
         createdAt: deactivatedAt,
       });
+      actAs(
+        'assign-handover-karim',
+        assignActivity(admin, {
+          kind: 'OWNERS',
+          count: karimOwners,
+          assignee: omar,
+        }),
+        deactivatedAt,
+      );
       act('delete-owner', {
         type: 'DELETE',
         actorId: admin,

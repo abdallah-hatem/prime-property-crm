@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { LoaderCircle } from 'lucide-react';
 import type { Language, Role, User } from '@prime-crm/shared';
 import { CREATE_USER, UPDATE_USER } from '@/apis';
-import { DisabledReason, FormAlert, Select } from '@/components/admin/admin-ui';
+import { DisabledReason, FormAlert } from '@/components/admin/admin-ui';
 import { FormField } from '@/components/form-field';
 import { PhoneInput } from '@/components/phone-input';
 import { SegmentedControl } from '@/components/segmented-control';
@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import {
+  Select,
   SelectContent,
   SelectItem,
   SelectTrigger,

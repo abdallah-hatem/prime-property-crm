@@ -1438,6 +1438,47 @@ describe('Imports (e2e)', () => {
       expect(one.body.meta).toMatchObject({ total: 2, hasNextPage: true });
       await as(admin).get(`/imports/${id}/issues?reason=NOPE`).expect(400);
     });
+
+    it('GET /imports/:id: the creator or anyone with owners.import; everyone else 404', async () => {
+      const mine = await upload(
+        creator,
+        'LISTINGS',
+        listingsFile([listingRow(randomLocalMobile())]),
+        'mine.csv',
+      ).expect(201);
+      const id: string = mine.body.data.id;
+
+      const own = await as(creator).get(`/imports/${id}`).expect(200);
+      expect(own.body.data).toMatchObject({
+        id,
+        kind: 'LISTINGS',
+        fileName: 'mine.csv',
+        status: mine.body.data.status,
+        createdBy: { id: creator.id },
+      });
+      // owners.import reads every job, its own kind or not.
+      for (const reader of [admin, importer]) {
+        const res = await as(reader).get(`/imports/${id}`).expect(200);
+        expect(res.body.data.id).toBe(id);
+      }
+      // No owners.import and not the creator: the same 404 as an unknown id.
+      for (const stranger of [member, memberB]) {
+        const res = await as(stranger).get(`/imports/${id}`).expect(404);
+        expect(res.body.success).toBe(false);
+      }
+      const adminJob = await upload(
+        admin,
+        'OWNERS',
+        ownersFile([['A', randomLocalMobile(), AREA]]),
+      ).expect(201);
+      await as(creator).get(`/imports/${adminJob.body.data.id}`).expect(404);
+
+      await as(admin)
+        .get('/imports/00000000-0000-4000-8000-000000000000')
+        .expect(404);
+      await as(admin).get('/imports/not-a-uuid').expect(400);
+      await http().get(`/api/imports/${id}`).expect(401);
+    });
   });
 
   // ================================================================ performance

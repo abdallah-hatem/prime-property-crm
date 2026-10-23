@@ -232,7 +232,6 @@ export function PhotoManager({
           type="file"
           multiple
           accept={PHOTO_ACCEPT}
-          className="hidden"
           tabIndex={-1}
           aria-hidden
           data-testid="photo-input"

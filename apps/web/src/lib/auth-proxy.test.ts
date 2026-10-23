@@ -121,7 +121,7 @@ describe('auth routing (proxy)', () => {
       }),
       NOW,
     );
-    expect(location(member)).toBe(homeFor([]));
+    expect(location(member)).toBe('/today');
 
     const admin = await authProxy(
       request('/login?next=%2Fusers', {
@@ -129,7 +129,7 @@ describe('auth routing (proxy)', () => {
       }),
       NOW,
     );
-    expect(location(admin)).toBe(homeFor(ALL_ADMIN));
+    expect(location(admin)).toBe('/analytics');
   });
 
   it('Expired access + valid refresh → refreshed in place in middleware, no redirect', async () => {
