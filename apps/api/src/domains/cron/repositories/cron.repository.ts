@@ -161,6 +161,11 @@ export class CronRepository {
       DELETE FROM reminders r
       WHERE r.kind = 'AD_CHECK_IN' AND r.done_at IS NULL
         AND EXISTS (
+          SELECT 1 FROM listings l
+          WHERE l.id = r.listing_id AND l.deleted_at IS NULL
+            AND l.status = 'AVAILABLE' AND l.ad_status = 'LIVE'
+        )
+        AND EXISTS (
           SELECT 1 FROM reminders k
           WHERE k.listing_id = r.listing_id AND k.kind = 'AD_CHECK_IN' AND k.done_at IS NULL
             AND (k.due_at, k.id) < (r.due_at, r.id)

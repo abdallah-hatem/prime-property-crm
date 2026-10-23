@@ -453,4 +453,25 @@ describe('Scheduled jobs (e2e)', () => {
       expect(await openCheckIns(id)).toBe(0);
     }
   });
+
+  it('Ad safety-net cron removes duplicate check-ins only on Live ads of Available listings', async () => {
+    const sold = await seedListing({ adStatus: 'LIVE', status: 'SOLD' });
+    const deleted = await seedListing({ adStatus: 'LIVE', ...trashed(DAY) });
+    for (const listingId of [sold, deleted]) {
+      for (const inDays of [2, 5]) {
+        await db.reminder.create({
+          data: {
+            kind: 'AD_CHECK_IN',
+            listingId,
+            memberId: member.id,
+            dueAt: new Date(Date.now() + inDays * DAY),
+          },
+        });
+      }
+    }
+    await cron('ad-check-ins').expect(200);
+    for (const id of [sold, deleted]) {
+      expect(await openCheckIns(id)).toBe(2);
+    }
+  });
 });
