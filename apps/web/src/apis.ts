@@ -6,17 +6,25 @@ import { z } from 'zod';
 import {
   AdCheckInRequestSchema,
   AreaLookupQuerySchema,
+  AssignOwnersRequestSchema,
   CreateListingRequestSchema,
   CreateNoteRequestSchema,
   CreateReminderRequestSchema,
+  IMPORT_FILE_EXTENSIONS,
+  IMPORT_MAX_BYTES,
+  ImportIssuesQuerySchema,
+  ImportListQuerySchema,
   LanguageSchema,
   ListingListQuerySchema,
   ListingPhotoUploadRequestSchema,
   ListingStatusRequestSchema,
   LOCALE_COOKIE,
   LoginRequestSchema,
+  OwnerIdsQuerySchema,
   OwnerListQuerySchema,
   PAGE_LIMIT_MAX,
+  PICKER_LIMIT_MAX,
+  PreviewImportRequestSchema,
   RegisterPhotoRequestSchema,
   ReminderKindSchema,
   ReminderStateSchema,
@@ -28,9 +36,14 @@ import {
   UpdateListingRequestSchema,
   UpdateOwnerRequestSchema,
   UpdateReminderRequestSchema,
+  UploadImportRequestSchema,
   type AreaOption,
+  type AssignOwnersResponse,
   type Call,
   type CallOutcome,
+  type ImportIssue,
+  type ImportJob,
+  type ImportPreview,
   type Language,
   type Listing,
   type ListingRow,
@@ -38,12 +51,14 @@ import {
   type Me,
   type Note,
   type Owner,
+  type OwnerIdsResponse,
   type OwnerListQuery,
   type OwnerRow,
   type OwnerTimelineItem,
   type Photo,
   type Reminder,
   type Today,
+  type UserSummary,
 } from '@prime-crm/shared';
 import { apiFetch } from '@/lib/api';
 import { apiBaseUrl } from '@/lib/env';
@@ -319,7 +334,6 @@ export async function MARK_REMINDER_DONE(
 // ============================================================== listings (T14) — begin
 // Listings, the Property Finder ad, notes and photos (spec, "Listings — /listings" and "Photos").
 
-
 const LISTINGS_TAG = 'listings';
 const listingTag = (id: string) => `listing:${id}`;
 
@@ -570,3 +584,171 @@ export async function REQUEST_LISTING_PHOTO_TOKEN(
   });
 }
 // ============================================================== listings (T14) — end
+
+// ====== owners-admin + imports (T15) — begin
+// Admin owners table (ids for "select all" / "next N unassigned", bulk assign, the assignee
+// picker) and the import wizard (spec, "Owners — /owners" and "Imports — /imports").
+
+const OWNERS_TAG = 'owners';
+const IMPORTS_TAG = 'imports';
+
+/** `GET /owners/ids`: every matching owner id (≤ `take`, max 5000) and the full count. */
+export async function GET_OWNER_IDS(
+  query: unknown,
+): Promise<ApiResult<OwnerIdsResponse>> {
+  const parsed = OwnerIdsQuerySchema.safeParse(query);
+  if (!parsed.success) return invalid();
+  const res = await apiFetch<OwnerIdsResponse>('/owners/ids', {
+    params: parsed.data,
+    cache: 'no-store',
+  });
+  return handleResponse(res);
+}
+
+/** `POST /owners/assign`: owners (≤ 5000) to an active member, or `null` = unassigned. */
+export async function ASSIGN_OWNERS(
+  input: unknown,
+): Promise<ApiResult<AssignOwnersResponse>> {
+  const parsed = AssignOwnersRequestSchema.safeParse(input);
+  if (!parsed.success) return invalid();
+  return handleResponse(
+    await apiFetch<AssignOwnersResponse>('/owners/assign', {
+      method: 'POST',
+      body: parsed.data,
+      revalidateTags: [OWNERS_TAG],
+    }),
+  );
+}
+
+/** `GET /users/options?active=true`: the active users work can go to, by name (one picker page). */
+export async function GET_ASSIGNEE_OPTIONS(): Promise<
+  ApiResult<UserSummary[]>
+> {
+  return handleResponse(
+    await apiFetch<UserSummary[]>('/users/options', {
+      params: { active: true, limit: PICKER_LIMIT_MAX },
+      cache: 'no-store',
+    }),
+  );
+}
+
+const hasImportExtension = (name: string): boolean =>
+  IMPORT_FILE_EXTENSIONS.some((ext) => name.toLowerCase().endsWith(ext));
+
+/** `POST /imports` (multipart `file` + `kind`): the file is parsed now; the job has its headers. */
+export async function UPLOAD_IMPORT(
+  form: FormData,
+): Promise<ApiResult<ImportJob>> {
+  const file = form.get('file');
+  const kind = UploadImportRequestSchema.safeParse({ kind: form.get('kind') });
+  if (!(file instanceof File) || !kind.success) return invalid();
+  if (!hasImportExtension(file.name))
+    return {
+      success: false,
+      status: 400,
+      error: 'FILE_TYPE',
+      message: 'Unsupported file',
+    };
+  if (file.size > IMPORT_MAX_BYTES)
+    return {
+      success: false,
+      status: 400,
+      error: 'FILE_TOO_LARGE',
+      message: 'File too large',
+    };
+  const body = new FormData();
+  body.set('kind', kind.data.kind);
+  body.set('file', file, file.name);
+  return handleResponse(
+    await apiFetch<ImportJob>('/imports', {
+      method: 'POST',
+      body,
+      revalidateTags: [IMPORTS_TAG],
+    }),
+  );
+}
+
+/** `POST /imports/:id/preview`: check every row with this mapping; counts, sample, first issues. */
+export async function PREVIEW_IMPORT(
+  id: string,
+  input: unknown,
+): Promise<ApiResult<ImportPreview>> {
+  const parsed = PreviewImportRequestSchema.safeParse(input);
+  if (!IdSchema.safeParse(id).success || !parsed.success) return invalid();
+  return handleResponse(
+    await apiFetch<ImportPreview>(`/imports/${id}/preview`, {
+      method: 'POST',
+      body: parsed.data,
+    }),
+  );
+}
+
+/** `POST /imports/:id/confirm`: all rows or none, in one transaction. */
+export async function CONFIRM_IMPORT(
+  id: string,
+): Promise<ApiResult<ImportJob>> {
+  if (!IdSchema.safeParse(id).success) return invalid();
+  return handleResponse(
+    await apiFetch<ImportJob>(`/imports/${id}/confirm`, {
+      method: 'POST',
+      revalidateTags: [IMPORTS_TAG, OWNERS_TAG],
+    }),
+  );
+}
+
+/** `GET /imports`: past jobs, newest first, only the kinds the caller may import. */
+export async function GET_IMPORTS(
+  query: unknown,
+): Promise<ApiResult<ImportJob[]>> {
+  const parsed = ImportListQuerySchema.safeParse(query);
+  if (!parsed.success) return invalid();
+  return handleResponse(
+    await apiFetch<ImportJob[]>('/imports', {
+      params: parsed.data,
+      cache: 'no-store',
+    }),
+  );
+}
+
+/** How many `GET /imports` pages `GET_IMPORT` reads looking for one job. */
+const IMPORT_LOOKUP_PAGES = 10;
+
+/**
+ * One job. The contract has no `GET /imports/:id`, so this reads the list (newest first) until it
+ * finds it; an older job than the lookup reaches answers 404.
+ */
+export async function GET_IMPORT(id: string): Promise<ApiResult<ImportJob>> {
+  if (!IdSchema.safeParse(id).success) return invalid();
+  for (let page = 1; page <= IMPORT_LOOKUP_PAGES; page++) {
+    const res = await apiFetch<ImportJob[]>('/imports', {
+      params: { page, limit: PAGE_LIMIT_MAX },
+      cache: 'no-store',
+    });
+    if (!res.success) return handleResponse(res);
+    const job = res.data.find((item) => item.id === id);
+    if (job) return { success: true, status: 200, data: job };
+    if (!res.meta?.hasNextPage) break;
+  }
+  return {
+    success: false,
+    status: 404,
+    error: 'NOT_FOUND',
+    message: 'Not found',
+  };
+}
+
+/** `GET /imports/:id/issues`: the rows an import won't (or didn't) add, filtered by reason. */
+export async function GET_IMPORT_ISSUES(
+  id: string,
+  query: unknown,
+): Promise<ApiResult<ImportIssue[]>> {
+  const parsed = ImportIssuesQuerySchema.safeParse(query);
+  if (!IdSchema.safeParse(id).success || !parsed.success) return invalid();
+  return handleResponse(
+    await apiFetch<ImportIssue[]>(`/imports/${id}/issues`, {
+      params: parsed.data,
+      cache: 'no-store',
+    }),
+  );
+}
+// ====== owners-admin + imports (T15) — end
