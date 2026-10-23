@@ -13,7 +13,7 @@ Current stage: 6 — Build · PAUSING at the user's request (2026-10-23) · done
 - (none)
 
 ## Next up
-- On resume: check T15/T16 worktrees (`git -C .claude/worktrees/t15 log`, `t16`) — finished → verify + merge into dev; unfinished → resume or re-dispatch from their WIP commits.
+- T15/T16 allowed to finish and be merged (user, 2026-10-23); nothing else starts until the user resumes. If they didn't land: check .claude/worktrees/t15, t16 and resume from WIP commits.
 - Then T17 analytics UI, T21 web shared cleanup, then Verify (full suite, smoke all projects, ui-auditor, break-ui).
 - Max 3 heavy agents at once; servers via run_in_background; long commands under `timeout 420` (see .claude/LEARNINGS.md).
 
