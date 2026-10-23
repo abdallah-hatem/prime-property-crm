@@ -41,3 +41,5 @@
 - PAUSED (user, 2026-10-23).
 - RESUMED (user, /build-software continue). Wave 10: T17 analytics UI (agent 5) ∥ T21 shared cleanup + small API asks (agent 6) · T17 must not edit shared components (T21 owns them) · both append delimited blocks to apis.ts and own locale namespaces.
 - T17 merged · verify: lint/tc 0; web unit 117 · T17 shared asks (binary apiFetch, calendar RTL/weekStartsOn, filter-chips slot, homeFor admin → /analytics) sent to T21, which is finishing them.
+- T21 merged · T17 member table moved to shared Select; DOWNLOAD_EXPORT on apiFetch binary mode (no raw fetch left); locale conflicts: T21 plurals win, T17 error wording kept · verify: lint/tc 0 (0 warnings); unit 63+745+141; next build ok.
+- BUILD COMPLETE (all plan tasks). Next: stage 7 Verify.
