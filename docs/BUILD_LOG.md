@@ -3,7 +3,7 @@ Run mode: fully autonomous — chosen by the user on 2026-10-22
 Goal (current): a mobile-first CRM for Prime's real estate team — owner leads, calls, listings,
 Property Finder follow-up, admin analytics and backups · spec `docs/specs/2026-10-22-property-crm.md`
 · plan `docs/superpowers/plans/2026-10-22-property-crm.md`
-Current stage: 7 — Verify · all build tasks T0–T21 merged on local dev.
+Current stage: 7 — Verify done locally (unit, e2e, smoke 8 projects, UI audit + fixes) · dev pushed to GitHub · next: re-run smoke on the merged audit fixes, release alignment review, Vercel (needs access).
 
 ## Waiting on the user
 - GitHub: switched to abdallah-hatem at the user's request (2026-10-23); `git push --dry-run origin dev` succeeds. Push dev after T22/T23 merge (user request).
