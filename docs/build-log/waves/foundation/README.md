@@ -47,3 +47,4 @@
 - Smoke, all 8 projects (next start 3193 / API 3191, re-seeded per spec): smoke 35 · calling 27 · listings 19 · owners-admin 11 · admin 38 (+5 skipped: trash empty after 3 projects restored the seeded items) · analytics 11 · preferences 4 (+7 skipped by design: one project). 0 failed.
 - UI audit (ui-auditor, whole app) dispatched against the same servers.
 - UI audit (whole app, 660 screenshots): 0 blocker · 7 major · 10 minor · 3 nit; no layout shift. Fix tasks T22 (shell/text/forms/tokens) ∥ T23 (overlays/tables/layouts). Audit changed sample data (1 call, 3 restores, 1 draft import) — DB dropped after.
+- T23 merged (audit fixes B): 7/7 fixed (filter sheet already scrolled); new ui/scroll-cue; select opens below its trigger; 320 px scrollWidth = 320 on 6 screens; smoke owners-admin 6 · admin 18 · analytics 6 · listings 9. Checked after-shots (select, import preview).
