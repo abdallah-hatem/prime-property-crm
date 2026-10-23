@@ -53,7 +53,7 @@ function Calendar({
         ),
         selected:
           '[&>button]:bg-primary [&>button]:font-bold [&>button]:text-primary-foreground [&>button]:hover:bg-primary [&>button]:hover:text-primary-foreground',
-        today: '[&>button]:font-bold [&>button]:text-primary',
+        today: '[&>button]:font-bold [&>button]:text-link',
         outside: 'opacity-40',
         disabled: 'opacity-35',
         hidden: 'invisible',

@@ -3,6 +3,7 @@ import { MapPin, Phone, StickyNote, type LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { UserText } from '@/components/user-text';
 
 /** Which marker the row carries at its start edge: red overdue, indigo due today, amber check-in. */
 export type RowUrgency = 'overdue' | 'due' | 'checkIn' | 'none';
@@ -59,13 +60,13 @@ export function OwnerRow({
   const body = (
     <>
       <div title={name} className="truncate text-[15.5px] font-bold">
-        <bdi>{name}</bdi>
+        <UserText>{name}</UserText>
       </div>
       {detail && (
         <div className="flex min-w-0 items-center gap-1.5 text-[13px] text-muted-foreground">
           <DetailIcon aria-hidden className="size-3.5 shrink-0" />
           <span className="truncate">
-            <bdi>{detail}</bdi>
+            <UserText>{detail}</UserText>
           </span>
         </div>
       )}

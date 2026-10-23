@@ -96,7 +96,7 @@ export function StatusMenu({
               >
                 {t(`listingStatus.${status}`)}
                 {status === listing.status && (
-                  <Check aria-hidden className="size-4 text-primary" />
+                  <Check aria-hidden className="size-4 text-link" />
                 )}
               </button>
             ))}

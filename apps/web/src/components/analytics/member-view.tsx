@@ -1,11 +1,9 @@
 'use client';
 
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 import type { MemberAnalytics } from '@prime-crm/shared';
+import { BackLink } from '@/components/back-link';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/i18n/i18n-provider';
 import type { CairoDay } from '@/lib/cairo-time';
 import { cn } from '@/lib/utils';
@@ -33,17 +31,9 @@ export function MemberView({
 
   return (
     <div className="grid grid-cols-1 gap-5" data-testid="member-analytics">
-      <Button
-        variant="ghost"
-        size="sm"
-        asChild
-        className="-ms-3 justify-self-start"
-      >
-        <Link href={`/analytics${rangeQuery(range)}`}>
-          <ArrowLeft aria-hidden className="flip-rtl" />
-          {t('analytics.member.back')}
-        </Link>
-      </Button>
+      <BackLink href={`/analytics${rangeQuery(range)}`} className="-ms-3">
+        {t('analytics.member.back')}
+      </BackLink>
       <PageHeader
         title={data.name}
         description={

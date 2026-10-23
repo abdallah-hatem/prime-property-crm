@@ -20,6 +20,7 @@ import { PhotoGallery } from './photo-gallery';
 import { PhotoManager } from './photo-manager';
 import { StatusMenu } from './status-menu';
 import { useMutation } from './use-mutation';
+import { UserText } from '@/components/user-text';
 
 /** Who may change a listing: its member, or anyone who manages all listings (the API agrees). */
 export function useCanManageListing(listing: Pick<Listing, 'assignedTo'>) {
@@ -125,12 +126,12 @@ export function ListingDetail({ listing: initial }: { listing: Listing }) {
               />
             </div>
             <h1 className="text-[17px] font-bold break-words">
-              {listing.title}
+              <UserText>{listing.title}</UserText>
             </h1>
             {place && (
               <p className="flex items-start gap-1.5 text-[13px] text-muted-foreground">
                 <MapPin aria-hidden className="mt-0.5 size-3.5 shrink-0" />
-                <span className="min-w-0 break-words">{place}</span>
+                <UserText className="min-w-0 break-words">{place}</UserText>
               </p>
             )}
           </div>
@@ -154,9 +155,12 @@ export function ListingDetail({ listing: initial }: { listing: Listing }) {
               <h2 id="listing-description" className="text-sm font-bold">
                 {t('listings.detail.description')}
               </h2>
-              <p className="text-sm break-words whitespace-pre-line text-muted-foreground">
+              <UserText
+                as="p"
+                className="text-sm break-words whitespace-pre-line text-muted-foreground"
+              >
                 {listing.description}
-              </p>
+              </UserText>
             </section>
           )}
 
@@ -201,8 +205,8 @@ export function ListingDetail({ listing: initial }: { listing: Listing }) {
               )}
               {canDelete && (
                 <Button
-                  variant="ghost"
-                  className="flex-1 text-destructive hover:bg-destructive-soft hover:text-destructive"
+                  variant="destructive-outline"
+                  className="flex-1"
                   onClick={() => setDeleteOpen(true)}
                 >
                   <Trash2 aria-hidden />
@@ -243,6 +247,7 @@ function Details({ listing }: { listing: Listing }) {
       label: t('listings.detail.assignedTo'),
       value: listing.assignedTo?.name ?? t('listings.detail.unassigned'),
       icon: true,
+      user: Boolean(listing.assignedTo),
     },
     {
       label: t('listings.purpose.label'),
@@ -255,8 +260,14 @@ function Details({ listing }: { listing: Listing }) {
     listing.address && {
       label: t('listings.detail.address'),
       value: listing.address,
+      user: true,
     },
-  ].filter(Boolean) as { label: string; value: string; icon?: boolean }[];
+  ].filter(Boolean) as {
+    label: string;
+    value: string;
+    icon?: boolean;
+    user?: boolean;
+  }[];
 
   return (
     <section
@@ -280,7 +291,7 @@ function Details({ listing }: { listing: Listing }) {
                   className="size-4 shrink-0 text-muted-foreground"
                 />
               )}
-              {row.value}
+              {row.user ? <UserText>{row.value}</UserText> : row.value}
             </dd>
           </div>
         ))}

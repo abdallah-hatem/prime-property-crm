@@ -11,6 +11,7 @@ import { useTranslation } from '@/i18n/i18n-provider';
 import { cn } from '@/lib/utils';
 import { ListingCover } from './listing-cover';
 import { ListingFactsLine } from './listing-facts';
+import { UserText } from '@/components/user-text';
 
 /** Price, with "a month" after a rent. */
 export function ListingPrice({
@@ -89,7 +90,9 @@ export function ListingRowCard({ row }: { row: ListingRow }) {
           purpose={row.purpose}
           className="text-xl font-extrabold tracking-tight"
         />
-        <p className="truncate text-[15px] font-bold">{row.title}</p>
+        <p className="truncate text-[15px] font-bold">
+          <UserText>{row.title}</UserText>
+        </p>
         {row.compound && (
           <p className="truncate text-[13px] text-muted-foreground">
             {row.compound}

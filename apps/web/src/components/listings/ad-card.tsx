@@ -178,11 +178,14 @@ export function AdCard({ listing, canManage, onUpdated }: Props) {
             {t('listings.ad.logCheckIn')}
           </Button>
         )}
-        {canManage && live && !available && (
+        {canManage && live && (
+          // The step that matters when the home is gone is the soft one; while it is still
+          // available, taking the ad down is the quieter outline choice beside Log check-in.
           <Button
-            variant="soft"
+            variant={available ? 'outline' : 'soft'}
             className="min-w-36 flex-1"
             onClick={() => setTakeDownOpen(true)}
+            data-testid="mark-taken-down"
           >
             {t('listings.ad.markTakenDown')}
           </Button>
@@ -211,18 +214,6 @@ export function AdCard({ listing, canManage, onUpdated }: Props) {
         <p className="ps-4.5 pe-4 pb-3.5 text-xs text-muted-foreground">
           {t('listings.ad.notAvailableHint')}
         </p>
-      )}
-      {canManage && live && available && (
-        <div className="ps-4 pe-3.5 pb-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground"
-            onClick={() => setTakeDownOpen(true)}
-          >
-            {t('listings.ad.markTakenDown')}
-          </Button>
-        </div>
       )}
 
       <SetLiveDialog

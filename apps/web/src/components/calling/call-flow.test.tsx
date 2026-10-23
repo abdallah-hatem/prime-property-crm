@@ -406,7 +406,7 @@ describe('Today', () => {
       />,
     );
     const item = screen.getByTestId('missing-outcome');
-    expect(item).toHaveTextContent(/You called Nadia Fathy at/);
+    expect(item).toHaveTextContent(/You called ⁨Nadia Fathy⁩ at/);
     await user.click(within(item).getByRole('button', { name: 'Add outcome' }));
 
     const sheet = await screen.findByTestId('outcome-sheet');

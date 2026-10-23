@@ -33,6 +33,7 @@ import {
   ListingRowCard,
   ListingRowCardSkeleton,
 } from './listing-row-card';
+import { UserText } from '@/components/user-text';
 
 const SEARCH_DELAY_MS = 400;
 
@@ -120,7 +121,7 @@ export function ListingSearch({
               className="truncate font-bold outline-none hover:underline focus-visible:underline"
               onClick={(event) => event.stopPropagation()}
             >
-              {row.title}
+              <UserText>{row.title}</UserText>
             </Link>
             {row.compound && (
               <span className="truncate text-xs text-muted-foreground">

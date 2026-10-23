@@ -2,6 +2,7 @@ import type { Locale } from '@prime-crm/shared';
 import type { ActivityEntry } from '@/apis';
 import { permissionLabel } from '@/components/admin/roles/permission-groups';
 import type { MessageKey, Translate } from '@/i18n/translate';
+import { isolate } from '@/lib/bidi';
 import { formatDate, formatNumber } from '@/lib/format';
 
 /**
@@ -35,7 +36,8 @@ const trashKind = (kind: string | undefined): TrashKindName | null =>
 
 export function activitySummary(entry: ActivityEntry, t: Translate): string {
   const d = entry.details ?? {};
-  const label = entry.target?.label ?? '';
+  // Names and labels are typed by people, often in the other language: isolate each one.
+  const label = isolate(entry.target?.label ?? '');
   const name = label;
   switch (entry.type) {
     case 'IMPORT': {
@@ -78,7 +80,8 @@ export function activitySummary(entry: ActivityEntry, t: Translate): string {
     case 'USER_UPDATE':
       return t('admin.activity.summary.userUpdate', { name });
     case 'USER_DEACTIVATE': {
-      const to = str(obj(d.handOverTo)?.name);
+      const handOverTo = str(obj(d.handOverTo)?.name);
+      const to = handOverTo && isolate(handOverTo);
       return to
         ? t('admin.activity.summary.userDeactivateTo', { name, to })
         : t('admin.activity.summary.userDeactivateNobody', { name });

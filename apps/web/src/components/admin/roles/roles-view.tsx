@@ -10,6 +10,7 @@ import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/i18n/i18n-provider';
+import { UserText } from '@/components/user-text';
 import { callApi } from '@/lib/callApi';
 import { formatNumber } from '@/lib/format';
 import { PERMISSION_COUNT, permissionLabel } from './permission-groups';
@@ -49,7 +50,7 @@ export function RolesView({ roles }: { roles: Role[] }) {
                 <span className="flex items-start justify-between gap-3">
                   <span className="grid min-w-0 gap-1.5">
                     <span className="truncate type-h2">
-                      <bdi>{role.name}</bdi>
+                      <UserText>{role.name}</UserText>
                     </span>
                     {role.builtIn && (
                       <Badge variant="neutral" dot="none">

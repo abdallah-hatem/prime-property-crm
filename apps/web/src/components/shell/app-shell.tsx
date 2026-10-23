@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 import { AccountPanel } from './account-panel';
 import { NAV_ICONS } from './nav-icons';
 import { UserAvatar } from './user-avatar';
+import { UserText } from '@/components/user-text';
 
 /**
  * The signed-in frame: a floating sidebar from md up, and on phones a slim top bar with the
@@ -46,7 +47,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <PhoneTopBar />
         <main
           id="main"
-          className="mx-auto w-full max-w-5xl px-safe-4 pt-2 pb-[calc(7rem+env(safe-area-inset-bottom))] md:px-8 md:pt-8 md:pb-12"
+          className="mx-auto w-full max-w-5xl px-safe-4 pt-2 pb-[calc(7.5rem+env(safe-area-inset-bottom))] md:px-8 md:pt-8 md:pb-12 short:pb-[calc(5rem+env(safe-area-inset-bottom))]"
         >
           {children}
         </main>
@@ -93,7 +94,9 @@ function AccountMenu({ variant }: { variant: 'avatar' | 'row' }) {
         <UserAvatar name={me.name} />
         {variant === 'row' && (
           <span className="grid min-w-0">
-            <span className="truncate text-sm font-bold">{me.name}</span>
+            <span className="truncate text-sm font-bold">
+              <UserText>{me.name}</UserText>
+            </span>
             <span className="truncate text-xs text-muted-foreground">
               {me.role.name}
             </span>
@@ -203,9 +206,9 @@ function BottomNav() {
   return (
     <nav
       aria-label={t('nav.mainNavigation')}
-      className="fixed inset-x-[max(0.875rem,env(safe-area-inset-left),env(safe-area-inset-right))] bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40 md:hidden"
+      className="fixed inset-x-[max(0.875rem,env(safe-area-inset-left),env(safe-area-inset-right))] bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40 md:hidden short:bottom-[calc(0.5rem+env(safe-area-inset-bottom))]"
     >
-      <ul className="grid grid-cols-4 gap-1 rounded-pill border border-border bg-card/80 p-1.5 shadow-raised backdrop-blur-lg">
+      <ul className="grid grid-cols-4 gap-0.5 rounded-pill border border-border bg-card/80 p-1 shadow-raised backdrop-blur-lg">
         {tabs.map((route) => {
           const active =
             route === MORE_ROUTE
@@ -218,16 +221,20 @@ function BottomNav() {
               <Link
                 href={route.href}
                 aria-current={active ? 'page' : undefined}
-                aria-label={label}
                 className={cn(
-                  'flex h-12 items-center justify-center gap-1.5 rounded-pill px-2 text-xs font-bold transition-colors duration-200 ease-snappy',
+                  // Icon over label on every tab: four equal columns fit "Listings" / "الوحدات"
+                  // at 320 px. On a short viewport (landscape, 200% zoom) the labels hide and
+                  // the bar slims down so it covers less of the page.
+                  'flex h-14 min-w-0 flex-col items-center justify-center gap-0.5 rounded-pill px-1 text-[11px] leading-tight font-bold transition-colors duration-200 ease-snappy short:h-11',
                   active
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:text-foreground active:bg-accent active:text-accent-foreground',
                 )}
               >
                 <Icon aria-hidden className="size-5 shrink-0" />
-                {active && <span className="truncate">{label}</span>}
+                <span className="max-w-full truncate short:sr-only">
+                  {label}
+                </span>
               </Link>
             </li>
           );

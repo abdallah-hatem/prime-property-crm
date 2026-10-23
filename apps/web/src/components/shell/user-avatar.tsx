@@ -23,7 +23,7 @@ export function UserAvatar({
     <span
       aria-hidden
       className={cn(
-        'grid size-10 shrink-0 place-items-center rounded-pill bg-primary-gradient text-sm font-bold text-primary-foreground shadow-glow',
+        'grid size-11 shrink-0 place-items-center rounded-pill bg-primary-gradient text-sm font-bold text-primary-foreground shadow-glow',
         className,
       )}
     >

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowLeft, CircleCheck } from 'lucide-react';
+import { CircleCheck } from 'lucide-react';
 import {
   ImportIssueReasonSchema,
   type ImportIssue,
@@ -20,9 +20,11 @@ import {
   kindLabel,
   ReasonChip,
 } from '@/components/imports/import-bits';
+import { BackLink } from '@/components/back-link';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/i18n/i18n-provider';
+import { UserText } from '@/components/user-text';
 import { formatNumber } from '@/lib/format';
 import { useUrlParams } from '@/lib/use-url-params';
 
@@ -71,12 +73,7 @@ export function ImportDetail({
 
   return (
     <div className="grid grid-cols-1 gap-6">
-      <Button variant="ghost" size="sm" className="justify-self-start" asChild>
-        <Link href="/imports">
-          <ArrowLeft aria-hidden className="flip-rtl" />
-          {t('imports.allImports')}
-        </Link>
-      </Button>
+      <BackLink href="/imports">{t('imports.allImports')}</BackLink>
       <PageHeader
         title={job.fileName}
         description={
@@ -84,7 +81,7 @@ export function ImportDetail({
             <ImportStatusChip status={job.status} />
             <span className="flex flex-wrap gap-x-3">
               <span>{kindLabel(t, job.kind)}</span>
-              <bdi>{job.createdBy.name}</bdi>
+              <UserText>{job.createdBy.name}</UserText>
               <DateText value={job.createdAt} style="dateTime" />
             </span>
           </span>

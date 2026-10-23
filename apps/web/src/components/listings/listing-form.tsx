@@ -44,6 +44,7 @@ import { listingErrorMessage } from './listing-error';
 import { NumberInput } from '@/components/ui/number-input';
 import { Textarea } from '@/components/ui/textarea';
 import { useMutation } from './use-mutation';
+import { UserText } from '@/components/user-text';
 
 /** False on the server and until hydration: a submit before then would be a native GET. */
 const noop = () => () => {};
@@ -317,7 +318,9 @@ export function ListingForm({ mode }: { mode: ListingFormMode }) {
               <span className="text-xs font-semibold text-muted-foreground">
                 {t('listings.form.fromOwner')}
               </span>
-              <span className="truncate font-bold">{mode.owner.name}</span>
+              <span className="truncate font-bold">
+                <UserText>{mode.owner.name}</UserText>
+              </span>
               {mode.owner.area && (
                 <span className="flex items-center gap-1 text-[13px] text-muted-foreground">
                   <MapPin aria-hidden className="size-3.5" />
