@@ -3,7 +3,7 @@ Run mode: fully autonomous — chosen by the user on 2026-10-22
 Goal (current): a mobile-first CRM for Prime's real estate team — owner leads, calls, listings,
 Property Finder follow-up, admin analytics and backups · spec `docs/specs/2026-10-22-property-crm.md`
 · plan `docs/superpowers/plans/2026-10-22-property-crm.md`
-Current stage: 6 — Build · PAUSED at the user's request (2026-10-23) · done on local dev: T0–T16, T10b, T18, T19, T20 · not started: T17 analytics UI, T21 web shared cleanup, Verify, Ship.
+Current stage: 6 — Build · resumed · Wave 10: T17 analytics UI ∥ T21 shared cleanup running.
 
 ## Waiting on the user
 - GitHub write access: the user will run `gh auth switch -u abdallah-hatem` later (said 2026-10-23: keep working locally). Everything stays on local branches until then.
