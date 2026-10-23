@@ -30,3 +30,4 @@
 - T9 review: CONFLICTS (listings import with assignTo writes no ASSIGN entry when no lead linked) → code fix folded into T10b.
 - T11 merged (0f1e662) · conflicts additive + lockfile regenerated · migration reminders.closed_by_delete · verify: lint/tc 0; unit 62+734+36 · contract: analytics range + member active · review running.
 - T13 hit ECONNRESET → resumed. T10b dispatched (agent 7).
+- T11 review: CONFLICTS → fixed duplicate check-in removal scope (eb6db45, test proven failing without the fix); DOC OUT OF DATE items written to the doc.
