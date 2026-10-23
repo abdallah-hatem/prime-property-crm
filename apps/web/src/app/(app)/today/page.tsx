@@ -1,31 +1,22 @@
-import { CalendarCheck } from 'lucide-react';
-import { EmptyState } from '@/components/empty-state';
-import { PageHeader } from '@/components/page-header';
-import { CounterBoard, type Counter } from '@/components/today/counter-board';
-import { getLocale, getTranslator } from '@/i18n/server';
-import { formatDate } from '@/lib/format';
+import { GET_CALLING_LIST, GET_TODAY } from '@/apis';
+import { LoadError } from '@/components/load-error';
+import { TodayView } from '@/components/today/today-view';
+import { getTranslator } from '@/i18n/server';
 
-/** Placeholder Today (T13 fills it): the counter board with nothing due, and the empty state. */
+/** Today: what is waiting on the member, then their calling list. Rendered with the data. */
 export default async function TodayPage() {
-  const [t, locale] = await Promise.all([getTranslator(), getLocale()]);
-  const counters: Counter[] = [
-    { tone: 'overdue', value: 0, label: t('today.overdue') },
-    { tone: 'due', value: 0, label: t('today.dueToday') },
-    { tone: 'missing', value: 0, label: t('today.noOutcome') },
-  ];
-
+  const [today, list] = await Promise.all([GET_TODAY(), GET_CALLING_LIST(1)]);
+  if (!today.success || !list.success || !list.meta) {
+    const t = await getTranslator();
+    return (
+      <LoadError title={t('today.title')} message={t('today.loadError')} />
+    );
+  }
   return (
-    <div className="grid gap-6">
-      <PageHeader
-        title={t('today.title')}
-        description={formatDate(new Date(), locale, 'weekday')}
-      />
-      <CounterBoard counters={counters} />
-      <EmptyState
-        icon={CalendarCheck}
-        title={t('today.emptyTitle')}
-        body={t('today.emptyBody')}
-      />
-    </div>
+    <TodayView
+      today={today.data}
+      callingList={{ rows: list.data, meta: list.meta }}
+      now={new Date().toISOString()}
+    />
   );
 }

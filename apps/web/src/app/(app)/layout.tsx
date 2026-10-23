@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { CallFlowProvider } from '@/components/calling/call-flow';
 import { AppShell } from '@/components/shell/app-shell';
 import { ServerUnavailable } from '@/components/shell/server-unavailable';
 import { LOGIN_PATH } from '@/lib/routes';
@@ -13,5 +14,9 @@ export default async function AppLayout({
   const session = await getSession();
   if (session.status === 'signedOut') redirect(LOGIN_PATH);
   if (session.status === 'unavailable') return <ServerUnavailable />;
-  return <AppShell>{children}</AppShell>;
+  return (
+    <AppShell>
+      <CallFlowProvider>{children}</CallFlowProvider>
+    </AppShell>
+  );
 }

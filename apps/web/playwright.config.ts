@@ -42,6 +42,9 @@ export default defineConfig({
   testDir: './e2e',
   outputDir: './test-results',
   fullyParallel: false,
+  // The specs share the seeded accounts and change their data (calls, outcomes, language):
+  // one worker keeps them from racing each other.
+  workers: 1,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? 'github' : 'list',

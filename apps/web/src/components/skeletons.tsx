@@ -38,3 +38,30 @@ export function PageSkeleton({ rows = 6 }: { rows?: number }) {
     </div>
   );
 }
+
+/** Same box as the Today counter board: three counters. */
+export function CounterBoardSkeleton() {
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          className="grid gap-2 rounded-md bg-card px-3 pt-3 pb-2.5 shadow-raised"
+        >
+          <Skeleton className="h-7 w-10 rounded-pill" />
+          <Skeleton className="h-3 w-16 rounded-pill" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** A section heading with its count pill. */
+export function SectionHeadingSkeleton() {
+  return (
+    <div className="flex min-h-11 items-center gap-2">
+      <Skeleton className="h-4 w-28 rounded-pill" />
+      <Skeleton className="h-4 w-7 rounded-pill" />
+    </div>
+  );
+}
