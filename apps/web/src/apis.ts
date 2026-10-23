@@ -4,23 +4,36 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import {
+  AdCheckInRequestSchema,
+  AreaLookupQuerySchema,
+  CreateListingRequestSchema,
   CreateNoteRequestSchema,
   CreateReminderRequestSchema,
-  LOCALE_COOKIE,
   LanguageSchema,
+  ListingListQuerySchema,
+  ListingPhotoUploadRequestSchema,
+  ListingStatusRequestSchema,
+  LOCALE_COOKIE,
   LoginRequestSchema,
   OwnerListQuerySchema,
   PAGE_LIMIT_MAX,
+  RegisterPhotoRequestSchema,
   ReminderKindSchema,
   ReminderStateSchema,
   ReminderWhenSchema,
+  ReorderPhotosRequestSchema,
   SetCallOutcomeRequestSchema,
   StartCallRequestSchema,
+  UpdateAdRequestSchema,
+  UpdateListingRequestSchema,
   UpdateOwnerRequestSchema,
   UpdateReminderRequestSchema,
+  type AreaOption,
   type Call,
   type CallOutcome,
   type Language,
+  type Listing,
+  type ListingRow,
   type LoginResponse,
   type Me,
   type Note,
@@ -28,10 +41,12 @@ import {
   type OwnerListQuery,
   type OwnerRow,
   type OwnerTimelineItem,
+  type Photo,
   type Reminder,
   type Today,
 } from '@prime-crm/shared';
 import { apiFetch } from '@/lib/api';
+import { apiBaseUrl } from '@/lib/env';
 import type { ApiResult } from '@/lib/api-result';
 import { handleResponse } from '@/lib/handleResponse';
 import { homeFor, LOGIN_PATH, safeReturnPath } from '@/lib/routes';
@@ -300,3 +315,258 @@ export async function MARK_REMINDER_DONE(
     await apiFetch<Reminder>(`/reminders/${id}/done`, { method: 'POST' }),
   );
 }
+
+// ============================================================== listings (T14) — begin
+// Listings, the Property Finder ad, notes and photos (spec, "Listings — /listings" and "Photos").
+
+
+const LISTINGS_TAG = 'listings';
+const listingTag = (id: string) => `listing:${id}`;
+
+/** `GET /listings`: the search, every filter in the URL. Rows never carry the owner phone. */
+export async function SEARCH_LISTINGS(
+  query: unknown,
+): Promise<ApiResult<ListingRow[]>> {
+  const parsed = ListingListQuerySchema.safeParse(query);
+  if (!parsed.success) return invalid();
+  const res = await apiFetch<ListingRow[]>('/listings', {
+    params: parsed.data,
+    cache: 'no-store',
+    next: { tags: [LISTINGS_TAG] },
+  });
+  return handleResponse(res);
+}
+
+/** `GET /listings/:id`: the owner phone is null (and flagged hidden) unless the caller may see it. */
+export async function GET_LISTING(id: string): Promise<ApiResult<Listing>> {
+  if (!IdSchema.safeParse(id).success) return invalid();
+  const res = await apiFetch<Listing>(`/listings/${id}`, {
+    cache: 'no-store',
+    next: { tags: [listingTag(id)] },
+  });
+  return handleResponse(res);
+}
+
+/** The owner a listing is created from (`?ownerId=`): name and area prefill the form. */
+export async function GET_LISTING_SOURCE_OWNER(
+  ownerId: string,
+): Promise<ApiResult<Owner>> {
+  if (!IdSchema.safeParse(ownerId).success) return invalid();
+  const res = await apiFetch<Owner>(`/owners/${ownerId}`, {
+    cache: 'no-store',
+  });
+  return handleResponse(res);
+}
+
+export async function CREATE_LISTING(
+  body: unknown,
+): Promise<ApiResult<Listing>> {
+  const parsed = CreateListingRequestSchema.safeParse(body);
+  if (!parsed.success) return invalid();
+  const res = await apiFetch<Listing>('/listings', {
+    method: 'POST',
+    body: parsed.data,
+    revalidateTags: [LISTINGS_TAG],
+  });
+  return handleResponse(res);
+}
+
+export async function UPDATE_LISTING(
+  id: string,
+  body: unknown,
+): Promise<ApiResult<Listing>> {
+  const parsed = UpdateListingRequestSchema.safeParse(body);
+  if (!IdSchema.safeParse(id).success || !parsed.success) return invalid();
+  const res = await apiFetch<Listing>(`/listings/${id}`, {
+    method: 'PATCH',
+    body: parsed.data,
+    revalidateTags: [LISTINGS_TAG, listingTag(id)],
+  });
+  return handleResponse(res);
+}
+
+export async function SET_LISTING_STATUS(
+  id: string,
+  body: unknown,
+): Promise<ApiResult<Listing>> {
+  const parsed = ListingStatusRequestSchema.safeParse(body);
+  if (!IdSchema.safeParse(id).success || !parsed.success) return invalid();
+  const res = await apiFetch<Listing>(`/listings/${id}/status`, {
+    method: 'POST',
+    body: parsed.data,
+    revalidateTags: [LISTINGS_TAG, listingTag(id)],
+  });
+  return handleResponse(res);
+}
+
+export async function UPDATE_LISTING_AD(
+  id: string,
+  body: unknown,
+): Promise<ApiResult<Listing>> {
+  const parsed = UpdateAdRequestSchema.safeParse(body);
+  if (!IdSchema.safeParse(id).success || !parsed.success) return invalid();
+  const res = await apiFetch<Listing>(`/listings/${id}/ad`, {
+    method: 'PUT',
+    body: parsed.data,
+    revalidateTags: [LISTINGS_TAG, listingTag(id)],
+  });
+  return handleResponse(res);
+}
+
+export async function LOG_LISTING_CHECK_IN(
+  id: string,
+  body: unknown,
+): Promise<ApiResult<Listing>> {
+  const parsed = AdCheckInRequestSchema.safeParse(body);
+  if (!IdSchema.safeParse(id).success || !parsed.success) return invalid();
+  const res = await apiFetch<Listing>(`/listings/${id}/ad/check-in`, {
+    method: 'POST',
+    body: parsed.data,
+    revalidateTags: [LISTINGS_TAG, listingTag(id)],
+  });
+  return handleResponse(res);
+}
+
+export async function DELETE_LISTING(id: string): Promise<ApiResult<null>> {
+  if (!IdSchema.safeParse(id).success) return invalid();
+  const res = await apiFetch<null>(`/listings/${id}`, {
+    method: 'DELETE',
+    revalidateTags: [LISTINGS_TAG, listingTag(id)],
+  });
+  return handleResponse(res);
+}
+
+export async function ADD_LISTING_NOTE(
+  id: string,
+  body: unknown,
+): Promise<ApiResult<Note>> {
+  const parsed = CreateNoteRequestSchema.safeParse(body);
+  if (!IdSchema.safeParse(id).success || !parsed.success) return invalid();
+  const res = await apiFetch<Note>(`/listings/${id}/notes`, {
+    method: 'POST',
+    body: parsed.data,
+    revalidateTags: [listingTag(id)],
+  });
+  return handleResponse(res);
+}
+
+/** Registers a file the browser already uploaded to Blob (see listing-photo upload route). */
+export async function REGISTER_LISTING_PHOTO(
+  id: string,
+  body: unknown,
+): Promise<ApiResult<Photo>> {
+  const parsed = RegisterPhotoRequestSchema.safeParse(body);
+  if (!IdSchema.safeParse(id).success || !parsed.success) return invalid();
+  const res = await apiFetch<Photo>(`/listings/${id}/photos`, {
+    method: 'POST',
+    body: parsed.data,
+    revalidateTags: [LISTINGS_TAG, listingTag(id)],
+  });
+  return handleResponse(res);
+}
+
+export async function REORDER_LISTING_PHOTOS(
+  id: string,
+  body: unknown,
+): Promise<ApiResult<Photo[]>> {
+  const parsed = ReorderPhotosRequestSchema.safeParse(body);
+  if (!IdSchema.safeParse(id).success || !parsed.success) return invalid();
+  const res = await apiFetch<Photo[]>(`/listings/${id}/photos/order`, {
+    method: 'PUT',
+    body: parsed.data,
+    revalidateTags: [LISTINGS_TAG, listingTag(id)],
+  });
+  return handleResponse(res);
+}
+
+export async function DELETE_LISTING_PHOTO(
+  id: string,
+  photoId: string,
+): Promise<ApiResult<null>> {
+  if (!IdSchema.safeParse(id).success || !IdSchema.safeParse(photoId).success)
+    return invalid();
+  const res = await apiFetch<null>(`/listings/${id}/photos/${photoId}`, {
+    method: 'DELETE',
+    revalidateTags: [LISTINGS_TAG, listingTag(id)],
+  });
+  return handleResponse(res);
+}
+
+/** `GET /lookups/areas` (picker): areas with their compounds, from owners and listings. */
+export async function LOOKUP_LISTING_AREAS(
+  query: unknown,
+): Promise<ApiResult<AreaOption[]>> {
+  const parsed = AreaLookupQuerySchema.safeParse(query);
+  if (!parsed.success) return invalid();
+  const res = await apiFetch<AreaOption[]>('/lookups/areas', {
+    params: parsed.data,
+    cache: 'no-store',
+  });
+  return handleResponse(res);
+}
+
+/**
+ * The Blob client-upload handshake (`POST /uploads/listing-photo`): the API answers with a
+ * short-lived client token for one file in this listing's folder; the browser then `put`s the file
+ * straight to Blob with it. The answer is raw (not enveloped), so this reads it itself.
+ */
+export async function REQUEST_LISTING_PHOTO_TOKEN(
+  listingId: string,
+  pathname: string,
+): Promise<ApiResult<{ clientToken: string }>> {
+  if (!IdSchema.safeParse(listingId).success) return invalid();
+  const body = ListingPhotoUploadRequestSchema.safeParse({
+    type: 'blob.generate-client-token',
+    payload: { pathname, clientPayload: JSON.stringify({ listingId }) },
+  });
+  if (!body.success) return invalid();
+  const jar = await cookies();
+  const accessToken = jar.get(ACCESS_COOKIE)?.value;
+  let res: Response;
+  try {
+    // eslint-disable-next-line no-restricted-globals -- the handshake answer is not enveloped, and apiFetch only returns enveloped data
+    res = await fetch(`${apiBaseUrl()}/uploads/listing-photo`, {
+      method: 'POST',
+      cache: 'no-store',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      },
+      body: JSON.stringify(body.data),
+    });
+  } catch {
+    return handleResponse({
+      success: false,
+      status: 0,
+      message: 'Network error',
+      networkError: true,
+    });
+  }
+  const json: unknown = await res.json().catch(() => null);
+  const record =
+    typeof json === 'object' && json !== null
+      ? (json as Record<string, unknown>)
+      : {};
+  if (res.ok && typeof record.clientToken === 'string')
+    return {
+      success: true,
+      status: res.status,
+      data: { clientToken: record.clientToken },
+    };
+  if (res.status === 401)
+    return handleResponse({
+      success: false,
+      unauthorized: true,
+      status: 401,
+      message: 'Unauthorized',
+    });
+  return handleResponse({
+    success: false,
+    status: res.status,
+    error: typeof record.error === 'string' ? record.error : undefined,
+    message:
+      typeof record.message === 'string' ? record.message : 'Upload refused',
+  });
+}
+// ============================================================== listings (T14) — end
