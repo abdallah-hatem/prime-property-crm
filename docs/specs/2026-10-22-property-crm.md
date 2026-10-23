@@ -240,7 +240,7 @@ Stats         { calls, outcomes: { outcomeId, label, count }[], remindersDone,
 - A listing's `title` is derived, never typed: type · bedrooms · area, in the reader's language.
 - `ownerPhone` is `null` with `ownerPhoneHidden: true` unless the listing is assigned to the caller
   or the caller holds `listings.manageAll`.
-- In `Stats`, `assignedOwners` and `adsLive` are counts at the end of the range; the rest count
+- In `Stats`, "the end of the range" is the earlier of the range end and now. `assignedOwners` and `adsLive` are counts at the end of the range; the rest count
   events inside it. `remindersOverdue` = reminders still open at the end of the range whose due time
   is before it. Team totals are the sum of the members.
 - `member: null` on a reminder means unassigned: it belongs to an unassigned owner or listing and
@@ -383,7 +383,7 @@ The web converts HEIC to JPEG and shrinks photos to 2560 px on the long side bef
 | `GET /activity` | `activity.view` | `type[], actorId, from, to, page, limit` | `ActivityEntry[]` | — |
 | `GET /settings` | any | — | `{ adCheckInDays }` | — |
 | `PATCH /settings` | `settings.manage` | `{ adCheckInDays }` (1–90) | `{ adCheckInDays }`; applies to check-ins scheduled after the change | — |
-| `GET /analytics/team` | `analytics.view` | `from, to` (default today, ≤ 366 days) | `{ totals: Stats, members: (UserSummary & Stats)[] }` | `400` bad range |
+| `GET /analytics/team` | `analytics.view` | `from, to` (default today, ≤ 366 days) | `{ range: { from, to }, totals: Stats, members: (UserSummary & { active } & Stats)[] }` | `400` bad range |
 | `GET /analytics/members/:id` | `analytics.view` | `from, to` | `UserSummary & Stats & { byDay: { date, calls }[] }` | `404` |
 | `GET /exports/owners` | `data.export` | the `GET /owners` filters | `.xlsx`, ≤ 50 000 rows | `400 EXPORT_TOO_LARGE` |
 | `GET /exports/listings` | `data.export` | the `GET /listings` filters | `.xlsx` | `400 EXPORT_TOO_LARGE` |

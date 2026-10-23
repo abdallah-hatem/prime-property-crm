@@ -28,3 +28,5 @@
 - T10 merged (bb5a841) · lint/tc 0, api unit 621 · full e2e deferred to end of wave (load) · review running · T13 resumed (next start, 3 projects only) · T10b queued (assign vs deactivate race).
 - T9 merged (02d2532) · conflicts additive · contract: sizeSqm required for listing imports, MAPPING_INVALID, IMPORT_FAILED · verify: lint/tc 0; unit 62+699+36 · 20k owners confirm 6–8 s locally · review running · T10b gains the ASSIGN-activity extraction.
 - T9 review: CONFLICTS (listings import with assignTo writes no ASSIGN entry when no lead linked) → code fix folded into T10b.
+- T11 merged (0f1e662) · conflicts additive + lockfile regenerated · migration reminders.closed_by_delete · verify: lint/tc 0; unit 62+734+36 · contract: analytics range + member active · review running.
+- T13 hit ECONNRESET → resumed. T10b dispatched (agent 7).
