@@ -46,6 +46,7 @@ function makeService(
     ...overrides.users,
   };
   const status = {
+    lockUser: jest.fn(track('lock', undefined)) as jest.Mock<Promise<void>>,
     assignedWork: jest
       .fn()
       .mockResolvedValue({ ownerIds: ['o1', 'o2'], listingIds: ['l1'] }),
@@ -108,7 +109,8 @@ describe('UserStatusService.deactivate', () => {
     const user = await m.svc.deactivate('u1', 'u2', 'admin');
 
     expect(user.active).toBe(false);
-    expect(m.calls).toEqual(['lastAdmin', 'reassign', 'revoke']);
+    expect(m.calls).toEqual(['lock', 'lastAdmin', 'reassign', 'revoke']);
+    expect(m.status.lockUser).toHaveBeenCalledWith(tx, 'u1');
     expect(m.lastAdmin.assertNotLastActiveAdmin).toHaveBeenCalledWith(tx, 'u1');
     expect(m.directory.findActive).toHaveBeenCalledWith('u2', tx);
     expect(m.assignment.reassignOwnerAndListing).toHaveBeenCalledWith(
@@ -148,9 +150,9 @@ describe('UserStatusService.deactivate', () => {
 
   it('self → 400 SELF_DEACTIVATE before any transaction', async () => {
     const m = makeService();
-    await expect(m.svc.deactivate('admin', null, 'admin')).rejects.toMatchObject(
-      { response: { error: 'SELF_DEACTIVATE' } },
-    );
+    await expect(
+      m.svc.deactivate('admin', null, 'admin'),
+    ).rejects.toMatchObject({ response: { error: 'SELF_DEACTIVATE' } });
     expect(m.users.findShape).not.toHaveBeenCalled();
   });
 
@@ -196,7 +198,9 @@ describe('UserStatusService.deactivate', () => {
 
   it('already deactivated → returned unchanged, nothing moved or logged', async () => {
     const m = makeService({
-      users: { findShape: jest.fn().mockResolvedValue(shape({ active: false })) },
+      users: {
+        findShape: jest.fn().mockResolvedValue(shape({ active: false })),
+      },
     });
     const user = await m.svc.deactivate('u1', 'u2', 'admin');
     expect(user.active).toBe(false);
@@ -210,9 +214,7 @@ describe('UserStatusService.deactivate', () => {
         revokeAllSessions: jest.fn().mockRejectedValue(new Error('boom')),
       },
     });
-    await expect(m.svc.deactivate('u1', 'u2', 'admin')).rejects.toThrow(
-      'boom',
-    );
+    await expect(m.svc.deactivate('u1', 'u2', 'admin')).rejects.toThrow('boom');
     expect(m.status.setActive).not.toHaveBeenCalled();
     expect(m.activity.record).not.toHaveBeenCalled();
   });
@@ -221,7 +223,9 @@ describe('UserStatusService.deactivate', () => {
 describe('UserStatusService.reactivate', () => {
   it('reactivates and logs USER_REACTIVATE; moves nothing back', async () => {
     const m = makeService({
-      users: { findShape: jest.fn().mockResolvedValue(shape({ active: false })) },
+      users: {
+        findShape: jest.fn().mockResolvedValue(shape({ active: false })),
+      },
     });
     const user = await m.svc.reactivate('u1', 'admin');
     expect(user.active).toBe(true);

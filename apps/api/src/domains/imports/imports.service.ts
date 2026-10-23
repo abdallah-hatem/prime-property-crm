@@ -29,6 +29,7 @@ import { pageWindow, toPage } from '../../common/utils/pagination.util';
 import { hasPermission } from '../../common/utils/permissions.util';
 import { DatabaseService } from '../../database/database.service';
 import { ActivityService } from '../activity/activity.service';
+import { assignActivity } from '../assignment/assign-activity';
 import { AssignmentService } from '../assignment/assignment.service';
 import type {
   ImportIssuesQueryDto,
@@ -274,23 +275,6 @@ export class ImportsService {
 
   // ------------------------------------------------------------------ confirm
 
-  private async recordAssign(
-    tx: Tx,
-    actorId: string,
-    kind: ImportKind,
-    count: number,
-    assignee: UserSummary,
-  ): Promise<void> {
-    const noun = `${kind === 'OWNERS' ? 'owner' : 'listing'}${count === 1 ? '' : 's'}`;
-    await this.activity.record(tx, {
-      type: 'ASSIGN',
-      actorId,
-      summary: `Assigned ${count} ${noun} to ${assignee.name}`,
-      target: { kind: 'USER', id: assignee.id, label: assignee.name },
-      details: { kind, count, assigneeId: assignee.id },
-    });
-  }
-
   private async addOwners(
     tx: Tx,
     job: ImportJobData,
@@ -309,14 +293,23 @@ export class ImportsService {
       assignToId: assignee?.id ?? null,
     });
     if (assignee) {
-      await this.recordAssign(tx, user.id, 'OWNERS', owners.length, assignee);
+      await this.activity.record(
+        tx,
+        assignActivity(user.id, {
+          kind: 'OWNERS',
+          count: owners.length,
+          assignee,
+        }),
+      );
     }
   }
 
   /**
    * New listings go to the chosen member (else the importer). A listing whose phone is an
    * owner lead's links to it: the lead becomes Listed and moves (with its open reminders) to
-   * the listing's member, as with `POST /listings`; one ASSIGN entry for the leads that moved.
+   * the listing's member, as with `POST /listings`. With `assignTo`: one ASSIGN entry for the
+   * listings (and the leads that moved with them), linked or not. Without it the listings are
+   * the importer's own, so the entry, if any, is for the leads that moved to the importer.
    */
   private async addListings(
     tx: Tx,
@@ -360,9 +353,28 @@ export class ImportsService {
         user.id,
       );
     }
-    if (moving.length) {
-      const to = assignee ?? (await this.users.findActive(user.id, tx));
-      if (to) await this.recordAssign(tx, user.id, 'OWNERS', moving.length, to);
+    if (assignee) {
+      await this.activity.record(
+        tx,
+        assignActivity(user.id, {
+          kind: 'LISTINGS',
+          count: listings.length,
+          assignee,
+          linkedOwners: moving.length,
+        }),
+      );
+    } else if (moving.length) {
+      const to = await this.users.findActive(user.id, tx);
+      if (to) {
+        await this.activity.record(
+          tx,
+          assignActivity(user.id, {
+            kind: 'OWNERS',
+            count: moving.length,
+            assignee: to,
+          }),
+        );
+      }
     }
   }
 
