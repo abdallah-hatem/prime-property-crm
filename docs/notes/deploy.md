@@ -72,7 +72,9 @@ The Neon integration also writes ~18 other `PG*` / `POSTGRES_*` variables; they 
 
 `DATABASE_URL` (the Neon **unpooled** URL), `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`,
 `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, optionally `R2_ADMIN_ACCESS_KEY_ID` /
-`R2_ADMIN_SECRET_ACCESS_KEY`. See `docs/notes/backups.md`.
+`R2_ADMIN_SECRET_ACCESS_KEY`. See `docs/notes/backups.md`. Both backup workflows are **disabled**
+on GitHub until these secrets exist; enable them after adding the secrets (commands in
+`docs/notes/backups.md`).
 
 ## First deploy runbook
 

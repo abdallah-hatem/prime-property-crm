@@ -49,3 +49,4 @@
 - UI audit (whole app, 660 screenshots): 0 blocker · 7 major · 10 minor · 3 nit; no layout shift. Fix tasks T22 (shell/text/forms/tokens) ∥ T23 (overlays/tables/layouts). Audit changed sample data (1 call, 3 restores, 1 draft import) — DB dropped after.
 - T23 merged (audit fixes B): 7/7 fixed (filter sheet already scrolled); new ui/scroll-cue; select opens below its trigger; 320 px scrollWidth = 320 on 6 screens; smoke owners-admin 6 · admin 18 · analytics 6 · listings 9. Checked after-shots (select, import preview).
 - T22 merged + gap fixes (select placeholder token, owner-detail bidi) 55e4b1e. Final verify on merged dev: lint/tc 0; unit 63+745+155; API e2e 16 files 387/387; next build ok. Secret scan clean. Pushing dev (user request).
+- Backup + restore-drill workflows disabled on GitHub (user). Docs updated: README (status, stack, local run), notes/backups.md (current state + enable commands), notes/deploy.md.

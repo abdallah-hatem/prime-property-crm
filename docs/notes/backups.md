@@ -17,6 +17,17 @@ fails opens an issue titled "Nightly backup failed (date)" or "Backup restore dr
 The dump is restorable directly: `pg_restore --no-owner --no-privileges -d <url> YYYY-MM-DD.dump`
 (the `.dump` is gzip-compressed inside the custom format; do not gunzip it).
 
+## Current state: both workflows are disabled
+
+Disabled on GitHub on 2026-10-23, at the owner's request, until Neon and R2 exist — without their
+secrets every scheduled run would fail and open an issue. Turn them back on as the last step of the
+setup below (step 6), once the secrets are in place:
+
+```bash
+gh workflow enable backup.yml -R abdallah-hatem/prime-property-crm
+gh workflow enable backup-restore-drill.yml -R abdallah-hatem/prime-property-crm
+```
+
 ## One-time setup (no values go in the repo)
 
 1. **Cloudflare R2.** In the Cloudflare dashboard (free tier): R2 → Create bucket, e.g.
@@ -44,7 +55,8 @@ The dump is restorable directly: `pg_restore --no-owner --no-privileges -d <url>
      (`DATABASE_URL_UNPOOLED` in Vercel). The dump holds one session open for its snapshot, which a
      transaction pooler can break.
    - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`.
-6. **First run.** Actions → Backup → Run workflow; check the summary lists the dump size and table
+6. **Enable and first run.** Enable both workflows (commands above), then Actions → Backup → Run
+   workflow; check the summary lists the dump size and table
    count. Then Actions → Backup restore drill → Run workflow; it must end with
    `OK: restored N tables, M rows; every count matches the source.` and the lifecycle `OK`.
 7. Record the bucket name, token names (not secrets) and the date of the first good drill in
