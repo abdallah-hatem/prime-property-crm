@@ -3,7 +3,7 @@ Run mode: fully autonomous — chosen by the user on 2026-10-22
 Goal (current): a mobile-first CRM for Prime's real estate team — owner leads, calls, listings,
 Property Finder follow-up, admin analytics and backups · spec `docs/specs/2026-10-22-property-crm.md`
 · plan `docs/superpowers/plans/2026-10-22-property-crm.md`
-Current stage: 6 — Build · PAUSING at the user's request (2026-10-23) · done on local dev: T0–T14, T10b, T18, T19, T20 · in flight: T15 (worktree .claude/worktrees/t15, branch feature/web-owners-admin), T16 (t16, feature/web-admin).
+Current stage: 6 — Build · PAUSED at the user's request (2026-10-23) · done on local dev: T0–T16, T10b, T18, T19, T20 · not started: T17 analytics UI, T21 web shared cleanup, Verify, Ship.
 
 ## Waiting on the user
 - GitHub write access: the user will run `gh auth switch -u abdallah-hatem` later (said 2026-10-23: keep working locally). Everything stays on local branches until then.
@@ -13,8 +13,9 @@ Current stage: 6 — Build · PAUSING at the user's request (2026-10-23) · done
 - (none)
 
 ## Next up
-- T15/T16 allowed to finish and be merged (user, 2026-10-23); nothing else starts until the user resumes. If they didn't land: check .claude/worktrees/t15, t16 and resume from WIP commits.
-- Then T17 analytics UI, T21 web shared cleanup, then Verify (full suite, smoke all projects, ui-auditor, break-ui).
+- On resume: T17 analytics UI ∥ T21 web shared cleanup (its list is in the plan's T21 row — includes asks from T13–T16 and T20).
+- Then Verify: full suite on merged dev, smoke in all 8 projects, ui-auditor over every screen, break-ui on lists/detail.
+- Ship needs the user: `gh auth switch -u abdallah-hatem` (push) and Vercel access (Neon, Blob, deploy).
 - Max 3 heavy agents at once; servers via run_in_background; long commands under `timeout 420` (see .claude/LEARNINGS.md).
 
 ## Phases

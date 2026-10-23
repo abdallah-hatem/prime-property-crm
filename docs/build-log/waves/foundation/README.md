@@ -37,3 +37,5 @@
 - Wave 9: T20 api gaps (agent 2) ∥ T15 owners admin + import wizard (agent 3, web) ∥ T16 admin screens (agent 4, web) — web tasks append delimited blocks to apis.ts and own locale namespaces.
 - T20 merged · api unit 744, e2e api-gaps 11 (+VERCEL=1) and related specs green per agent · T21 gains: save locale on sign-in.
 - T15 merged · verify: lint/tc 0; web unit 92 · next.config serverActions bodySizeLimit 5mb · T21 gains T15 shared asks + API GET /imports/:id.
+- T16 merged (edce28d) · apis.ts rebuilt, locales deep-merged (911 keys, identical) · verify: lint/tc 0; unit 62+744+104; next build ok. T21 gains T16 shared asks.
+- PAUSED (user, 2026-10-23).
