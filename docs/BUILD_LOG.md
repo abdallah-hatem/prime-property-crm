@@ -6,7 +6,7 @@ Property Finder follow-up, admin analytics and backups · spec `docs/specs/2026-
 Current stage: 7 — Verify · all build tasks T0–T21 merged on local dev.
 
 ## Waiting on the user
-- GitHub write access: user asked (2026-10-23) to push dev after the UI-audit fixes merge. Active gh account is still Abdallah-Kortam10 (no write access); needs `gh auth switch -u abdallah-hatem` first.
+- GitHub: switched to abdallah-hatem at the user's request (2026-10-23); `git push --dry-run origin dev` succeeds. Push dev after T22/T23 merge (user request).
 - Vercel account access (user will provide) — needed for Neon, Blob and deploys; local dev runs on Docker Postgres until then.
 
 ## Blocked
