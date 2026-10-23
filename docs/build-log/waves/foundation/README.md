@@ -40,3 +40,4 @@
 - T16 merged (edce28d) · apis.ts rebuilt, locales deep-merged (911 keys, identical) · verify: lint/tc 0; unit 62+744+104; next build ok. T21 gains T16 shared asks.
 - PAUSED (user, 2026-10-23).
 - RESUMED (user, /build-software continue). Wave 10: T17 analytics UI (agent 5) ∥ T21 shared cleanup + small API asks (agent 6) · T17 must not edit shared components (T21 owns them) · both append delimited blocks to apis.ts and own locale namespaces.
+- T17 merged · verify: lint/tc 0; web unit 117 · T17 shared asks (binary apiFetch, calendar RTL/weekStartsOn, filter-chips slot, homeFor admin → /analytics) sent to T21, which is finishing them.
