@@ -76,8 +76,15 @@ export function CallFlowProvider({ children }: { children: React.ReactNode }) {
   const inFlight = useRef(false);
   /** One id per owner + number until that call exists. */
   const requestIds = useRef(new Map<string, string>());
-  /** The call waiting for the member to come back from the dialer. */
-  const awaiting = useRef<{ call: CallSummary; left: boolean } | null>(null);
+  /**
+   * The call waiting for the member to come back from the dialer. `call` is null until the API
+   * answers; `back` is set when the member returned (or there was no dialer) before it did.
+   */
+  const awaiting = useRef<{
+    call: CallSummary | null;
+    left: boolean;
+    back: boolean;
+  } | null>(null);
   const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showSheet = useCallback((call: CallSummary) => {
@@ -88,6 +95,14 @@ export function CallFlowProvider({ children }: { children: React.ReactNode }) {
     setSheetOpen(true);
   }, []);
 
+  /** The member is back (or never left): the sheet opens now, or as soon as the call exists. */
+  const arrive = useCallback(() => {
+    const pending = awaiting.current;
+    if (!pending) return;
+    if (pending.call) showSheet(pending.call);
+    else pending.back = true;
+  }, [showSheet]);
+
   // Back from the dialer: the page was hidden (phones) or lost focus (desktop softphones).
   useEffect(() => {
     const onLeave = () => {
@@ -97,9 +112,8 @@ export function CallFlowProvider({ children }: { children: React.ReactNode }) {
       fallbackTimer.current = null;
     };
     const onReturn = () => {
-      const pending = awaiting.current;
-      if (pending?.left && document.visibilityState === 'visible')
-        showSheet(pending.call);
+      if (awaiting.current?.left && document.visibilityState === 'visible')
+        arrive();
     };
     const onVisibility = () =>
       document.visibilityState === 'hidden' ? onLeave() : onReturn();
@@ -114,68 +128,90 @@ export function CallFlowProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener('pageshow', onReturn);
       if (fallbackTimer.current) clearTimeout(fallbackTimer.current);
     };
-  }, [showSheet]);
+  }, [arrive]);
 
+  /**
+   * Must run inside the member's tap. Phones open `tel:` only during a user gesture, so the
+   * dialer opens right away while the call is created in the background; the outcome sheet
+   * waits for that call.
+   */
   const dial = useCallback(
-    async (target: CallTarget, phone: string) => {
+    (target: CallTarget, phone: string) => {
+      if (inFlight.current) return;
+      inFlight.current = true;
+      setBusyOwnerId(target.id);
+
       const key = `${target.id}|${phone}`;
       const clientRequestId =
         requestIds.current.get(key) ?? crypto.randomUUID();
       requestIds.current.set(key, clientRequestId);
 
-      const res = await callApi(
+      const request = callApi(
         START_CALL(target.id, { phone, clientRequestId }),
       );
-      if (!res.success) {
-        // A refusal (Do not call, listed…) is final; a network failure keeps the id for the retry.
-        if (!isUnauthorized(res) && res.status !== 0)
-          requestIds.current.delete(key);
-        return;
-      }
-      requestIds.current.delete(key);
-      const call = toSummary(res.data);
-      awaiting.current = { call, left: false };
+      awaiting.current = { call: null, left: false, back: false };
       fallbackTimer.current = setTimeout(() => {
-        if (awaiting.current && !awaiting.current.left)
-          showSheet(awaiting.current.call);
+        if (awaiting.current && !awaiting.current.left) arrive();
       }, NO_DIALER_FALLBACK_MS);
-      openTel(res.data.phone);
-    },
-    [showSheet],
-  );
+      openTel(phone);
 
-  const run = useCallback(
-    async (ownerId: string, work: () => Promise<void>) => {
-      if (inFlight.current) return;
-      inFlight.current = true;
-      setBusyOwnerId(ownerId);
-      try {
-        await work();
-      } catch {
-        // The action itself didn't reach the server; the button frees up for another try.
-      } finally {
-        inFlight.current = false;
-        setBusyOwnerId(null);
-      }
+      void request
+        .then((res) => {
+          if (!res.success) {
+            // A refusal (Do not call, listed…) is final; a network failure keeps the id for the retry.
+            if (!isUnauthorized(res) && res.status !== 0)
+              requestIds.current.delete(key);
+            awaiting.current = null;
+            if (fallbackTimer.current) clearTimeout(fallbackTimer.current);
+            return;
+          }
+          requestIds.current.delete(key);
+          const call = toSummary(res.data);
+          if (!awaiting.current) return;
+          awaiting.current.call = call;
+          if (awaiting.current.back) showSheet(call);
+        })
+        .catch(() => {
+          // The action itself didn't reach the server; the button frees up for another try.
+          awaiting.current = null;
+        })
+        .finally(() => {
+          inFlight.current = false;
+          setBusyOwnerId(null);
+        });
     },
-    [],
+    [arrive, showSheet],
   );
 
   const startCall = useCallback(
     (target: CallTarget, phone?: string) => {
-      void run(target.id, async () => {
-        let phones = target.phones;
-        if (!phones) {
-          const res = await callApi(GET_OWNER(target.id));
-          if (!res.success) return;
-          phones = res.data.phones;
-        }
-        const chosen = phone ?? (phones.length === 1 ? phones[0] : undefined);
-        if (chosen) await dial(target, chosen);
-        else if (phones.length > 1) setChoosing({ target, phones });
-      });
+      const known =
+        phone ?? (target.phones?.length === 1 ? target.phones[0] : undefined);
+      if (known) {
+        dial(target, known);
+        return;
+      }
+      if (target.phones) {
+        setChoosing({ target, phones: target.phones });
+        return;
+      }
+      // A reminder row has no numbers: load them, then ask for one more tap so the dialer
+      // opens inside a gesture (a tel: link after a network wait is blocked on phones).
+      if (inFlight.current) return;
+      inFlight.current = true;
+      setBusyOwnerId(target.id);
+      void callApi(GET_OWNER(target.id))
+        .then((res) => {
+          if (res.success && res.data.phones.length > 0)
+            setChoosing({ target, phones: res.data.phones });
+        })
+        .catch(() => {})
+        .finally(() => {
+          inFlight.current = false;
+          setBusyOwnerId(null);
+        });
     },
-    [dial, run],
+    [dial],
   );
 
   const value = useMemo(
@@ -197,8 +233,18 @@ export function CallFlowProvider({ children }: { children: React.ReactNode }) {
           data-testid="phone-chooser"
         >
           <DialogHeader>
-            <DialogTitle>{t('calling.choosePhoneTitle')}</DialogTitle>
-            <DialogDescription>
+            <DialogTitle>
+              {choosing && choosing.phones.length > 1
+                ? t('calling.choosePhoneTitle')
+                : t('calling.callName', {
+                    name: isolate(choosing?.target.name ?? ''),
+                  })}
+            </DialogTitle>
+            <DialogDescription
+              className={
+                choosing && choosing.phones.length > 1 ? undefined : 'sr-only'
+              }
+            >
               {t('calling.choosePhoneBody', {
                 name: isolate(choosing?.target.name ?? ''),
               })}
@@ -212,7 +258,7 @@ export function CallFlowProvider({ children }: { children: React.ReactNode }) {
                 onClick={() => {
                   const { target } = choosing;
                   setChoosing(null);
-                  void run(target.id, () => dial(target, phone));
+                  dial(target, phone);
                 }}
                 className="flex h-14 cursor-pointer items-center gap-3 rounded-md bg-secondary px-4 text-start transition-colors duration-150 hover:bg-accent active:bg-accent"
               >

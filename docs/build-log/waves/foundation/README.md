@@ -50,3 +50,4 @@
 - T23 merged (audit fixes B): 7/7 fixed (filter sheet already scrolled); new ui/scroll-cue; select opens below its trigger; 320 px scrollWidth = 320 on 6 screens; smoke owners-admin 6 · admin 18 · analytics 6 · listings 9. Checked after-shots (select, import preview).
 - T22 merged + gap fixes (select placeholder token, owner-detail bidi) 55e4b1e. Final verify on merged dev: lint/tc 0; unit 63+745+155; API e2e 16 files 387/387; next build ok. Secret scan clean. Pushing dev (user request).
 - Backup + restore-drill workflows disabled on GitHub (user). Docs updated: README (status, stack, local run), notes/backups.md (current state + enable commands), notes/deploy.md.
+- Phone-test fixes (2026-10-24): Call opens tel: inside the tap (call-flow, 3 new tests); desktop wheel over tables scrolls the page (globals.css; e2e/desktop-scroll.spec.ts failed before, passes after). Verify: lint/tc 0; web unit 158; smoke 35 + calling 27 in all 8 projects; desktop-scroll 1.

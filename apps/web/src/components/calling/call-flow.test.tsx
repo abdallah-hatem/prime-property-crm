@@ -122,6 +122,19 @@ afterEach(() => {
 });
 
 describe('call flow', () => {
+  it('opens the dialer inside the tap, before the call is created', async () => {
+    let resolve: (value: ApiResult<Call>) => void = () => {};
+    api.START_CALL.mockReturnValue(new Promise((r) => (resolve = r)));
+    const user = userEvent.setup();
+    renderWith(<CallButton target={OWNER} />);
+
+    await user.click(screen.getByTestId('call-button'));
+    // Phones only allow tel: during the tap: it must not wait for the API.
+    expect(openTel).toHaveBeenCalledWith(OWNER.phones[0]);
+    expect(api.START_CALL).toHaveBeenCalledTimes(1);
+    await act(async () => resolve(ok(CALL)));
+  });
+
   it('creates the call once on a double tap and opens tel:', async () => {
     let resolve: (value: ApiResult<Call>) => void = () => {};
     api.START_CALL.mockReturnValue(new Promise((r) => (resolve = r)));
@@ -143,7 +156,7 @@ describe('call flow', () => {
     expect(body.phone).toBe(OWNER.phones[0]);
     expect(body.clientRequestId).toMatch(/^[0-9a-f-]{36}$/);
     expect(openTel).toHaveBeenCalledTimes(1);
-    expect(openTel).toHaveBeenCalledWith(CALL.phone);
+    expect(openTel).toHaveBeenCalledWith(OWNER.phones[0]);
   });
 
   it('reuses the client request id when the first try never reached the API', async () => {
@@ -160,7 +173,7 @@ describe('call flow', () => {
       expect(screen.getByTestId('call-button')).toBeEnabled(),
     );
     await user.click(screen.getByTestId('call-button'));
-    await waitFor(() => expect(openTel).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(api.START_CALL).toHaveBeenCalledTimes(2));
 
     const ids = api.START_CALL.mock.calls.map(
       (c) => (c[1] as { clientRequestId: string }).clientRequestId,
@@ -181,6 +194,33 @@ describe('call flow', () => {
     expect(
       await within(sheet).findByRole('radio', { name: 'No answer' }),
     ).toBeInTheDocument();
+  });
+
+  it('waits for the call when the member comes back before it is created', async () => {
+    let resolve: (value: ApiResult<Call>) => void = () => {};
+    api.START_CALL.mockReturnValue(new Promise((r) => (resolve = r)));
+    const user = userEvent.setup();
+    renderWith(<CallButton target={OWNER} />);
+    await user.click(screen.getByTestId('call-button'));
+    leaveAndReturn();
+    expect(screen.queryByTestId('outcome-sheet')).not.toBeInTheDocument();
+
+    await act(async () => resolve(ok(CALL)));
+    expect(await screen.findByTestId('outcome-sheet')).toBeInTheDocument();
+  });
+
+  it('loads the numbers of a reminder row, then dials on the next tap', async () => {
+    api.GET_OWNER.mockResolvedValue(ok({ ...OWNER, notes: [] }));
+    const user = userEvent.setup();
+    renderWith(<CallButton target={{ id: OWNER.id, name: OWNER.name }} />);
+    await user.click(screen.getByTestId('call-button'));
+    expect(openTel).not.toHaveBeenCalled();
+
+    await user.click(
+      await screen.findByRole('button', { name: /0100 482 1937/ }),
+    );
+    expect(openTel).toHaveBeenCalledWith(OWNER.phones[0]);
+    expect(api.START_CALL).toHaveBeenCalledTimes(1);
   });
 
   it('opens the sheet anyway when there is no dialer to leave for', async () => {
@@ -212,7 +252,7 @@ describe('call flow', () => {
     );
   });
 
-  it('shows the translated refusal and opens no dialer for a Do not call owner', async () => {
+  it('shows the translated refusal and no outcome sheet for a Do not call owner', async () => {
     const { toast } = await import('sonner');
     api.START_CALL.mockResolvedValue({
       success: false,
@@ -228,7 +268,8 @@ describe('call flow', () => {
         'This owner is marked Do not call.',
       ),
     );
-    expect(openTel).not.toHaveBeenCalled();
+    leaveAndReturn();
+    expect(screen.queryByTestId('outcome-sheet')).not.toBeInTheDocument();
   });
 });
 

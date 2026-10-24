@@ -424,6 +424,12 @@
   .scrollbar-clean:not(html, body) {
     overscroll-behavior: contain;
   }
+  /* A sideways-only scroller (a wide table, a chip row) is a vertical scroll container too:
+     overflow-x: auto turns overflow-y into auto. Containing its vertical overscroll swallowed the
+     wheel over every table on desktop, so the page didn't scroll. Contain sideways only. */
+  .scrollbar-clean.overflow-x-auto:not(.overflow-y-auto, .overflow-auto) {
+    overscroll-behavior-y: auto;
+  }
   /* iOS Safari zooms into any field under 16px and stays zoomed. Components set their own size
      (16px on phones, 14px from md); this floor covers any field that doesn't. */
   @media (max-width: 47.999rem) {
