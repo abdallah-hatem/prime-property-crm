@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { Phone } from 'lucide-react';
 import type { Call } from '@prime-crm/shared';
 import { GET_OWNER, START_CALL } from '@/apis';
+import { randomUuid } from '@/lib/uuid';
 import {
   Dialog,
   DialogBody,
@@ -143,7 +144,7 @@ export function CallFlowProvider({ children }: { children: React.ReactNode }) {
 
       const key = `${target.id}|${phone}`;
       const clientRequestId =
-        requestIds.current.get(key) ?? crypto.randomUUID();
+        requestIds.current.get(key) ?? randomUuid();
       requestIds.current.set(key, clientRequestId);
 
       const request = callApi(

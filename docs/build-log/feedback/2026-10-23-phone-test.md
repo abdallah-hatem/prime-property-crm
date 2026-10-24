@@ -16,3 +16,7 @@ Tested by the user on the local dev server (phone over Wi-Fi at the Mac's LAN ad
   `.scrollbar-clean { overscroll-behavior: contain }` stopped the wheel from reaching the page.
   Fixed (2026-10-24) in `globals.css`: sideways-only scrollers contain sideways only. Test:
   `e2e/desktop-scroll.spec.ts` (failed before the fix).
+- [x] **Call on the phone: "crypto.randomUUID is not a function"** (2026-10-24, phone on the dev
+  server by LAN IP over http). Browsers expose `crypto.randomUUID` only on secure pages; production
+  is HTTPS, but local phone testing isn't. Fixed: `src/lib/uuid.ts` falls back to
+  `crypto.getRandomValues`. Test: `src/lib/uuid.test.ts`.
