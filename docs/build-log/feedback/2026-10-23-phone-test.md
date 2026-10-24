@@ -9,7 +9,7 @@ Tested by the user on the local dev server (phone over Wi-Fi at the Mac's LAN ad
   in the same tap; the outcome sheet waits for the call record. A reminder row loads the numbers
   first, then a one-tap Call confirmation opens the dialer. Tests: `call-flow.test.tsx` ("opens the
   dialer inside the tap…", "waits for the call…", "loads the numbers of a reminder row…").
-  Still to confirm on a real phone.
+  Confirmed on a real phone by the user (2026-10-24).
 - [x] **Tables don't scroll on desktop.** The wheel over a table moved nothing (reproduced: on
   /owners and /activity the page stayed at the top). Cause: each table sits in a sideways scroller
   (`overflow-x-auto`), which CSS also makes a vertical scroll container, and the global
@@ -20,3 +20,5 @@ Tested by the user on the local dev server (phone over Wi-Fi at the Mac's LAN ad
   server by LAN IP over http). Browsers expose `crypto.randomUUID` only on secure pages; production
   is HTTPS, but local phone testing isn't. Fixed: `src/lib/uuid.ts` falls back to
   `crypto.getRandomValues`. Test: `src/lib/uuid.test.ts`.
+- [ ] **Times show in 24-hour format; use 12-hour** (2026-10-24, e.g. "9:00 PM", in English and
+  Arabic). Status: to fix later — every time shown in the app (reminders, calls, activity, analytics).

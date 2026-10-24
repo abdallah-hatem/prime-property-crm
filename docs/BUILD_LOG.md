@@ -14,7 +14,9 @@ Current stage: 7 — Verify done locally (unit, e2e, smoke 8 projects, UI audit 
 ## Next up
 - Phone-test feedback (2026-10-23) fixed 2026-10-24: Call opens the dialer inside the tap; the
   wheel scrolls the page over desktop tables · [feedback](build-log/feedback/2026-10-23-phone-test.md)
-  — confirm the dialer on a real phone.
+  — dialer confirmed on a real phone by the user.
+- To fix later (user, 2026-10-24): show times in 12-hour format ("9:00 PM"), not 24-hour, across
+  the app · [feedback](build-log/feedback/2026-10-23-phone-test.md)
 - Re-run the smoke specs in all 8 projects on the final dev (the audit fixes were smoke-checked in 3 projects).
 - Release alignment review over everything (base e4606d1..dev), then the release PR dev → production.
 - With Vercel access: create the Neon database and Blob store, deploy the preview from dev, run migrations, seed the preview, smoke against the preview URL (docs/notes/deploy.md). Then Neon + R2 secrets and re-enable the backup workflows (docs/notes/backups.md).
