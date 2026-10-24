@@ -47,7 +47,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <PhoneTopBar />
         <main
           id="main"
-          className="mx-auto w-full max-w-5xl px-safe-4 pt-2 pb-[calc(7.5rem+env(safe-area-inset-bottom))] md:px-8 md:pt-8 md:pb-12 short:pb-[calc(5rem+env(safe-area-inset-bottom))]"
+          className="mx-auto w-full max-w-5xl px-safe-4 pt-2 pb-[calc(6.5rem+max(1rem,env(safe-area-inset-bottom)))] md:px-8 md:pt-8 md:pb-12 short:pb-[calc(4.5rem+max(0.5rem,env(safe-area-inset-bottom)))]"
         >
           {children}
         </main>
@@ -206,7 +206,7 @@ function BottomNav() {
   return (
     <nav
       aria-label={t('nav.mainNavigation')}
-      className="fixed inset-x-[max(0.875rem,env(safe-area-inset-left),env(safe-area-inset-right))] bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40 md:hidden short:bottom-[calc(0.5rem+env(safe-area-inset-bottom))]"
+      className="fixed inset-x-[max(0.875rem,env(safe-area-inset-left),env(safe-area-inset-right))] bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 md:hidden short:bottom-[max(0.5rem,env(safe-area-inset-bottom))]"
     >
       <ul className="grid grid-cols-4 gap-0.5 rounded-pill border border-border bg-card/80 p-1 shadow-raised backdrop-blur-lg">
         {tabs.map((route) => {
