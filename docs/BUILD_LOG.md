@@ -12,6 +12,8 @@ Current stage: 7 — Verify done locally (unit, e2e, smoke 8 projects, UI audit 
 - (none)
 
 ## Next up
+- To fix later (user, 2026-10-23): Call button does nothing on the phone; tables don't scroll on
+  desktop · [feedback](build-log/feedback/2026-10-23-phone-test.md)
 - Re-run the smoke specs in all 8 projects on the final dev (the audit fixes were smoke-checked in 3 projects).
 - Release alignment review over everything (base e4606d1..dev), then the release PR dev → production.
 - With Vercel access: create the Neon database and Blob store, deploy the preview from dev, run migrations, seed the preview, smoke against the preview URL (docs/notes/deploy.md). Then Neon + R2 secrets and re-enable the backup workflows (docs/notes/backups.md).

@@ -4,6 +4,8 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   // The dev badge sits over the phone tab bar in screenshots.
   devIndicators: false,
+  // Lets a phone on the same Wi-Fi open the dev server by LAN IP (DEV_ORIGINS=192.168.1.2).
+  allowedDevOrigins: process.env.DEV_ORIGINS?.split(',').filter(Boolean),
   experimental: {
     // Next 16 caches Turbopack builds on disk by default; a stale cache has produced broken
     // production builds, so builds always start clean.
