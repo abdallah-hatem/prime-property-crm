@@ -174,7 +174,7 @@ export function SelectionDock({
       className={cn(
         // Longhands only: a shorthand `inset-x` would override `md:end-8` (and drop the dock
         // into the page flow) depending on the order Tailwind emits them.
-        'fixed start-[max(0.875rem,env(safe-area-inset-left))] end-[max(0.875rem,env(safe-area-inset-right))] bottom-[calc(4.75rem+max(1rem,env(safe-area-inset-bottom)))] z-30',
+        'fixed start-[max(0.875rem,env(safe-area-inset-left))] end-[max(0.875rem,env(safe-area-inset-right))] bottom-[calc(4.75rem+max(0.25rem,calc(env(safe-area-inset-bottom)-0.5rem)))] z-30',
         'md:start-auto md:end-8 md:bottom-8',
         'animate-in duration-200 fade-in-0 slide-in-from-bottom-2 motion-reduce:slide-in-from-bottom-0',
       )}

@@ -19,6 +19,8 @@ cards on a cool page, lifted by soft shadows instead of outlined by boxes.
 - An owner row carries an urgency marker at its start edge, who and where, a status chip, when,
   and the Call button at its end edge. The marker and the button mirror under Arabic.
 - Bottom tab bar and action docks float as frosted pills above the content.
+  The tab bar sits close to the bottom edge: a small gap in the browser, and in the installed app
+  it rests on the home-indicator area (the larger of the two, never both added together).
 
 ## Colour roles
 
