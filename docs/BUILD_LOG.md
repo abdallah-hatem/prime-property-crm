@@ -15,6 +15,8 @@ Current stage: 7 — Verify done locally (unit, e2e, smoke 8 projects, UI audit 
 - Phone-test feedback (2026-10-23) fixed 2026-10-24: Call opens the dialer inside the tap; the
   wheel scrolls the page over desktop tables · [feedback](build-log/feedback/2026-10-23-phone-test.md)
   — dialer confirmed on a real phone by the user.
+- Tab bar position in the installed app fixed and approved on a real phone (2026-10-24) ·
+  [feedback](build-log/feedback/2026-10-23-phone-test.md)
 - To fix later (user, 2026-10-24): show times in 12-hour format ("9:00 PM"), not 24-hour, across
   the app · [feedback](build-log/feedback/2026-10-23-phone-test.md)
 - Re-run the smoke specs in all 8 projects on the final dev (the audit fixes were smoke-checked in 3 projects).

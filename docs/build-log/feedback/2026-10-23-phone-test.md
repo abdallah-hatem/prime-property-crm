@@ -22,3 +22,8 @@ Tested by the user on the local dev server (phone over Wi-Fi at the Mac's LAN ad
   `crypto.getRandomValues`. Test: `src/lib/uuid.test.ts`.
 - [ ] **Times show in 24-hour format; use 12-hour** (2026-10-24, e.g. "9:00 PM", in English and
   Arabic). Status: to fix later — every time shown in the app (reminders, calls, activity, analytics).
+- [x] **Tab bar sits too high in the installed app** (2026-10-24). The bar added its gap on top of
+  the home-indicator inset, so in the installed app it floated ~50px up. Fixed: the bar, the content
+  padding under it and the selection toolbar above it use the larger of a small gap and the inset
+  (minus 8px), never both. Tuned with the user on a real phone: installed app approved; browser gap
+  4px. Checks: lint, typecheck, shell tests.
